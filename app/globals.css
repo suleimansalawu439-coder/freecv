@@ -25,44 +25,115 @@ body {
   font-family: var(--font-sans), sans-serif;
 }
 
+/* ===================================================================
+   PRINT STYLES — Bulletproof multi-page PDF printing
+   
+   Problem: The app layout uses h-screen, overflow-hidden, overflow-y-auto,
+   fixed positioning, and CSS transforms. Every one of these clips content
+   during printing. We must forcefully strip ALL of them.
+   =================================================================== */
+
 @page {
   size: letter portrait;
-  margin: 0mm;
+  margin: 0;
 }
 
 @media print {
+  /* --- Layer 1: Root elements --- */
   html, body {
-    width: 8.5in !important;
+    width: auto !important;
     height: auto !important;
-    min-height: 11in !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
+    display: block !important;
   }
 
-  /* Force hide everything except the preview container and its parents */
-  body > *:not(main) {
+  /* --- Layer 2: The <main> wrapper ---
+     Has: flex, h-screen, overflow-hidden
+     Must become: block, auto height, visible overflow */
+  main {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    background: white !important;
+  }
+
+  /* --- Layer 3: Hide the editor panel, FAB, and mobile modal bar ---
+     Everything with print:hidden or that isn't the preview */
+  .print\\:hidden,
+  [class*="print:hidden"] {
     display: none !important;
   }
 
-  .print-safe-container {
-    position: static !important;
+  /* --- Layer 4: The preview <section> (#preview-panel) ---
+     Has: flex-1, h-full, overflow-y-auto, overflow-x-auto
+     On mobile also has: fixed, inset-0
+     Must become: static block with visible overflow */
+  #preview-panel {
     display: block !important;
+    position: static !important;
+    width: auto !important;
     height: auto !important;
-    width: 8.5in !important;
+    min-height: 0 !important;
+    max-height: none !important;
     overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
+    background: white !important;
+    flex: none !important;
+    inset: auto !important;
+    z-index: auto !important;
   }
 
+  /* --- Layer 5: The resume wrapper <div> (.print-safe-content) ---
+     Has: shrink-0, shadow-2xl, transform: scale(...), margin/padding
+     The transform is the WORST offender — it creates a containing block
+     that prevents page breaks entirely */
   .print-safe-content {
     transform: none !important;
+    position: static !important;
     margin: 0 !important;
     padding: 0 !important;
-    position: static !important;
-    width: 8.5in !important;
+    width: auto !important;
     height: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
     overflow: visible !important;
+    box-shadow: none !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* --- Layer 6: The actual template root div ---
+     Has: w-[8.5in], min-w-[8.5in], min-h-[11in], shadow-*
+     Must keep width but allow height to grow and pages to break */
+  .print-safe-content > div {
+    width: 8.5in !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+  }
+
+  /* --- Layer 7: Allow page breaks everywhere inside the template --- */
+  .print-safe-content * {
+    overflow: visible !important;
+  }
+
+  /* --- Layer 8: When 'printing' class is on body, force #preview-panel visible ---
+     On mobile, the panel has class 'hidden' when modal is closed.
+     This ensures it always shows during print regardless. */
+  body.printing #preview-panel {
+    display: block !important;
   }
 }

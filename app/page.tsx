@@ -358,15 +358,29 @@ export default function FreeCVApp() {
     }
   };
 
+  const triggerPrint = () => {
+    // Reset scroll positions so print starts from top
+    const panel = document.getElementById('preview-panel');
+    if (panel) panel.scrollTop = 0;
+    window.scrollTo(0, 0);
+    
+    // Add 'printing' class to force-show the preview panel via CSS
+    document.body.classList.add('printing');
+    
+    // Small delay to let the browser recalculate layout
+    setTimeout(() => {
+      window.print();
+      // Clean up after print dialog closes
+      document.body.classList.remove('printing');
+    }, 150);
+  };
+
   const handleDownload = () => {
     trackEvent('milestone_downloaded', data.templateId);
     if (!data.hasOptedIn) {
       setIsOptInModalOpen(true);
     } else {
-      const panel = document.getElementById('preview-panel');
-      if (panel) panel.scrollTop = 0;
-      window.scrollTo(0, 0);
-      setTimeout(() => window.print(), 100);
+      triggerPrint();
     }
   };
 
@@ -383,12 +397,7 @@ export default function FreeCVApp() {
       }]);
     }
     setIsOptInModalOpen(false);
-    
-    const panel = document.getElementById('preview-panel');
-    if (panel) panel.scrollTop = 0;
-    window.scrollTo(0, 0);
-    
-    setTimeout(() => window.print(), 200);
+    triggerPrint();
   };
 
   if (!isHydrated) return null;
