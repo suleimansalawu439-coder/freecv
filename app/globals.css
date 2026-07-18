@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
 }
+
+@media print {
+  .print-safe-container {
+    position: static !important;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .print-safe-content {
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

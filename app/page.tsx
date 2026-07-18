@@ -720,7 +720,7 @@ export default function FreeCVApp() {
 
       {/* PREVIEW PANEL (Desktop standard, Mobile Modal) */}
       <section className={cn(
-        "flex-1 h-full overflow-y-auto overflow-x-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex print:flex lg:justify-center items-start custom-scrollbar",
+        "flex-1 h-full overflow-y-auto overflow-x-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
         isPreviewOpen ? "fixed inset-0 z-50 flex-col" : "hidden lg:flex"
       )}>
         
@@ -737,7 +737,7 @@ export default function FreeCVApp() {
         )}
 
         <div className={cn(
-          "mx-auto lg:mx-0 shrink-0 shadow-2xl print:shadow-none bg-white transition-all origin-top",
+          "mx-auto lg:mx-0 shrink-0 shadow-2xl print:shadow-none bg-white transition-all origin-top print-safe-content",
           isPreviewOpen ? "mb-32 mt-4" : ""
         )}
         style={{
