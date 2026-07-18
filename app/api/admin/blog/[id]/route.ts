@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_session');
   if (!session || session.value !== 'authenticated') {
@@ -13,7 +13,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const { title, slug, content, meta_description, is_published } = body;
     // For dynamic route params in Next.js 16, we await them safely
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
 
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
@@ -30,7 +30,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const session = cookieStore.get('admin_session');
   if (!session || session.value !== 'authenticated') {

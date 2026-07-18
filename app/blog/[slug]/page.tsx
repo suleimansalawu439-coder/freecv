@@ -10,8 +10,8 @@ import NewsletterCapture from '@/components/NewsletterCapture';
 
 export const revalidate = 3600;
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const resolvedParams = await Promise.resolve(params);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
   const { data } = await supabase
     .from('blog_posts')
     .select('title, meta_description')
@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  const resolvedParams = await Promise.resolve(params);
+export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
+  const resolvedParams = await params;
   
   const { data: post } = await supabase
     .from('blog_posts')
