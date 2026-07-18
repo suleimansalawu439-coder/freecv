@@ -6,6 +6,7 @@ import Bauhaus from './Bauhaus';
 import BauhausModern from './BauhausModern';
 import BoldHeader from './BoldHeader';
 import Brutalist from './Brutalist';
+import BrutalistMinimal from './BrutalistMinimal';
 import Classic from './Classic';
 import CleanSlate from './CleanSlate';
 import Compact from './Compact';
@@ -14,10 +15,12 @@ import CorporateBlue from './CorporateBlue';
 import Creative from './Creative';
 import CreativeAsymmetrical from './CreativeAsymmetrical';
 import CyberDark from './CyberDark';
+import DarkModeTech from './DarkModeTech';
 import Designer from './Designer';
 import Developer from './Developer';
 import EditorialMagazine from './EditorialMagazine';
 import Elegant from './Elegant';
+import ElegantEditorial from './ElegantEditorial';
 import ElegantSerif from './ElegantSerif';
 import Engineering from './Engineering';
 import Executive from './Executive';
@@ -33,6 +36,7 @@ import MinimalistSerif from './MinimalistSerif';
 import MinimalistSplit from './MinimalistSplit';
 import ModernBlock from './ModernBlock';
 import ModernClean from './ModernClean';
+import ModernGradient from './ModernGradient';
 import ModernSplit from './ModernSplit';
 import Monochrome from './Monochrome';
 import MonospaceTech from './MonospaceTech';
@@ -44,6 +48,7 @@ import Sales from './Sales';
 import Startup from './Startup';
 import StrictGrid from './StrictGrid';
 import SubtleColor from './SubtleColor';
+import SwissDesign from './SwissDesign';
 import SwissGrid from './SwissGrid';
 import SwissMinimal from './SwissMinimal';
 import TechPro from './TechPro';
@@ -61,6 +66,7 @@ export const templates: Record<string, React.FC<any>> = {
   BauhausModern,
   BoldHeader,
   Brutalist,
+  BrutalistMinimal,
   Classic,
   CleanSlate,
   Compact,
@@ -69,10 +75,12 @@ export const templates: Record<string, React.FC<any>> = {
   Creative,
   CreativeAsymmetrical,
   CyberDark,
+  DarkModeTech,
   Designer,
   Developer,
   EditorialMagazine,
   Elegant,
+  ElegantEditorial,
   ElegantSerif,
   Engineering,
   Executive,
@@ -88,6 +96,7 @@ export const templates: Record<string, React.FC<any>> = {
   MinimalistSplit,
   ModernBlock,
   ModernClean,
+  ModernGradient,
   ModernSplit,
   Monochrome,
   MonospaceTech,
@@ -99,6 +108,7 @@ export const templates: Record<string, React.FC<any>> = {
   Startup,
   StrictGrid,
   SubtleColor,
+  SwissDesign,
   SwissGrid,
   SwissMinimal,
   TechPro,

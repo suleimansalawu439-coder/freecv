@@ -40,6 +40,7 @@ export interface PersonalInfo {
   phone: string;
   location: string;
   website: string;
+  profilePicture?: string;
 }
 
 export interface Experience {
@@ -477,6 +478,39 @@ export default function FreeCVApp() {
               <Input label="Phone" value={data.personalInfo.phone} onChange={(e:any) => updatePersonalInfo({ phone: e.target.value })} />
               <Input label="Location" value={data.personalInfo.location} onChange={(e:any) => updatePersonalInfo({ location: e.target.value })} />
               <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e:any) => updatePersonalInfo({ website: e.target.value })} />
+              <div className="col-span-1 sm:col-span-2 mt-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1 block mb-1.5">Profile Picture (Optional)</label>
+                <div className="flex items-center gap-4">
+                  {data.personalInfo.profilePicture && (
+                    <img src={data.personalInfo.profilePicture} alt="Profile" className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm" />
+                  )}
+                  <div className="flex-1">
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            updatePersonalInfo({ profilePicture: reader.result as string });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
+                    />
+                  </div>
+                  {data.personalInfo.profilePicture && (
+                    <button 
+                      onClick={() => updatePersonalInfo({ profilePicture: undefined })}
+                      className="text-xs text-red-500 font-bold hover:bg-red-50 px-3 py-2 rounded-lg transition-colors shrink-0"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="mt-4">
               <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Professional Summary</label>
