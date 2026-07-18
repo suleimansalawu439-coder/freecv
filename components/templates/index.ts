@@ -4,6 +4,7 @@ import ArtDeco from './ArtDeco';
 import AvantGarde from './AvantGarde';
 import Bauhaus from './Bauhaus';
 import BauhausModern from './BauhausModern';
+import Boardroom from './Boardroom';
 import BoldHeader from './BoldHeader';
 import Brutalist from './Brutalist';
 import BrutalistMinimal from './BrutalistMinimal';
@@ -17,6 +18,7 @@ import CreativeAsymmetrical from './CreativeAsymmetrical';
 import CyberDark from './CyberDark';
 import DarkModeTech from './DarkModeTech';
 import Designer from './Designer';
+import Diplomat from './Diplomat';
 import Developer from './Developer';
 import EditorialMagazine from './EditorialMagazine';
 import Elegant from './Elegant';
@@ -30,6 +32,7 @@ import HandDrawn from './HandDrawn';
 import Healthcare from './Healthcare';
 import Legal from './Legal';
 import Magazine from './Magazine';
+import Meridian from './Meridian';
 import Marketing from './Marketing';
 import Minimalist from './Minimalist';
 import MinimalistSerif from './MinimalistSerif';
@@ -40,9 +43,11 @@ import ModernGradient from './ModernGradient';
 import ModernSplit from './ModernSplit';
 import Monochrome from './Monochrome';
 import MonospaceTech from './MonospaceTech';
+import Parchment from './Parchment';
 import NatureOrganic from './NatureOrganic';
 import NotionStyle from './NotionStyle';
 import PastelDream from './PastelDream';
+import Precision from './Precision';
 import RetroVintage from './RetroVintage';
 import Sales from './Sales';
 import Startup from './Startup';
@@ -64,6 +69,7 @@ export const templates: Record<string, React.FC<any>> = {
   AvantGarde,
   Bauhaus,
   BauhausModern,
+  Boardroom,
   BoldHeader,
   Brutalist,
   BrutalistMinimal,
@@ -77,6 +83,7 @@ export const templates: Record<string, React.FC<any>> = {
   CyberDark,
   DarkModeTech,
   Designer,
+  Diplomat,
   Developer,
   EditorialMagazine,
   Elegant,
@@ -90,6 +97,7 @@ export const templates: Record<string, React.FC<any>> = {
   Healthcare,
   Legal,
   Magazine,
+  Meridian,
   Marketing,
   Minimalist,
   MinimalistSerif,
@@ -100,9 +108,11 @@ export const templates: Record<string, React.FC<any>> = {
   ModernSplit,
   Monochrome,
   MonospaceTech,
+  Parchment,
   NatureOrganic,
   NotionStyle,
   PastelDream,
+  Precision,
   RetroVintage,
   Sales,
   Startup,
