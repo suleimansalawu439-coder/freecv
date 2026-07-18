@@ -1,3 +1,13 @@
+import NatureOrganic from './NatureOrganic';
+import ModernClean from './ModernClean';
+import ArtDeco from './ArtDeco';
+import BauhausModern from './BauhausModern';
+import PopArt from './PopArt';
+import Gothic from './Gothic';
+import ZenJapanese from './ZenJapanese';
+import FuturisticSciFi from './FuturisticSciFi';
+import HandDrawn from './HandDrawn';
+import Retro80s from './Retro80s';
 import Academic from './Academic';
 import AcademicJournal from './AcademicJournal';
 import AvantGarde from './AvantGarde';
@@ -46,6 +56,16 @@ import Timeline from './Timeline';
 import TypographyFirst from './TypographyFirst';
 
 export const templates: Record<string, React.FC<any>> = {
+  NatureOrganic,
+  ModernClean,
+  ArtDeco,
+  BauhausModern,
+  PopArt,
+  Gothic,
+  ZenJapanese,
+  FuturisticSciFi,
+  HandDrawn,
+  Retro80s,
   Academic,
   AcademicJournal,
   AvantGarde,
