@@ -25,16 +25,44 @@ body {
   font-family: var(--font-sans), sans-serif;
 }
 
+@page {
+  size: letter portrait;
+  margin: 0mm;
+}
+
 @media print {
+  html, body {
+    width: 8.5in !important;
+    height: auto !important;
+    min-height: 11in !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  /* Force hide everything except the preview container and its parents */
+  body > *:not(main) {
+    display: none !important;
+  }
+
   .print-safe-container {
     position: static !important;
     display: block !important;
     height: auto !important;
+    width: 8.5in !important;
     overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
+
   .print-safe-content {
     transform: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    position: static !important;
+    width: 8.5in !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }

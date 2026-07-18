@@ -363,7 +363,10 @@ export default function FreeCVApp() {
     if (!data.hasOptedIn) {
       setIsOptInModalOpen(true);
     } else {
-      window.print();
+      const panel = document.getElementById('preview-panel');
+      if (panel) panel.scrollTop = 0;
+      window.scrollTo(0, 0);
+      setTimeout(() => window.print(), 100);
     }
   };
 
@@ -380,7 +383,12 @@ export default function FreeCVApp() {
       }]);
     }
     setIsOptInModalOpen(false);
-    setTimeout(() => window.print(), 100);
+    
+    const panel = document.getElementById('preview-panel');
+    if (panel) panel.scrollTop = 0;
+    window.scrollTo(0, 0);
+    
+    setTimeout(() => window.print(), 200);
   };
 
   if (!isHydrated) return null;
@@ -719,7 +727,9 @@ export default function FreeCVApp() {
       </div>
 
       {/* PREVIEW PANEL (Desktop standard, Mobile Modal) */}
-      <section className={cn(
+      <section 
+        id="preview-panel"
+        className={cn(
         "flex-1 h-full overflow-y-auto overflow-x-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
         isPreviewOpen ? "fixed inset-0 z-50 flex-col" : "hidden lg:flex"
       )}>
