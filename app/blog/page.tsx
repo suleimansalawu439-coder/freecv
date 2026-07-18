@@ -29,7 +29,7 @@ export default async function BlogIndex() {
           </div>
         ) : (
           <div className="space-y-12">
-            {posts.map((post) => (
+            {posts.map((post: any) => (
               <article key={post.slug} className="group flex flex-col items-start bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all">
                 <time className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
                   {new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
