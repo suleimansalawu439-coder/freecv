@@ -72,10 +72,10 @@ export default function Terminal({ data }: { data: ResumeData }) {
               {data.references.map(ref => (
                 <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
                   <h3 className="font-bold text-lg">{ref.name}</h3>
-                  <div className="text-sm opacity-80 font-medium mb-1">{ref.position} @ {ref.company}</div>
+                  <div className="text-sm opacity-80 font-medium mb-1">{ref.title} @ {ref.company}</div>
                   <div className="text-sm opacity-70 flex flex-col gap-1">
-                    {ref.email && <span>E: {ref.email}</span>}
-                    {ref.phone && <span>P: {ref.phone}</span>}
+                    {ref.contact && <span>{ref.contact}</span>}
+                    
                   </div>
                 </div>
               ))}
