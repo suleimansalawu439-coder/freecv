@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Users, BarChart, Settings, Download, Search, LogOut, FileText, Mail, Plus, Edit, Trash2, Globe, Smartphone, Monitor, Tablet, Activity, TrendingUp, RefreshCw } from 'lucide-react';
+import { Users, BarChart, Settings, Download, Search, LogOut, FileText, Mail, Plus, Edit, Trash2, Globe, Smartphone, Monitor, Tablet, Activity, TrendingUp, RefreshCw, X } from 'lucide-react';
 
 // --- Types ---
 interface StatsData {
@@ -117,6 +117,76 @@ export default function AdminDashboard({
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+
+  // Autoblog CMS State
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [postFormData, setPostFormData] = useState({ title: '', slug: '', meta_description: '', content: '', is_published: false });
+  const [isSavingPost, setIsSavingPost] = useState(false);
+
+  const fetchBlogPosts = async () => {
+    try {
+      const res = await fetch('/api/admin/blog');
+      if (res.ok) {
+        const data = await res.json();
+        setBlogPosts(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch blog posts', err);
+    }
+  };
+
+  const handleOpenBlogModal = (post?: any) => {
+    if (post) {
+      setEditingPost(post);
+      setPostFormData({
+        title: post.title,
+        slug: post.slug,
+        meta_description: post.meta_description || '',
+        content: post.content,
+        is_published: post.is_published
+      });
+    } else {
+      setEditingPost(null);
+      setPostFormData({ title: '', slug: '', meta_description: '', content: '', is_published: false });
+    }
+    setIsBlogModalOpen(true);
+  };
+
+  const handleSavePost = async () => {
+    if (!postFormData.title || !postFormData.slug || !postFormData.content) {
+      alert("Title, slug, and content are required.");
+      return;
+    }
+    setIsSavingPost(true);
+    try {
+      const url = editingPost ? `/api/admin/blog/${editingPost.id}` : '/api/admin/blog';
+      const method = editingPost ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postFormData)
+      });
+      if (!res.ok) throw new Error('Failed to save post');
+      await fetchBlogPosts();
+      setIsBlogModalOpen(false);
+    } catch (err: any) {
+      alert(err.message);
+    }
+    setIsSavingPost(false);
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      const res = await fetch(`/api/admin/blog/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete post');
+      await fetchBlogPosts();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
 
   // Fetch advanced stats from API
   const fetchStats = async () => {
@@ -546,12 +616,51 @@ export default function AdminDashboard({
                 <p className="text-gray-500 text-sm font-medium mt-1">Manage programmatic SEO articles to drive traffic.</p>
               </div>
               <button
-                onClick={() => alert('New Post Modal UI coming soon!')}
+                onClick={() => handleOpenBlogModal()}
                 className="bg-black text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-[#ff3333] transition-colors shadow-lg"
               >
                 <Plus size={14} /> New Article
               </button>
             </header>
+
+            {isBlogModalOpen && (
+              <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm">
+                <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+                  <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                    <h2 className="text-xl font-black uppercase tracking-tight">{editingPost ? 'Edit Article' : 'New Article'}</h2>
+                    <button onClick={() => setIsBlogModalOpen(false)} className="text-gray-400 hover:text-black transition-colors"><X size={20} /></button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5 block">Title</label>
+                      <input type="text" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:border-black outline-none transition-colors" value={postFormData.title} onChange={e => setPostFormData({...postFormData, title: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5 block">Slug</label>
+                      <input type="text" className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono focus:border-black outline-none transition-colors" value={postFormData.slug} onChange={e => setPostFormData({...postFormData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-')})} placeholder="my-awesome-post" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5 block">Meta Description</label>
+                      <textarea className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:border-black outline-none transition-colors resize-none h-20" value={postFormData.meta_description} onChange={e => setPostFormData({...postFormData, meta_description: e.target.value})} placeholder="SEO description..." />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5 block">Content (HTML Supported)</label>
+                      <textarea className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono focus:border-black outline-none transition-colors resize-none h-64" value={postFormData.content} onChange={e => setPostFormData({...postFormData, content: e.target.value})} placeholder="<h1>Hello World</h1><p>Start writing...</p>" />
+                    </div>
+                    <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                      <input type="checkbox" id="publish-toggle" className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black" checked={postFormData.is_published} onChange={e => setPostFormData({...postFormData, is_published: e.target.checked})} />
+                      <label htmlFor="publish-toggle" className="text-sm font-bold cursor-pointer">Publish Immediately</label>
+                    </div>
+                  </div>
+                  <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-3">
+                    <button onClick={() => setIsBlogModalOpen(false)} className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors">Cancel</button>
+                    <button onClick={handleSavePost} disabled={isSavingPost} className="flex-1 py-3 text-sm font-bold text-white bg-black hover:bg-[#ff3333] rounded-xl transition-colors disabled:opacity-50">
+                      {isSavingPost ? 'Saving...' : 'Save Article'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -582,8 +691,8 @@ export default function AdminDashboard({
                           </td>
                           <td className="px-6 py-4 text-gray-500">{new Date(post.created_at).toLocaleDateString()}</td>
                           <td className="px-6 py-4 text-right space-x-2">
-                            <button className="text-blue-500 hover:text-blue-700"><Edit size={16} /></button>
-                            <button className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
+                            <button onClick={() => handleOpenBlogModal(post)} className="text-blue-500 hover:text-blue-700"><Edit size={16} /></button>
+                            <button onClick={() => handleDeletePost(post.id)} className="text-red-500 hover:text-red-700"><Trash2 size={16} /></button>
                           </td>
                         </tr>
                       ))

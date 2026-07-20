@@ -17,7 +17,9 @@ import {
   FolderOpen,
   Award,
   Users,
-  Paintbrush
+  Paintbrush,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -345,6 +347,59 @@ export default function FreeCVApp() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isOptInModalOpen, setIsOptInModalOpen] = useState(false);
 
+  // AI Generation State
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [generatingExpId, setGeneratingExpId] = useState<string | null>(null);
+
+  const handleGenerateSummary = async () => {
+    if (!data.personalInfo.jobTitle) {
+      alert("Please enter a Job Title in the Personal Info section first so the AI knows what to write about.");
+      return;
+    }
+    setIsGeneratingSummary(true);
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'summary', jobTitle: data.personalInfo.jobTitle })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.text) {
+        updateSummary(resData.text);
+      } else {
+        throw new Error(resData.error || 'Failed to generate');
+      }
+    } catch (err: any) {
+      alert("AI Generation failed: " + err.message);
+    }
+    setIsGeneratingSummary(false);
+  };
+
+  const handleGenerateExperience = async (expId: string, role: string, company: string) => {
+    const jobTitleToUse = role || data.personalInfo.jobTitle;
+    if (!jobTitleToUse) {
+      alert("Please enter a Role for this experience (or a global Job Title) so the AI knows what to write.");
+      return;
+    }
+    setGeneratingExpId(expId);
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'experience', jobTitle: jobTitleToUse, company })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.text) {
+        updateExperience(expId, { description: resData.text });
+      } else {
+        throw new Error(resData.error || 'Failed to generate');
+      }
+    } catch (err: any) {
+      alert("AI Generation failed: " + err.message);
+    }
+    setGeneratingExpId(null);
+  };
+
   useEffect(() => { 
     setIsHydrated(true); 
     trackEvent('milestone_started');
@@ -530,7 +585,17 @@ export default function FreeCVApp() {
               </div>
             </div>
             <div className="mt-4">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">Professional Summary</label>
+              <div className="flex justify-between items-center ml-1 mb-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Professional Summary</label>
+                <button 
+                  onClick={handleGenerateSummary}
+                  disabled={isGeneratingSummary}
+                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-600 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-full transition-colors disabled:opacity-50"
+                >
+                  {isGeneratingSummary ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  {isGeneratingSummary ? 'Writing...' : 'Generate with AI'}
+                </button>
+              </div>
               <textarea 
                 className="mt-1.5 w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none min-h-[100px] resize-none"
                 value={data.summary}
@@ -554,7 +619,24 @@ export default function FreeCVApp() {
                 <Input label="Start Date" value={exp.startDate} onChange={(e:any) => updateExperience(exp.id, { startDate: e.target.value })} />
                 <Input label="End Date" value={exp.endDate} onChange={(e:any) => updateExperience(exp.id, { endDate: e.target.value })} />
               </div>
-              <Textarea label="Accomplishments (New line per point)" value={exp.description} onChange={(e:any) => updateExperience(exp.id, { description: e.target.value })} />
+              <div className="mb-2">
+                <div className="flex justify-between items-center ml-1 mb-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Accomplishments (New line per point)</label>
+                  <button 
+                    onClick={() => handleGenerateExperience(exp.id, exp.role, exp.company)}
+                    disabled={generatingExpId === exp.id}
+                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-600 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-full transition-colors disabled:opacity-50"
+                  >
+                    {generatingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    {generatingExpId === exp.id ? 'Writing...' : 'Generate with AI'}
+                  </button>
+                </div>
+                <textarea 
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none min-h-[100px] resize-none"
+                  value={exp.description}
+                  onChange={(e:any) => updateExperience(exp.id, { description: e.target.value })}
+                />
+              </div>
               <button 
                 onClick={() => removeExperience(exp.id)} 
                 className="w-full mt-6 bg-red-50 text-red-600 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-100 transition-colors border border-red-100"
