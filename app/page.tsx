@@ -624,7 +624,9 @@ export default function FreeCVApp() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${data.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.docx`;
+      const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
+      const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
+      a.download = `${safeName}_${safeRole}_Resume.docx`.replace(/\s+/g, '_');
       a.click();
       URL.revokeObjectURL(url);
       trackEvent('milestone_docx_downloaded', data.templateId);
@@ -642,6 +644,14 @@ export default function FreeCVApp() {
   };
 
   const triggerPrint = () => {
+    // Save original title
+    const originalTitle = document.title;
+    
+    // Set custom title for PDF filename
+    const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
+    const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
+    document.title = `${safeName} - ${safeRole} - Resume`;
+
     // Reset scroll positions so print starts from top
     const panel = document.getElementById('preview-panel');
     if (panel) panel.scrollTop = 0;
@@ -655,6 +665,7 @@ export default function FreeCVApp() {
       window.print();
       // Clean up after print dialog closes
       document.body.classList.remove('printing');
+      document.title = originalTitle;
     }, 150);
   };
 
@@ -1389,6 +1400,16 @@ export default function FreeCVApp() {
                     {atsResult.tips?.map((t:string, i:number) => <li key={i}>{t}</li>)}
                   </ul>
                 </div>
+
+                <button
+                  onClick={() => {
+                    setIsATSOpen(false);
+                    setIsRewriterOpen(true);
+                  }}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all flex justify-center items-center gap-2 mt-4 shadow-lg shadow-purple-600/20"
+                >
+                  <RefreshCw size={14} /> Implement Recommendations with AI Rewriter
+                </button>
               </div>
             )}
           </div>
