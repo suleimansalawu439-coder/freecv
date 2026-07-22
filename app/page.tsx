@@ -19,8 +19,11 @@ import {
   Users,
   Paintbrush,
   Sparkles,
-  Loader2
+  Loader2,
+  Linkedin,
+  GripVertical
 } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { trackEvent } from '@/lib/analytics';
@@ -968,6 +971,7 @@ export default function FreeCVApp() {
             <NewsletterCapture source="main_editor" />
           </div>
 
+          </DragDropContext>
         </div>
       </section>
 
