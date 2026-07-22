@@ -7,9 +7,13 @@ const ai = new GoogleGenAI({});
 
 export async function POST(request: Request) {
   try {
-    const { type, jobTitle, company, additionalContext } = await request.json();
+    const { type, jobTitle, company, additionalContext, tone, resumeData } = await request.json();
 
-    if (!jobTitle) {
+    if (!type) {
+      return NextResponse.json({ error: 'Type is required' }, { status: 400 });
+    }
+    
+    if ((type === 'summary' || type === 'experience' || type === 'skills') && !jobTitle) {
       return NextResponse.json({ error: 'Job title is required' }, { status: 400 });
     }
 
@@ -29,6 +33,16 @@ export async function POST(request: Request) {
       Do not use introductory text or conclusion, just output the bullet points.
       Do not use asterisks or hyphens at the start of the lines, just the plain text for each bullet, separated by newlines.
       ${additionalContext ? `Additional context to incorporate: ${additionalContext}` : ''}`;
+    } else if (type === 'rewrite') {
+      prompt = `Rewrite the following resume summary and experience descriptions in a ${tone || 'Professional'} tone.
+Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
+JSON structure must strictly match: { "summary": string, "experience": [{ "id": string, "description": string }] }
+Resume Data:
+${JSON.stringify(resumeData, null, 2)}`;
+    } else if (type === 'skills') {
+      prompt = `Provide a list of 10 highly relevant skills for a ${jobTitle}.
+Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
+JSON structure must strictly match: { "skills": string[] }`;
     } else {
       return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
     }
@@ -41,7 +55,19 @@ export async function POST(request: Request) {
       }
     });
 
-    const generatedText = response.text || '';
+    let generatedText = response.text || '';
+
+    // If generating JSON for rewrite or skills, parse and return it directly
+    if (type === 'rewrite' || type === 'skills') {
+      generatedText = generatedText.replace(/```json/gi, '').replace(/```/g, '').trim();
+      try {
+        const result = JSON.parse(generatedText);
+        return NextResponse.json(result);
+      } catch (parseError) {
+        console.error('Failed to parse JSON from AI response:', generatedText);
+        return NextResponse.json({ error: 'Failed to parse AI response into valid JSON' }, { status: 500 });
+      }
+    }
 
     return NextResponse.json({ text: generatedText });
   } catch (error: any) {

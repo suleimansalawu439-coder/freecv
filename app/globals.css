@@ -8,8 +8,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,7 +20,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), sans-serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
 /* ===================================================================
@@ -68,7 +66,6 @@ body {
 
   /* --- Layer 3: Hide the editor panel, FAB, and mobile modal bar ---
      Everything with print:hidden or that isn't the preview */
-  .print\\:hidden,
   [class*="print:hidden"] {
     display: none !important;
   }

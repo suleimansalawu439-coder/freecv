@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
-const pdf = require('pdf-parse');
+
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    const pdf = require('pdf-parse');
     const formData = await req.formData();
     const file = formData.get('file') as File;
     

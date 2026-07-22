@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { temporal } from 'zundo';
 import { 
   User, 
   Briefcase, 
@@ -20,8 +21,15 @@ import {
   Paintbrush,
   Sparkles,
   Loader2,
-  Linkedin,
-  GripVertical
+  GripVertical,
+  Moon,
+  Sun,
+  FileText,
+  BarChart3,
+  RefreshCw,
+  Undo2,
+  Redo2,
+  ChevronDown
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
@@ -189,116 +197,119 @@ const initialData: ResumeData = {
 };
 
 const useResumeStore = create<ResumeStore>()(
-  persist(
-    (set) => ({
-      data: initialData,
-      setTemplateId: (id) => set((state) => ({ data: { ...state.data, templateId: id } })),
-      setThemeColor: (color) => set((state) => ({ data: { ...state.data, theme: { color } } })),
-      updatePersonalInfo: (info) =>
-        set((state) => ({
-          data: { ...state.data, personalInfo: { ...state.data.personalInfo, ...info } },
+  temporal(
+    persist(
+      (set) => ({
+        data: initialData,
+        setTemplateId: (id) => set((state) => ({ data: { ...state.data, templateId: id } })),
+        setThemeColor: (color) => set((state) => ({ data: { ...state.data, theme: { color } } })),
+        updatePersonalInfo: (info) =>
+          set((state) => ({
+            data: { ...state.data, personalInfo: { ...state.data.personalInfo, ...info } },
+          })),
+        updateSummary: (summary) =>
+          set((state) => ({ data: { ...state.data, summary } })),
+        
+        addExperience: () => set((state) => ({
+          data: {
+            ...state.data,
+            experience: [...state.data.experience, { id: crypto.randomUUID(), company: '', role: '', startDate: '', endDate: '', description: '' }]
+          }
         })),
-      updateSummary: (summary) =>
-        set((state) => ({ data: { ...state.data, summary } })),
-      
-      addExperience: () => set((state) => ({
-        data: {
-          ...state.data,
-          experience: [...state.data.experience, { id: crypto.randomUUID(), company: '', role: '', startDate: '', endDate: '', description: '' }]
-        }
-      })),
-      updateExperience: (id, updates) => set((state) => ({
-        data: {
-          ...state.data,
-          experience: state.data.experience.map(exp => exp.id === id ? { ...exp, ...updates } : exp)
-        }
-      })),
-      removeExperience: (id) => set((state) => ({
-        data: { ...state.data, experience: state.data.experience.filter(exp => exp.id !== id) }
-      })),
+        updateExperience: (id, updates) => set((state) => ({
+          data: {
+            ...state.data,
+            experience: state.data.experience.map(exp => exp.id === id ? { ...exp, ...updates } : exp)
+          }
+        })),
+        removeExperience: (id) => set((state) => ({
+          data: { ...state.data, experience: state.data.experience.filter(exp => exp.id !== id) }
+        })),
 
-      addEducation: () => set((state) => ({
-        data: {
-          ...state.data,
-          education: [...state.data.education, { id: crypto.randomUUID(), school: '', degree: '', graduationYear: '' }]
-        }
-      })),
-      updateEducation: (id, updates) => set((state) => ({
-        data: {
-          ...state.data,
-          education: state.data.education.map(edu => edu.id === id ? { ...edu, ...updates } : edu)
-        }
-      })),
-      removeEducation: (id) => set((state) => ({
-        data: { ...state.data, education: state.data.education.filter(edu => edu.id !== id) }
-      })),
+        addEducation: () => set((state) => ({
+          data: {
+            ...state.data,
+            education: [...state.data.education, { id: crypto.randomUUID(), school: '', degree: '', graduationYear: '' }]
+          }
+        })),
+        updateEducation: (id, updates) => set((state) => ({
+          data: {
+            ...state.data,
+            education: state.data.education.map(edu => edu.id === id ? { ...edu, ...updates } : edu)
+          }
+        })),
+        removeEducation: (id) => set((state) => ({
+          data: { ...state.data, education: state.data.education.filter(edu => edu.id !== id) }
+        })),
 
-      addSkill: (name) => set((state) => ({
-        data: { ...state.data, skills: [...state.data.skills, { id: crypto.randomUUID(), name }] }
-      })),
-      removeSkill: (id) => set((state) => ({
-        data: { ...state.data, skills: state.data.skills.filter(s => s.id !== id) }
-      })),
+        addSkill: (name) => set((state) => ({
+          data: { ...state.data, skills: [...state.data.skills, { id: crypto.randomUUID(), name }] }
+        })),
+        removeSkill: (id) => set((state) => ({
+          data: { ...state.data, skills: state.data.skills.filter(s => s.id !== id) }
+        })),
 
-      toggleProjects: () => set((state) => ({ data: { ...state.data, showProjects: !state.data.showProjects, projects: state.data.projects || [] } })),
-      addProject: () => set((state) => ({
-        data: { ...state.data, projects: [...(state.data.projects || []), { id: crypto.randomUUID(), name: '', description: '', link: '' }] }
-      })),
-      updateProject: (id, updates) => set((state) => ({
-        data: { ...state.data, projects: (state.data.projects || []).map(p => p.id === id ? { ...p, ...updates } : p) }
-      })),
-      removeProject: (id) => set((state) => ({
-        data: { ...state.data, projects: (state.data.projects || []).filter(p => p.id !== id) }
-      })),
+        toggleProjects: () => set((state) => ({ data: { ...state.data, showProjects: !state.data.showProjects, projects: state.data.projects || [] } })),
+        addProject: () => set((state) => ({
+          data: { ...state.data, projects: [...(state.data.projects || []), { id: crypto.randomUUID(), name: '', description: '', link: '' }] }
+        })),
+        updateProject: (id, updates) => set((state) => ({
+          data: { ...state.data, projects: (state.data.projects || []).map(p => p.id === id ? { ...p, ...updates } : p) }
+        })),
+        removeProject: (id) => set((state) => ({
+          data: { ...state.data, projects: (state.data.projects || []).filter(p => p.id !== id) }
+        })),
 
-      toggleCertifications: () => set((state) => ({ data: { ...state.data, showCertifications: !state.data.showCertifications, certifications: state.data.certifications || [] } })),
-      addCertification: () => set((state) => ({
-        data: { ...state.data, certifications: [...(state.data.certifications || []), { id: crypto.randomUUID(), name: '', issuer: '', date: '' }] }
-      })),
-      updateCertification: (id, updates) => set((state) => ({
-        data: { ...state.data, certifications: (state.data.certifications || []).map(c => c.id === id ? { ...c, ...updates } : c) }
-      })),
-      removeCertification: (id) => set((state) => ({
-        data: { ...state.data, certifications: (state.data.certifications || []).filter(c => c.id !== id) }
-      })),
+        toggleCertifications: () => set((state) => ({ data: { ...state.data, showCertifications: !state.data.showCertifications, certifications: state.data.certifications || [] } })),
+        addCertification: () => set((state) => ({
+          data: { ...state.data, certifications: [...(state.data.certifications || []), { id: crypto.randomUUID(), name: '', issuer: '', date: '' }] }
+        })),
+        updateCertification: (id, updates) => set((state) => ({
+          data: { ...state.data, certifications: (state.data.certifications || []).map(c => c.id === id ? { ...c, ...updates } : c) }
+        })),
+        removeCertification: (id) => set((state) => ({
+          data: { ...state.data, certifications: (state.data.certifications || []).filter(c => c.id !== id) }
+        })),
 
-      toggleReferences: () => set((state) => ({ data: { ...state.data, showReferences: !state.data.showReferences, references: state.data.references || [] } })),
-      addReference: () => set((state) => ({
-        data: { ...state.data, references: [...(state.data.references || []), { id: crypto.randomUUID(), name: '', title: '', company: '', contact: '' }] }
-      })),
-      updateReference: (id, updates) => set((state) => ({
-        data: { ...state.data, references: (state.data.references || []).map(r => r.id === id ? { ...r, ...updates } : r) }
-      })),
-      removeReference: (id) => set((state) => ({
-        data: { ...state.data, references: (state.data.references || []).filter(r => r.id !== id) }
-      })),
+        toggleReferences: () => set((state) => ({ data: { ...state.data, showReferences: !state.data.showReferences, references: state.data.references || [] } })),
+        addReference: () => set((state) => ({
+          data: { ...state.data, references: [...(state.data.references || []), { id: crypto.randomUUID(), name: '', title: '', company: '', contact: '' }] }
+        })),
+        updateReference: (id, updates) => set((state) => ({
+          data: { ...state.data, references: (state.data.references || []).map(r => r.id === id ? { ...r, ...updates } : r) }
+        })),
+        removeReference: (id) => set((state) => ({
+          data: { ...state.data, references: (state.data.references || []).filter(r => r.id !== id) }
+        })),
 
-      setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
+        setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
 
-      reorderExperience: (startIndex, endIndex) => set((state) => {
-        const result = Array.from(state.data.experience);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
-        return { data: { ...state.data, experience: result } };
+        reorderExperience: (startIndex, endIndex) => set((state) => {
+          const result = Array.from(state.data.experience);
+          const [removed] = result.splice(startIndex, 1);
+          result.splice(endIndex, 0, removed);
+          return { data: { ...state.data, experience: result } };
+        }),
+        reorderEducation: (startIndex, endIndex) => set((state) => {
+          const result = Array.from(state.data.education);
+          const [removed] = result.splice(startIndex, 1);
+          result.splice(endIndex, 0, removed);
+          return { data: { ...state.data, education: result } };
+        }),
+        reorderSkills: (startIndex, endIndex) => set((state) => {
+          const result = Array.from(state.data.skills);
+          const [removed] = result.splice(startIndex, 1);
+          result.splice(endIndex, 0, removed);
+          return { data: { ...state.data, skills: result } };
+        }),
+        setAllData: (newData) => set((state) => ({
+          data: { ...state.data, ...newData }
+        })),
+
       }),
-      reorderEducation: (startIndex, endIndex) => set((state) => {
-        const result = Array.from(state.data.education);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
-        return { data: { ...state.data, education: result } };
-      }),
-      reorderSkills: (startIndex, endIndex) => set((state) => {
-        const result = Array.from(state.data.skills);
-        const [removed] = result.splice(startIndex, 1);
-        result.splice(endIndex, 0, removed);
-        return { data: { ...state.data, skills: result } };
-      }),
-      setAllData: (newData) => set((state) => ({
-        data: { ...state.data, ...newData }
-      })),
-
-    }),
-    { name: 'freecv-storage' }
+      { name: 'freecv-storage' }
+    ),
+    { limit: 50 }
   )
 );
 
@@ -381,6 +392,24 @@ export default function FreeCVApp() {
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [generatingExpId, setGeneratingExpId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+
+  // Dark Mode
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // ATS Grader
+  const [isATSOpen, setIsATSOpen] = useState(false);
+  const [atsJobDesc, setAtsJobDesc] = useState('');
+  const [atsResult, setAtsResult] = useState<any>(null);
+  const [isATSLoading, setIsATSLoading] = useState(false);
+
+  // AI Rewriter
+  const [isRewriterOpen, setIsRewriterOpen] = useState(false);
+  const [rewriteTone, setRewriteTone] = useState('Executive');
+  const [isRewriting, setIsRewriting] = useState(false);
+
+  // Smart Skills
+  const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
+  const [isLoadingSkills, setIsLoadingSkills] = useState(false);
 
   
   const onDragEnd = (result: any) => {
@@ -476,7 +505,133 @@ export default function FreeCVApp() {
   useEffect(() => { 
     setIsHydrated(true); 
     trackEvent('milestone_started');
+    // Load dark mode preference
+    const savedDark = localStorage.getItem('freecv-dark-mode');
+    if (savedDark === 'true') setIsDarkMode(true);
   }, []);
+
+  // Undo/Redo keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        useResumeStore.temporal.getState().undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        useResumeStore.temporal.getState().redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem('freecv-dark-mode', String(next));
+      return next;
+    });
+  }, []);
+
+  // ATS Grader handler
+  const handleATSGrade = async () => {
+    if (!atsJobDesc.trim()) return;
+    setIsATSLoading(true);
+    setAtsResult(null);
+    try {
+      const res = await fetch('/api/ai/ats-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeData: data, jobDescription: atsJobDesc })
+      });
+      const resData = await res.json();
+      if (res.ok) setAtsResult(resData);
+      else throw new Error(resData.error || 'Failed to grade');
+    } catch (err: any) {
+      alert('ATS Grading failed: ' + err.message);
+    }
+    setIsATSLoading(false);
+  };
+
+  // AI Rewriter handler
+  const handleRewrite = async () => {
+    setIsRewriting(true);
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'rewrite',
+          tone: rewriteTone,
+          jobTitle: data.personalInfo.jobTitle,
+          resumeData: {
+            summary: data.summary,
+            experience: data.experience.map(e => ({ id: e.id, description: e.description }))
+          }
+        })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.summary) {
+        updateSummary(resData.summary);
+        if (resData.experience) {
+          resData.experience.forEach((exp: any) => {
+            if (exp.id && exp.description) updateExperience(exp.id, { description: exp.description });
+          });
+        }
+      } else {
+        throw new Error(resData.error || 'Failed to rewrite');
+      }
+    } catch (err: any) {
+      alert('Rewrite failed: ' + err.message);
+    }
+    setIsRewriting(false);
+    setIsRewriterOpen(false);
+  };
+
+  // Smart Skills handler
+  const handleSuggestSkills = async () => {
+    if (!data.personalInfo.jobTitle) return;
+    setIsLoadingSkills(true);
+    try {
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'skills', jobTitle: data.personalInfo.jobTitle })
+      });
+      const resData = await res.json();
+      if (res.ok && resData.skills) {
+        const existingNames = data.skills.map(s => s.name.toLowerCase());
+        setSuggestedSkills(resData.skills.filter((s: string) => !existingNames.includes(s.toLowerCase())));
+      }
+    } catch (err) {
+      console.error('Skill suggestion failed', err);
+    }
+    setIsLoadingSkills(false);
+  };
+
+  // DOCX Export handler
+  const handleDocxExport = async () => {
+    try {
+      const res = await fetch('/api/export/docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('Failed to generate DOCX');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.personalInfo.fullName.replace(/\s+/g, '_')}_Resume.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      trackEvent('milestone_docx_downloaded', data.templateId);
+    } catch (err: any) {
+      alert('DOCX export failed: ' + err.message);
+    }
+  };
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
@@ -533,25 +688,53 @@ export default function FreeCVApp() {
   const SelectedTemplate = templates[data.templateId] || templates.Executive;
 
   return (
-    <main className="flex h-screen w-full bg-[#FAFAFA] overflow-hidden font-sans text-gray-900 selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible">
+    <main className={cn("flex h-screen w-full overflow-hidden font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", isDarkMode ? 'bg-gray-950 text-gray-100' : 'bg-[#FAFAFA] text-gray-900')}>
       
       {/* EDITOR PANEL */}
-      <section className="w-full lg:w-[45%] h-full overflow-y-auto border-r border-gray-200 bg-white print:hidden px-6 py-8 lg:px-10 lg:py-12 custom-scrollbar flex-shrink-0 relative">
+      <section className={cn("w-full lg:w-[45%] h-full overflow-y-auto border-r print:hidden px-6 py-8 lg:px-10 lg:py-12 custom-scrollbar flex-shrink-0 relative", isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
         <div className="max-w-xl mx-auto pb-24 lg:pb-0">
           
-          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
+          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
               <h1 className="text-2xl font-black tracking-tighter uppercase">FreeCV</h1>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Premium & Forever Free</p>
+              <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mt-1", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Premium & Forever Free</p>
             </div>
-            <button 
-              onClick={handleDownload}
-              className="hidden lg:flex group items-center gap-2 bg-black text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
-            >
-              <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" />
-              Download PDF
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => useResumeStore.temporal.getState().undo()} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500')} title="Undo (Ctrl+Z)">
+                <Undo2 size={16} />
+              </button>
+              <button onClick={() => useResumeStore.temporal.getState().redo()} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500')} title="Redo (Ctrl+Y)">
+                <Redo2 size={16} />
+              </button>
+              <button onClick={toggleDarkMode} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-yellow-400' : 'hover:bg-gray-100 text-gray-500')} title="Toggle Dark Mode">
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button 
+                onClick={handleDownload}
+                className="hidden lg:flex group items-center gap-2 bg-black text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
+              >
+                <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+                PDF
+              </button>
+              <button 
+                onClick={handleDocxExport}
+                className="hidden lg:flex group items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-blue-600/20"
+              >
+                <FileText size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+                DOCX
+              </button>
+            </div>
           </header>
+
+          {/* AI Tools Bar */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            <button onClick={() => setIsATSOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", isDarkMode ? 'bg-emerald-950 text-emerald-300 border-emerald-800 hover:bg-emerald-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100')}>
+              <BarChart3 size={14} /> ATS Grader
+            </button>
+            <button onClick={() => setIsRewriterOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", isDarkMode ? 'bg-purple-950 text-purple-300 border-purple-800 hover:bg-purple-900' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100')}>
+              <RefreshCw size={14} /> AI Rewriter
+            </button>
+          </div>
 
           {/* Template Gallery Prominent Button */}
           <div className="mb-12">
@@ -619,8 +802,10 @@ export default function FreeCVApp() {
           <div className="mb-12 relative overflow-hidden bg-[#0A66C2] text-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl shadow-[#0A66C2]/20 flex flex-col sm:flex-row items-center gap-6 justify-between group">
             <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
             <div className="flex items-center gap-5 relative z-10">
-              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-inner">
-                <Linkedin className="text-[#0A66C2] w-8 h-8" fill="currentColor" />
+              <div className="bg-white rounded-full p-3 shadow-[0_0_20px_rgba(10,102,194,0.15)] mb-4">
+                <svg className="w-8 h-8 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
               </div>
               <div>
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">Import from LinkedIn</h3>
@@ -865,6 +1050,34 @@ export default function FreeCVApp() {
             </Droppable>
           </Card>
 
+          {/* Smart Skill Suggestions */}
+          <div className="mb-6">
+            <button
+              onClick={handleSuggestSkills}
+              disabled={isLoadingSkills || !data.personalInfo.jobTitle}
+              className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all border disabled:opacity-40", isDarkMode ? 'bg-amber-950 text-amber-300 border-amber-800 hover:bg-amber-900' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100')}
+            >
+              {isLoadingSkills ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {isLoadingSkills ? 'Finding skills...' : 'Suggest Skills with AI'}
+            </button>
+            {suggestedSkills.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {suggestedSkills.map((skill, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      addSkill(skill);
+                      setSuggestedSkills(prev => prev.filter(s => s !== skill));
+                    }}
+                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border", isDarkMode ? 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-black')}
+                  >
+                    <Plus size={12} /> {skill}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Projects Section */}
           {data.showProjects && (
             <>
@@ -1104,6 +1317,124 @@ export default function FreeCVApp() {
                 No thanks, just download PDF
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ATS GRADER MODAL */}
+      {isATSOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+          <div className={cn("rounded-3xl max-w-2xl w-full p-8 shadow-2xl flex flex-col max-h-[90vh]", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><BarChart3 className="text-emerald-500" /> ATS Resume Grader</h2>
+                <p className={cn("text-sm mt-1", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Paste the job description below to see how well your resume matches.</p>
+              </div>
+              <button onClick={() => setIsATSOpen(false)} className={cn("p-2 rounded-full transition-colors", isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <textarea
+              className={cn("w-full border rounded-xl p-4 text-sm min-h-[150px] mb-4 focus:ring-2 focus:ring-emerald-500 outline-none resize-none transition-all", isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200')}
+              placeholder="Paste the target job description here..."
+              value={atsJobDesc}
+              onChange={(e) => setAtsJobDesc(e.target.value)}
+            />
+            
+            <button 
+              onClick={handleATSGrade}
+              disabled={isATSLoading || !atsJobDesc.trim()}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all flex justify-center items-center gap-2 mb-6 shadow-lg shadow-emerald-600/20"
+            >
+              {isATSLoading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              {isATSLoading ? 'Analyzing Resume...' : 'Analyze & Grade Resume'}
+            </button>
+
+            {atsResult && (
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                <div className="flex items-center gap-6">
+                  <div className="relative w-24 h-24 flex items-center justify-center rounded-full border-8 border-gray-100">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="289.026" strokeDashoffset={289.026 * (1 - atsResult.score / 100)} className={atsResult.score >= 80 ? 'text-emerald-500' : atsResult.score >= 60 ? 'text-amber-500' : 'text-red-500'} strokeLinecap="round" />
+                    </svg>
+                    <span className="text-2xl font-black">{atsResult.score}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Match Score</h3>
+                    <p className={cn("text-sm", isDarkMode ? 'text-gray-400' : 'text-gray-600')}>
+                      {atsResult.score >= 80 ? 'Excellent match! You are highly qualified.' : atsResult.score >= 60 ? 'Good match. Consider adding some missing keywords.' : 'Low match. Significant tailoring recommended.'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-emerald-950/30 border-emerald-900' : 'bg-emerald-50 border-emerald-100')}>
+                    <h4 className="font-bold text-emerald-600 mb-2 flex items-center gap-2"><Plus size={16} /> Strengths</h4>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {atsResult.strengths?.map((s:string, i:number) => <li key={i}>{s}</li>)}
+                    </ul>
+                  </div>
+                  <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-amber-950/30 border-amber-900' : 'bg-amber-50 border-amber-100')}>
+                    <h4 className="font-bold text-amber-600 mb-2 flex items-center gap-2"><RefreshCw size={16} /> Missing Keywords</h4>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {atsResult.missingKeywords?.map((k:string, i:number) => <li key={i}>{k}</li>)}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-blue-950/30 border-blue-900' : 'bg-blue-50 border-blue-100')}>
+                  <h4 className="font-bold text-blue-600 mb-2 flex items-center gap-2"><Sparkles size={16} /> Actionable Tips</h4>
+                  <ul className="list-disc list-inside text-sm space-y-1">
+                    {atsResult.tips?.map((t:string, i:number) => <li key={i}>{t}</li>)}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* AI REWRITER MODAL */}
+      {isRewriterOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+          <div className={cn("rounded-3xl max-w-md w-full p-8 shadow-2xl transition-all", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><RefreshCw className="text-purple-500" /> AI Rewriter</h2>
+              <button onClick={() => setIsRewriterOpen(false)} className={cn("p-2 rounded-full transition-colors", isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <p className={cn("text-sm mb-6", isDarkMode ? 'text-gray-400' : 'text-gray-600')}>
+              Instantly rewrite your Summary and Experience sections to match a specific tone or career level.
+            </p>
+            
+            <div className="mb-6">
+              <label className="text-xs font-bold uppercase tracking-wider mb-2 block text-gray-500">Target Tone / Style</label>
+              <div className="relative">
+                <select
+                  value={rewriteTone}
+                  onChange={(e) => setRewriteTone(e.target.value)}
+                  className={cn("w-full appearance-none rounded-xl px-4 py-3 pr-10 text-sm font-bold border transition-all focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer", isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200')}
+                >
+                  <option value="Executive">Executive & Strategic</option>
+                  <option value="Creative">Creative & Dynamic</option>
+                  <option value="Technical">Technical & Analytical</option>
+                  <option value="Entry-Level">Entry-Level & Enthusiastic</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+              </div>
+            </div>
+
+            <button 
+              onClick={handleRewrite}
+              disabled={isRewriting}
+              className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all flex justify-center items-center gap-2 shadow-lg shadow-purple-600/20"
+            >
+              {isRewriting ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+              {isRewriting ? 'Rewriting Resume...' : 'Rewrite Entire Resume'}
+            </button>
           </div>
         </div>
       )}
