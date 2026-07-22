@@ -39,7 +39,7 @@ body {
 @media print {
   /* --- Layer 1: Root elements --- */
   html, body {
-    width: auto !important;
+    width: 8.5in !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -132,5 +132,22 @@ body {
      This ensures it always shows during print regardless. */
   body.printing #preview-panel {
     display: block !important;
+  }
+
+  /* --- Layer 9: Multi-page Smart Pagination ---
+     Prevent page breaks inside critical elements like headings, paragraphs, and list items. */
+  .print-safe-content h1, 
+  .print-safe-content h2, 
+  .print-safe-content h3, 
+  .print-safe-content p,
+  .print-safe-content li {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Target typical section and item wrappers that have margin-bottom */
+  .print-safe-content > div > div > div {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }

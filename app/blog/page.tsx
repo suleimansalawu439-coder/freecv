@@ -53,7 +53,7 @@ export default async function BlogIndex() {
                     {post.title}
                   </h2>
                   <p className="text-gray-500 mb-8 flex-1 line-clamp-3">
-                    {post.meta_description || post.content.substring(0, 150) + '...'}
+                    {post.meta_description || post.content?.substring(0, 150) || 'Read more about this topic...'}
                   </p>
                   <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs">
                     Read Article <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />

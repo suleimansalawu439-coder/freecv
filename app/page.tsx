@@ -29,7 +29,9 @@ import {
   RefreshCw,
   Undo2,
   Redo2,
-  ChevronDown
+  ChevronDown,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
@@ -91,6 +93,20 @@ export interface Certification {
   date: string;
 }
 
+export interface CustomSectionItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  date: string;
+  description: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  items: CustomSectionItem[];
+}
+
 export interface Reference {
   id: string;
   name: string;
@@ -116,6 +132,7 @@ export interface ResumeData {
   showReferences: boolean;
   references: Reference[];
   hasOptedIn: boolean;
+  customSections: CustomSection[];
 }
 
 // --- Store ---
@@ -150,6 +167,14 @@ interface ResumeStore {
   reorderEducation: (startIndex: number, endIndex: number) => void;
   reorderSkills: (startIndex: number, endIndex: number) => void;
   setAllData: (data: Partial<ResumeData>) => void;
+  addCustomSection: () => void;
+  updateCustomSectionTitle: (id: string, title: string) => void;
+  removeCustomSection: (id: string) => void;
+  addCustomSectionItem: (sectionId: string) => void;
+  updateCustomSectionItem: (sectionId: string, itemId: string, updates: Partial<CustomSectionItem>) => void;
+  removeCustomSectionItem: (sectionId: string, itemId: string) => void;
+  reorderCustomSections: (startIndex: number, endIndex: number) => void;
+  reorderCustomSectionItems: (sectionId: string, startIndex: number, endIndex: number) => void;
 }
 
 const initialData: ResumeData = {
@@ -193,7 +218,8 @@ const initialData: ResumeData = {
   certifications: [],
   showReferences: false,
   references: [],
-  hasOptedIn: false
+  hasOptedIn: false,
+  customSections: []
 };
 
 const useResumeStore = create<ResumeStore>()(
@@ -283,6 +309,40 @@ const useResumeStore = create<ResumeStore>()(
         })),
 
         setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
+        addCustomSection: () => set((state) => ({
+          data: { ...state.data, customSections: [...(state.data.customSections || []), { id: crypto.randomUUID(), title: 'Custom Section', items: [] }] }
+        })),
+        updateCustomSectionTitle: (id, title) => set((state) => ({
+          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === id ? { ...s, title } : s) }
+        })),
+        removeCustomSection: (id) => set((state) => ({
+          data: { ...state.data, customSections: (state.data.customSections || []).filter(s => s.id !== id) }
+        })),
+        addCustomSectionItem: (sectionId) => set((state) => ({
+          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: [...s.items, { id: crypto.randomUUID(), title: '', subtitle: '', date: '', description: '' }] } : s) }
+        })),
+        updateCustomSectionItem: (sectionId, itemId, updates) => set((state) => ({
+          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: s.items.map(i => i.id === itemId ? { ...i, ...updates } : i) } : s) }
+        })),
+        removeCustomSectionItem: (sectionId, itemId) => set((state) => ({
+          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: s.items.filter(i => i.id !== itemId) } : s) }
+        })),
+        reorderCustomSections: (startIndex, endIndex) => set((state) => {
+          const result = Array.from(state.data.customSections || []);
+          const [removed] = result.splice(startIndex, 1);
+          result.splice(endIndex, 0, removed);
+          return { data: { ...state.data, customSections: result } };
+        }),
+        reorderCustomSectionItems: (sectionId, startIndex, endIndex) => set((state) => {
+          const result = Array.from(state.data.customSections || []);
+          const sectionIndex = result.findIndex(s => s.id === sectionId);
+          if (sectionIndex === -1) return state;
+          const newItems = Array.from(result[sectionIndex].items);
+          const [removed] = newItems.splice(startIndex, 1);
+          newItems.splice(endIndex, 0, removed);
+          result[sectionIndex] = { ...result[sectionIndex], items: newItems };
+          return { data: { ...state.data, customSections: result } };
+        }),
 
         reorderExperience: (startIndex, endIndex) => set((state) => {
           const result = Array.from(state.data.experience);
@@ -372,7 +432,7 @@ export default function FreeCVApp() {
     toggleProjects, addProject, updateProject, removeProject,
     toggleCertifications, addCertification, updateCertification, removeCertification,
     toggleReferences, addReference, updateReference, removeReference, setHasOptedIn,
-    reorderExperience, reorderEducation, reorderSkills, setAllData
+    reorderExperience, reorderEducation, reorderSkills, setAllData, addCustomSection, updateCustomSectionTitle, removeCustomSection, addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem, reorderCustomSections, reorderCustomSectionItems
   } = useResumeStore();
   
   const data = {
@@ -380,24 +440,25 @@ export default function FreeCVApp() {
     projects: storeData.projects || [],
     certifications: storeData.certifications || [],
     references: storeData.references || [],
+    customSections: storeData.customSections || [],
     hasOptedIn: storeData.hasOptedIn || false
   };
 
   const [skillInput, setSkillInput] = useState('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [mobileZoom, setMobileZoom] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isATSOpen, setIsATSOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [isOptInModalOpen, setIsOptInModalOpen] = useState(false);
-
-  // AI Generation State
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [generatingExpId, setGeneratingExpId] = useState<string | null>(null);
+  const [polishingExpId, setPolishingExpId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
 
   // Dark Mode
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // ATS Grader
-  const [isATSOpen, setIsATSOpen] = useState(false);
   const [atsJobDesc, setAtsJobDesc] = useState('');
   const [atsResult, setAtsResult] = useState<any>(null);
   const [isATSLoading, setIsATSLoading] = useState(false);
@@ -421,6 +482,36 @@ export default function FreeCVApp() {
       reorderEducation(source.index, destination.index);
     } else if (type === 'skills') {
       reorderSkills(source.index, destination.index);
+    }
+  };
+
+  const handlePolishExperience = async (id: string, currentText: string) => {
+    if (!currentText.trim() || !data.personalInfo.jobTitle) {
+      alert("Please enter a Job Title and some text to polish.");
+      return;
+    }
+    try {
+      setPolishingExpId(id);
+      const res = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          type: 'polish', 
+          jobTitle: data.personalInfo.jobTitle, 
+          additionalContext: currentText 
+        })
+      });
+      const json = await res.json();
+      if (json.text) {
+        updateExperience(id, { description: json.text });
+      } else if (json.error) {
+        alert(json.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to polish text. Please try again.");
+    } finally {
+      setPolishingExpId(null);
     }
   };
 
@@ -671,26 +762,6 @@ export default function FreeCVApp() {
 
   const handleDownload = () => {
     trackEvent('milestone_downloaded', data.templateId);
-    if (!data.hasOptedIn) {
-      setIsOptInModalOpen(true);
-    } else {
-      triggerPrint();
-    }
-  };
-
-  const handleOptIn = async (optIn: boolean) => {
-    if (optIn) {
-      trackEvent('milestone_opted_in', data.templateId);
-      setHasOptedIn(true);
-      await supabase.from('candidates').insert([{
-        email: data.personalInfo.email || `anon-${crypto.randomUUID()}@freecv.dev`,
-        full_name: data.personalInfo.fullName || 'Anonymous',
-        job_title: data.personalInfo.jobTitle || 'Unknown',
-        resume_data: data,
-        template_id: data.templateId
-      }]);
-    }
-    setIsOptInModalOpen(false);
     triggerPrint();
   };
 
@@ -722,7 +793,7 @@ export default function FreeCVApp() {
               </button>
               <button 
                 onClick={handleDownload}
-                className="hidden lg:flex group items-center gap-2 bg-black text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
+                className="flex group items-center gap-2 bg-black text-white px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20"
               >
                 <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" />
                 PDF
@@ -849,8 +920,20 @@ export default function FreeCVApp() {
               <Input label="Phone" value={data.personalInfo.phone} onChange={(e:any) => updatePersonalInfo({ phone: e.target.value })} />
               <Input label="Location" value={data.personalInfo.location} onChange={(e:any) => updatePersonalInfo({ location: e.target.value })} />
               <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e:any) => updatePersonalInfo({ website: e.target.value })} />
+              <div className={cn("col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 rounded-xl border", isDarkMode ? 'bg-blue-900/10 border-blue-900' : 'bg-blue-50 border-blue-100')}>
+                <div>
+                  <h4 className={cn("font-bold text-sm", isDarkMode ? 'text-blue-400' : 'text-blue-900')}>Make profile public</h4>
+                  <p className={cn("text-xs", isDarkMode ? 'text-blue-500' : 'text-blue-700')}>Allow recruiters to find your resume on FreeCV.</p>
+                </div>
+                <button
+                  onClick={() => setHasOptedIn(!data.hasOptedIn)}
+                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.hasOptedIn ? 'bg-blue-600' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
+                >
+                  <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.hasOptedIn ? 'translate-x-7' : 'translate-x-1')} />
+                </button>
+              </div>
               <div className="col-span-1 sm:col-span-2 mt-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-400 ml-1 block mb-1.5">Profile Picture (Optional)</label>
+                <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Profile Image (Optional)</label>
                 <div className="flex items-center gap-4">
                   {data.personalInfo.profilePicture && (
                     <img src={data.personalInfo.profilePicture} alt="Profile" className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm" />
@@ -937,14 +1020,25 @@ export default function FreeCVApp() {
               <div className="mb-2">
                 <div className="flex justify-between items-center ml-1 mb-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Accomplishments (New line per point)</label>
-                  <button 
-                    onClick={() => handleGenerateExperience(exp.id, exp.role, exp.company)}
-                    disabled={generatingExpId === exp.id}
-                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-600 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-full transition-colors disabled:opacity-50"
-                  >
-                    {generatingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    {generatingExpId === exp.id ? 'Writing...' : 'Generate with AI'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handlePolishExperience(exp.id, exp.description)}
+                      disabled={polishingExpId === exp.id || !exp.description.trim()}
+                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-full transition-colors disabled:opacity-50"
+                      title="Polish this text with AI"
+                    >
+                      {polishingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {polishingExpId === exp.id ? 'Polishing...' : 'Polish'}
+                    </button>
+                    <button 
+                      onClick={() => handleGenerateExperience(exp.id, exp.role, exp.company)}
+                      disabled={generatingExpId === exp.id}
+                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-600 bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-full transition-colors disabled:opacity-50"
+                    >
+                      {generatingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      {generatingExpId === exp.id ? 'Writing...' : 'Generate with AI'}
+                    </button>
+                  </div>
                 </div>
                 <textarea 
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none min-h-[100px] resize-none"
@@ -1190,6 +1284,66 @@ export default function FreeCVApp() {
             )}
           </div>
 
+          
+          {/* Custom Sections */}
+          {data.customSections?.map((section: any, sectionIndex: number) => (
+            <div key={section.id} className="mt-8">
+              <div className="flex items-center justify-between mb-4 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                <input 
+                  type="text" 
+                  value={section.title}
+                  onChange={(e) => updateCustomSectionTitle(section.id, e.target.value)}
+                  className="font-black uppercase tracking-widest text-lg bg-transparent border-none outline-none focus:ring-0 flex-1"
+                />
+                <button onClick={() => removeCustomSection(section.id)} className="text-gray-400 hover:text-red-500 transition-colors p-2"><Trash2 size={16} /></button>
+              </div>
+              <Droppable droppableId={`custom-${section.id}`} type="custom-item">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
+                    {section.items.map((item: any, index: number) => (
+                      <Draggable key={item.id} draggableId={item.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div ref={provided.innerRef} {...provided.draggableProps} className={cn("bg-white border rounded-2xl p-4 sm:p-5 relative group transition-all", snapshot.isDragging ? 'shadow-2xl border-blue-500 scale-[1.02] z-50' : 'border-gray-200 hover:border-gray-300')}>
+                            <div {...provided.dragHandleProps} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity p-2 cursor-grab active:cursor-grabbing hover:text-black">
+                              <GripVertical size={16} />
+                            </div>
+                            <div className="pl-8">
+                              <div className="flex justify-between items-start gap-4 mb-3">
+                                <div className="flex-1 space-y-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <Input label="Title" value={item.title} onChange={(e:any) => updateCustomSectionItem(section.id, item.id, { title: e.target.value })} placeholder="Project Name, Language, etc." />
+                                    <Input label="Subtitle" value={item.subtitle} onChange={(e:any) => updateCustomSectionItem(section.id, item.id, { subtitle: e.target.value })} placeholder="Role, Level, etc." />
+                                  </div>
+                                  <Input label="Date/Info" value={item.date} onChange={(e:any) => updateCustomSectionItem(section.id, item.id, { date: e.target.value })} placeholder="2024, Fluent, etc." />
+                                </div>
+                                <button onClick={() => removeCustomSectionItem(section.id, item.id)} className="text-gray-400 hover:text-red-500 transition-colors p-2 mt-6"><Trash2 size={16} /></button>
+                              </div>
+                              <div className="mt-3">
+                                <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Description</label>
+                                <textarea value={item.description} onChange={(e) => updateCustomSectionItem(section.id, item.id, { description: e.target.value })} className={cn("w-full rounded-xl border p-3 min-h-[80px] focus:ring-2 focus:ring-black focus:outline-none transition-all resize-y text-sm", isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200')} placeholder="Describe this item..." />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    <button onClick={() => addCustomSectionItem(section.id)} className="w-full py-3 bg-gray-50 border-2 border-dashed border-gray-300 hover:border-black hover:bg-gray-100 rounded-2xl font-bold text-sm text-gray-600 hover:text-black flex items-center justify-center gap-2 transition-all">
+                      <Plus size={16} /> Add Item
+                    </button>
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          ))}
+          
+          <div className="mt-8">
+            <button onClick={addCustomSection} className="w-full py-4 bg-blue-50 border-2 border-dashed border-blue-300 hover:border-blue-600 hover:bg-blue-100 rounded-2xl font-bold text-sm text-blue-600 flex items-center justify-center gap-2 transition-all shadow-sm">
+              <Plus size={18} /> Create Custom Section
+            </button>
+          </div>
+
+
           {/* Marketing Engine / Newsletter Capture */}
           <div className="mt-16 pt-8 border-t border-gray-200">
             <NewsletterCapture source="main_editor" />
@@ -1222,12 +1376,15 @@ export default function FreeCVApp() {
         
         {/* Mobile Modal Actions */}
         {isPreviewOpen && (
-          <div className="fixed bottom-0 left-0 w-full bg-white p-4 flex gap-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 lg:hidden print:hidden border-t border-gray-200">
+          <div className="fixed bottom-0 left-0 w-full bg-white p-4 flex gap-2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 lg:hidden print:hidden border-t border-gray-200">
             <button onClick={() => setIsPreviewOpen(false)} className="flex-1 bg-gray-100 text-black py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 transition-colors active:bg-gray-200">
               <X size={16} /> Edit
             </button>
+            <button onClick={() => setMobileZoom(!mobileZoom)} className="flex-1 bg-gray-100 text-black py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 transition-colors active:bg-gray-200">
+              {mobileZoom ? <ZoomOut size={16} /> : <ZoomIn size={16} />} Zoom
+            </button>
             <button onClick={handleDownload} className="flex-1 bg-black text-white py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:scale-95 transition-transform">
-              <Download size={16} /> Download
+              <Download size={16} /> Save
             </button>
           </div>
         )}
@@ -1237,7 +1394,7 @@ export default function FreeCVApp() {
           isPreviewOpen ? "mb-32 mt-4" : ""
         )}
         style={{
-          ...(isPreviewOpen ? { transform: 'scale(min(1, calc(100vw / 860)))' } : {}),
+          ...(isPreviewOpen ? { transform: mobileZoom ? 'scale(1)' : 'scale(min(1, calc((100vw - 32px) / 816)))', transformOrigin: 'top center' } : {}),
           '--theme-color': data.theme?.color || '#2563eb'
         } as React.CSSProperties}
         >
@@ -1298,35 +1455,6 @@ export default function FreeCVApp() {
                   </button>
                 );
               })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OPT-IN MODAL */}
-      {isOptInModalOpen && (
-        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl transform transition-all">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-              <Briefcase size={32} />
-            </div>
-            <h2 className="text-2xl font-black mb-3 leading-tight">Looking for your next role?</h2>
-            <p className="text-gray-600 text-sm mb-8 leading-relaxed">
-              Make your resume visible to verified startups and tech companies hiring right now. We'll add you to our exclusive Talent Pool.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => handleOptIn(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-sm transition-colors flex justify-center items-center gap-2"
-              >
-                Yes, make me visible & Download
-              </button>
-              <button 
-                onClick={() => handleOptIn(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-4 rounded-xl font-bold text-sm transition-colors"
-              >
-                No thanks, just download PDF
-              </button>
             </div>
           </div>
         </div>

@@ -43,6 +43,11 @@ ${JSON.stringify(resumeData, null, 2)}`;
       prompt = `Provide a list of 10 highly relevant skills for a ${jobTitle}.
 Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
 JSON structure must strictly match: { "skills": string[] }`;
+    } else if (type === 'polish') {
+      prompt = `Rewrite the following resume experience description to be highly professional, impactful, and action-oriented. 
+      Start with a strong action verb (e.g., Spearheaded, Orchestrated, Optimized) and focus on measurable achievements.
+      Do not include any introductory text, asterisks, or markdown formatting. Just return the polished text.
+      Text to polish: "${additionalContext}"`;
     } else {
       return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
     }

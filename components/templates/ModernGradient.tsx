@@ -121,7 +121,35 @@ export default function ModernGradient({ data }: { data: ResumeData }) {
             </div>
           </div>
         </div>
-      </div>
+      </div>\n
+      {/* CUSTOM SECTIONS */}
+      {data.customSections && data.customSections.length > 0 && (
+        <div className="mt-6 pt-6 border-t border-gray-100">
+          {data.customSections.map(section => (
+            <div key={section.id} className="mb-6 last:mb-0">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">{section.title}</h2>
+              <div className="space-y-4">
+                {section.items.map(item => (
+                  <div key={item.id}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-sm font-bold leading-tight">{item.title}</h3>
+                      {item.date && <span className="text-[10px] font-bold font-sans uppercase tracking-widest text-gray-400 shrink-0 ml-4">{item.date}</span>}
+                    </div>
+                    {item.subtitle && <p className="text-xs font-bold text-gray-500 mb-1 font-sans uppercase tracking-wider">{item.subtitle}</p>}
+                    {item.description && (
+                      <div className="text-xs text-gray-700 leading-relaxed mt-1">
+                        {item.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                          <div key={i} className="flex gap-2 mb-1"><span className="mt-1.5 w-1 h-1 rounded-full bg-gray-400 shrink-0" /><span>{line}</span></div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
