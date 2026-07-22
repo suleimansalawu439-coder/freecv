@@ -135,6 +135,10 @@ interface ResumeStore {
   updateReference: (id: string, updates: Partial<Reference>) => void;
   removeReference: (id: string) => void;
   setHasOptedIn: (optedIn: boolean) => void;
+  reorderExperience: (startIndex: number, endIndex: number) => void;
+  reorderEducation: (startIndex: number, endIndex: number) => void;
+  reorderSkills: (startIndex: number, endIndex: number) => void;
+  setAllData: (data: Partial<ResumeData>) => void;
 }
 
 const initialData: ResumeData = {
@@ -268,6 +272,28 @@ const useResumeStore = create<ResumeStore>()(
 
       setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
 
+      reorderExperience: (startIndex, endIndex) => set((state) => {
+        const result = Array.from(state.data.experience);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        return { data: { ...state.data, experience: result } };
+      }),
+      reorderEducation: (startIndex, endIndex) => set((state) => {
+        const result = Array.from(state.data.education);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        return { data: { ...state.data, education: result } };
+      }),
+      reorderSkills: (startIndex, endIndex) => set((state) => {
+        const result = Array.from(state.data.skills);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
+        return { data: { ...state.data, skills: result } };
+      }),
+      setAllData: (newData) => set((state) => ({
+        data: { ...state.data, ...newData }
+      })),
+
     }),
     { name: 'freecv-storage' }
   )
@@ -331,7 +357,8 @@ export default function FreeCVApp() {
     addSkill, removeSkill,
     toggleProjects, addProject, updateProject, removeProject,
     toggleCertifications, addCertification, updateCertification, removeCertification,
-    toggleReferences, addReference, updateReference, removeReference, setHasOptedIn
+    toggleReferences, addReference, updateReference, removeReference, setHasOptedIn,
+    reorderExperience, reorderEducation, reorderSkills, setAllData
   } = useResumeStore();
   
   const data = {
@@ -350,6 +377,49 @@ export default function FreeCVApp() {
   // AI Generation State
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [generatingExpId, setGeneratingExpId] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+    const { source, destination, type } = result;
+    if (type === 'experience') {
+      reorderExperience(source.index, destination.index);
+    } else if (type === 'education') {
+      reorderEducation(source.index, destination.index);
+    } else if (type === 'skills') {
+      reorderSkills(source.index, destination.index);
+    }
+  };
+
+  const handleLinkedInImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch('/api/ai/parse-linkedin', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const resData = await res.json();
+      if (res.ok) {
+        setAllData(resData);
+      } else {
+        throw new Error(resData.error || 'Failed to parse LinkedIn PDF');
+      }
+    } catch (err: any) {
+      alert("LinkedIn Import failed: " + err.message);
+    }
+    setIsImporting(false);
+    // Reset file input
+    e.target.value = '';
+  };
+
 
   const handleGenerateSummary = async () => {
     if (!data.personalInfo.jobTitle) {
@@ -540,6 +610,36 @@ export default function FreeCVApp() {
             </div>
           </Card>
 
+          <DragDropContext onDragEnd={onDragEnd}>
+          
+          {/* LinkedIn Import */}
+          <div className="mb-12 relative overflow-hidden bg-[#0A66C2] text-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl shadow-[#0A66C2]/20 flex flex-col sm:flex-row items-center gap-6 justify-between group">
+            <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
+            <div className="flex items-center gap-5 relative z-10">
+              <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                <Linkedin className="text-[#0A66C2] w-8 h-8" fill="currentColor" />
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">Import from LinkedIn</h3>
+                <p className="text-blue-100 text-sm font-medium">Save hours of typing. Upload your LinkedIn PDF to auto-fill everything.</p>
+              </div>
+            </div>
+            <div className="relative z-10 shrink-0 w-full sm:w-auto">
+              <input 
+                type="file" 
+                accept="application/pdf"
+                onChange={handleLinkedInImport}
+                disabled={isImporting}
+                className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed z-20 w-full"
+                title="Upload LinkedIn Profile PDF"
+              />
+              <button disabled={isImporting} className="w-full sm:w-auto bg-white text-[#0A66C2] px-6 py-3 rounded-xl font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:translate-y-0">
+                {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                {isImporting ? 'Importing magic...' : 'Upload PDF'}
+              </button>
+            </div>
+          </div>
+
           {/* Personal Info */}
           <SectionHeader icon={User} title="Personal Identity" description="Who are you and what do you do?" />
           <Card>
@@ -611,8 +711,24 @@ export default function FreeCVApp() {
               <Plus size={18} />
             </button>
           </div>
-          {data.experience.map((exp) => (
-            <Card key={exp.id}>
+          <Droppable droppableId="experience" type="experience">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef}>
+                {data.experience.map((exp, index) => (
+                  <Draggable key={exp.id} draggableId={exp.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="mb-6 relative group"
+                      >
+                        <div 
+                          {...provided.dragHandleProps}
+                          className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-gray-300 hover:text-black opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                        >
+                          <GripVertical size={20} />
+                        </div>
+                        <Card className="mb-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <Input label="Company" value={exp.company} onChange={(e:any) => updateExperience(exp.id, { company: e.target.value })} />
                 <Input label="Role" value={exp.role} onChange={(e:any) => updateExperience(exp.id, { role: e.target.value })} />
@@ -643,8 +759,15 @@ export default function FreeCVApp() {
               >
                 <Trash2 size={16} /> Delete Experience
               </button>
-            </Card>
-          ))}
+                        </Card>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
 
           {/* Education */}
           <div className="flex justify-between items-center mb-6">
@@ -653,8 +776,24 @@ export default function FreeCVApp() {
               <Plus size={18} />
             </button>
           </div>
-          {data.education.map((edu) => (
-            <Card key={edu.id}>
+          <Droppable droppableId="education" type="education">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef}>
+                {data.education.map((edu, index) => (
+                  <Draggable key={edu.id} draggableId={edu.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className="mb-6 relative group"
+                      >
+                        <div 
+                          {...provided.dragHandleProps}
+                          className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-gray-300 hover:text-black opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                        >
+                          <GripVertical size={20} />
+                        </div>
+                        <Card className="mb-0">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="col-span-1 sm:col-span-2">
                   <Input label="School/University" value={edu.school} onChange={(e:any) => updateEducation(edu.id, { school: e.target.value })} />
@@ -668,8 +807,15 @@ export default function FreeCVApp() {
               >
                 <Trash2 size={16} /> Delete Education
               </button>
-            </Card>
-          ))}
+                        </Card>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
 
           {/* Skills */}
           <SectionHeader icon={Wrench} title="Skill Arsenal" description="What tools do you master?" />
@@ -683,16 +829,37 @@ export default function FreeCVApp() {
               />
               <button type="submit" className="bg-black text-white px-6 py-3 rounded-lg text-sm font-bold uppercase tracking-wider">Add</button>
             </form>
-            <div className="flex flex-wrap gap-3">
-              {data.skills.map((s) => (
-                <span key={s.id} className="group flex items-center gap-2 bg-gray-100 border border-gray-200 pl-4 pr-2 py-2 rounded-full text-sm font-bold text-gray-700 transition-all">
+            <Droppable droppableId="skills" type="skills" direction="horizontal">
+              {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-3">
+                  {data.skills.map((s, index) => (
+                    <Draggable key={s.id} draggableId={s.id} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className="relative flex items-center"
+                        >
+                          <div 
+                            {...provided.dragHandleProps}
+                            className="absolute left-[-8px] text-gray-300 hover:text-black cursor-grab active:cursor-grabbing z-10"
+                          >
+                            <GripVertical size={14} />
+                          </div>
+                          <span className="group flex items-center gap-2 bg-gray-100 border border-gray-200 pl-6 pr-2 py-2 rounded-full text-sm font-bold text-gray-700 transition-all">
                   {s.name}
                   <button onClick={() => removeSkill(s.id)} className="p-1 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
                     <X size={14} />
                   </button>
                 </span>
-              ))}
-            </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
           </Card>
 
           {/* Projects Section */}
