@@ -2,6 +2,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { jobPages } from '@/lib/seo-job-data';
 import type { Metadata } from 'next';
+import Boardroom from '@/components/templates/Boardroom';
+import BrutalistMinimal from '@/components/templates/BrutalistMinimal';
+import DarkModeTech from '@/components/templates/DarkModeTech';
+import ElegantEditorial from '@/components/templates/ElegantEditorial';
+import SwissDesign from '@/components/templates/SwissDesign';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -39,6 +44,46 @@ export default async function JobTemplatePage({ params }: Props) {
 
   const { sampleData } = job;
 
+  // Convert sampleData to ResumeData format for the templates
+  const resumeData = {
+    personalInfo: {
+      fullName: sampleData.fullName,
+      jobTitle: sampleData.jobTitle,
+      email: 'hello@example.com',
+      phone: '(555) 123-4567',
+      location: 'San Francisco, CA',
+      website: 'linkedin.com/in/sample',
+      profilePicture: ''
+    },
+    summary: sampleData.summary,
+    experience: [
+      { id: '1', company: 'Leading Tech Corp', role: sampleData.jobTitle, startDate: '2020-01', endDate: 'Present', description: '• Spearheaded major initiatives resulting in 30% growth.\n• Managed cross-functional teams to deliver on time.\n• Implemented industry best practices across the board.' },
+      { id: '2', company: 'Global Solutions Inc.', role: `Junior ${sampleData.jobTitle}`, startDate: '2017-06', endDate: '2019-12', description: '• Assisted in the development of core products.\n• Reduced process inefficiencies by 15%.\n• Collaborated with senior stakeholders on key projects.' }
+    ],
+    education: [
+      { id: '1', school: 'State University', degree: 'Bachelor of Science', graduationYear: '2017' }
+    ],
+    skills: sampleData.skills.map((s, i) => ({ id: String(i), name: s })),
+    projects: [],
+    certifications: [],
+    references: [],
+    hasOptedIn: false,
+    templateId: 'brutalist-minimal',
+    theme: { color: 'blue' },
+    showProjects: false,
+    showCertifications: false,
+    showReferences: false,
+    customSections: []
+  };
+
+  const templates = [
+    { name: 'The Executive', component: Boardroom, category: 'Corporate', color: '#1f2937' },
+    { name: 'The Tech Lead', component: DarkModeTech, category: 'Technical', color: '#3b82f6' },
+    { name: 'The Minimalist', component: ElegantEditorial, category: 'Clean', color: '#000000' },
+    { name: 'The Creative', component: SwissDesign, category: 'Design', color: '#ef4444' },
+    { name: 'The Entry-Level', component: BrutalistMinimal, category: 'Modern', color: '#000000' }
+  ];
+
   return (
     <main className="min-h-screen bg-gray-950 text-gray-100 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -59,43 +104,33 @@ export default async function JobTemplatePage({ params }: Props) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Main Content - Resume Preview */}
-          <div className="lg:col-span-2 space-y-8">
-            <h2 className="text-2xl font-bold text-white">Sample Resume Data</h2>
-            
-            <div className="bg-white text-gray-900 rounded-lg shadow-2xl p-8 transform transition-transform hover:scale-[1.01] duration-300">
-              <div className="border-b-2 border-gray-200 pb-6 mb-6">
-                <h3 className="text-3xl font-bold uppercase tracking-wider text-gray-800">
-                  {sampleData.fullName}
-                </h3>
-                <p className="text-xl text-blue-600 font-medium mt-1">
-                  {sampleData.jobTitle}
-                </p>
-              </div>
+          {/* Main Content - Resume Templates Grid */}
+          <div className="lg:col-span-2 space-y-12">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Choose Your Template</h2>
+              <p className="text-gray-400 mb-8">We've selected 5 distinct layouts perfectly suited for a {job.title}.</p>
               
-              <div className="mb-6">
-                <h4 className="text-lg font-bold text-gray-800 mb-2 uppercase tracking-wide">
-                  Professional Summary
-                </h4>
-                <p className="text-gray-700 leading-relaxed">
-                  {sampleData.summary}
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="text-lg font-bold text-gray-800 mb-3 uppercase tracking-wide">
-                  Core Skills
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {sampleData.skills.map((skill, idx) => (
-                    <span 
-                      key={idx} 
-                      className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm font-medium border border-gray-200"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+              <div className="space-y-16">
+                {templates.map((tpl, i) => (
+                  <div key={i} className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl">
+                    <div className="flex justify-between items-center mb-6">
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-1 block">{tpl.category}</span>
+                        <h3 className="text-2xl font-bold text-white">{tpl.name}</h3>
+                      </div>
+                      <Link href="/" className="px-5 py-2 bg-white text-black font-bold rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                        Use Template
+                      </Link>
+                    </div>
+                    
+                    {/* Scaled down preview wrapper */}
+                    <div className="bg-gray-800 rounded-xl p-4 overflow-hidden flex justify-center">
+                      <div className="w-[800px] bg-white text-black transform scale-[0.45] sm:scale-75 origin-top shadow-2xl rounded-sm overflow-hidden h-[1100px] pointer-events-none">
+                        <tpl.component data={{...resumeData, theme: { color: tpl.color }}} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

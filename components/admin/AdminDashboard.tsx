@@ -125,6 +125,7 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<'crm' | 'analytics' | 'autoblog' | 'marketing' | 'config' | 'ai' | 'seo' | 'security' | 'health'>('analytics');
   const [blogPosts, setBlogPosts] = useState(initialBlogPosts);
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
@@ -217,11 +218,18 @@ export default function AdminDashboard({
     fetchStats();
   }, []);
 
-  const filteredCandidates = candidates.filter(c =>
-    c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.job_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCandidates = candidates.filter(c => {
+    const matchesSearch = c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          c.job_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          c.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (roleFilter === 'all') return matchesSearch;
+    if (roleFilter === 'engineering') return matchesSearch && /engineer|developer|programmer|software|tech|data|code/i.test(c.job_title || '');
+    if (roleFilter === 'design') return matchesSearch && /design|ui|ux|art|creative/i.test(c.job_title || '');
+    if (roleFilter === 'marketing') return matchesSearch && /marketing|seo|growth|content|sales/i.test(c.job_title || '');
+    if (roleFilter === 'management') return matchesSearch && /manager|lead|director|vp|chief/i.test(c.job_title || '');
+    return matchesSearch;
+  });
 
   const handleExportCSV = () => {
     if (candidates.length === 0) return;
@@ -570,8 +578,8 @@ export default function AdminDashboard({
             </header>
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-200 bg-gray-50">
-                <div className="relative max-w-md">
+              <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type="text"
@@ -581,6 +589,17 @@ export default function AdminDashboard({
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
                   />
                 </div>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-black bg-white min-w-[200px]"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="engineering">Engineering & Tech</option>
+                  <option value="design">Design & Creative</option>
+                  <option value="marketing">Marketing & Sales</option>
+                  <option value="management">Leadership & Management</option>
+                </select>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">

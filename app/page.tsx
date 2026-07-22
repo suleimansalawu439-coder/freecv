@@ -31,11 +31,15 @@ import {
   Redo2,
   ChevronDown,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Upload,
+  Share2
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import confetti from 'canvas-confetti';
+import SmartJobMatches from '@/components/jobs/SmartJobMatches';
 import { trackEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 
@@ -638,7 +642,17 @@ export default function FreeCVApp() {
         body: JSON.stringify({ resumeData: data, jobDescription: atsJobDesc })
       });
       const resData = await res.json();
-      if (res.ok) setAtsResult(resData);
+      if (res.ok) {
+        setAtsResult(resData);
+        if (resData.score >= 85) {
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#3b82f6', '#8b5cf6']
+          });
+        }
+      }
       else throw new Error(resData.error || 'Failed to grade');
     } catch (err: any) {
       alert('ATS Grading failed: ' + err.message);
@@ -932,35 +946,41 @@ export default function FreeCVApp() {
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.hasOptedIn ? 'translate-x-7' : 'translate-x-1')} />
                 </button>
               </div>
-              <div className="col-span-1 sm:col-span-2 mt-2">
-                <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Profile Image (Optional)</label>
-                <div className="flex items-center gap-4">
-                  {data.personalInfo.profilePicture && (
-                    <img src={data.personalInfo.profilePicture} alt="Profile" className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0 shadow-sm" />
-                  )}
-                  <div className="flex-1">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            updatePersonalInfo({ profilePicture: reader.result as string });
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
-                    />
+              <div className="col-span-1 sm:col-span-2 mt-2 flex justify-center sm:justify-start">
+                <div className="relative group cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => updatePersonalInfo({ profilePicture: reader.result as string });
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                  <div className={cn("w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all", isDarkMode ? 'border-gray-700 hover:border-blue-500 bg-gray-800/50' : 'border-gray-300 hover:border-blue-500 bg-gray-50')}>
+                    {data.personalInfo.profilePicture ? (
+                      <img src={data.personalInfo.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <>
+                        <Upload size={24} className={isDarkMode ? 'text-gray-500 mb-1' : 'text-gray-400 mb-1'} />
+                        <span className={cn("text-[10px] font-bold uppercase tracking-wider text-center px-2", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Add Photo</span>
+                      </>
+                    )}
                   </div>
                   {data.personalInfo.profilePicture && (
                     <button 
-                      onClick={() => updatePersonalInfo({ profilePicture: undefined })}
-                      className="text-xs text-red-500 font-bold hover:bg-red-50 px-3 py-2 rounded-lg transition-colors shrink-0"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        updatePersonalInfo({ profilePicture: undefined });
+                      }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-sm hover:bg-red-600"
                     >
-                      Remove
+                      <X size={14} />
                     </button>
                   )}
                 </div>
@@ -1538,6 +1558,22 @@ export default function FreeCVApp() {
                 >
                   <RefreshCw size={14} /> Implement Recommendations with AI Rewriter
                 </button>
+
+                {atsResult.score >= 85 && (
+                  <button
+                    onClick={() => {
+                      const text = `I just scored a ${atsResult.score}% on my resume using FreeCV! 🚀 Check out this free AI ATS Grader at freecv.com`;
+                      window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, '_blank');
+                    }}
+                    className="w-full bg-[#0A66C2] hover:bg-[#004182] text-white py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all flex justify-center items-center gap-2 mt-4 shadow-lg shadow-blue-500/20"
+                  >
+                    <Share2 size={14} /> Share Score to LinkedIn
+                  </button>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+                  <SmartJobMatches jobTitle={data.personalInfo.jobTitle} />
+                </div>
               </div>
             )}
           </div>
