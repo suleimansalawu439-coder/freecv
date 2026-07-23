@@ -752,9 +752,9 @@ export default function FreeCVApp() {
     // Save original title
     const originalTitle = document.title;
     
-    // Set custom title for PDF filename
-    const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
-    const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
+    // Set custom title for PDF filename (strip newlines to prevent \n showing in browser print footers)
+    const safeName = data.personalInfo.fullName.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'My';
+    const safeRole = data.personalInfo.jobTitle.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'Resume';
     document.title = `${safeName} - ${safeRole} - Resume`;
 
     // Reset scroll positions so print starts from top
@@ -1410,11 +1410,14 @@ export default function FreeCVApp() {
         )}
 
         <div className={cn(
-          "mx-auto lg:mx-0 shrink-0 shadow-2xl print:shadow-none bg-white transition-all origin-top print-safe-content",
+          "mx-auto lg:mx-0 shrink-0 shadow-2xl print:shadow-none bg-white transition-all print-safe-content",
           isPreviewOpen ? "mb-32 mt-4" : ""
         )}
         style={{
-          ...(isPreviewOpen ? { transform: mobileZoom ? 'scale(1)' : 'scale(min(1, calc((100vw - 32px) / 816)))', transformOrigin: 'top center' } : {}),
+          ...(isPreviewOpen ? { 
+            zoom: mobileZoom ? '1' : 'min(1, calc((100vw - 32px) / 816))',
+            transformOrigin: 'top center'
+          } : {}),
           '--theme-color': data.theme?.color || '#2563eb'
         } as React.CSSProperties}
         >
