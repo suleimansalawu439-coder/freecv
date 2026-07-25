@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
@@ -428,6 +428,9 @@ const Card = ({ children, className }: any) => (
 
 export default function FreeCVApp() {
   const [isHydrated, setIsHydrated] = useState(false);
+  const onboardingAppliedRef = useRef(false);
+  const previewViewportRef = useRef<HTMLElement | null>(null);
+  const resumePageRef = useRef<HTMLDivElement | null>(null);
   const { 
     data: storeData, setTemplateId, setThemeColor, updatePersonalInfo, updateSummary, 
     addExperience, updateExperience, removeExperience, 
@@ -439,18 +442,19 @@ export default function FreeCVApp() {
     reorderExperience, reorderEducation, reorderSkills, setAllData, addCustomSection, updateCustomSectionTitle, removeCustomSection, addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem, reorderCustomSections, reorderCustomSectionItems
   } = useResumeStore();
   
-  const data = {
+  const data = useMemo(() => ({
     ...storeData,
     projects: storeData.projects || [],
     certifications: storeData.certifications || [],
     references: storeData.references || [],
     customSections: storeData.customSections || [],
     hasOptedIn: storeData.hasOptedIn || false
-  };
+  }), [storeData]);
 
   const [skillInput, setSkillInput] = useState('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [mobileZoom, setMobileZoom] = useState(false);
+  const [mobilePreviewMetrics, setMobilePreviewMetrics] = useState({ scale: 1, width: 816, height: 1056 });
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isATSOpen, setIsATSOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -604,6 +608,83 @@ export default function FreeCVApp() {
     const savedDark = localStorage.getItem('freecv-dark-mode');
     if (savedDark === 'true') setIsDarkMode(true);
   }, []);
+
+  useEffect(() => {
+    if (!isHydrated || onboardingAppliedRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('source') !== 'seo') return;
+
+    const template = params.get('template') as TemplateKey | null;
+    const jobTitle = params.get('jobTitle');
+    const summary = params.get('summary');
+    const skills = (params.get('skills') || '')
+      .split('|')
+      .map(skill => skill.trim())
+      .filter(Boolean);
+
+    const templateId = template && templates[template] ? template : data.templateId;
+    const shouldReplaceDefaultSkills = data.skills.length === initialData.skills.length
+      && data.skills.every((skill, index) => skill.name === initialData.skills[index]?.name);
+    const nextSkills = skills.length > 0
+      ? (shouldReplaceDefaultSkills
+        ? skills.map((name, index) => ({ id: `seo-skill-${index}`, name }))
+        : [
+            ...data.skills,
+            ...skills
+              .filter(skill => !data.skills.some(existing => existing.name.toLowerCase() === skill.toLowerCase()))
+              .map((name, index) => ({ id: `seo-skill-${Date.now()}-${index}`, name }))
+          ])
+      : data.skills;
+
+    setAllData({
+      templateId,
+      personalInfo: {
+        ...data.personalInfo,
+        jobTitle: jobTitle || data.personalInfo.jobTitle
+      },
+      summary: summary && (!data.summary || data.summary === initialData.summary) ? summary : data.summary,
+      skills: nextSkills
+    });
+
+    onboardingAppliedRef.current = true;
+    window.history.replaceState({}, '', window.location.pathname);
+  }, [isHydrated, data, setAllData]);
+
+  useEffect(() => {
+    if (!isHydrated || templates[data.templateId]) return;
+    setTemplateId('Executive');
+  }, [isHydrated, data.templateId, setTemplateId]);
+
+  useEffect(() => {
+    const updatePreviewMetrics = () => {
+      const viewportWidth = previewViewportRef.current?.clientWidth || window.innerWidth;
+      const pageWidth = resumePageRef.current?.offsetWidth || 816;
+      const pageHeight = resumePageRef.current?.scrollHeight || 1056;
+      const gutter = isPreviewOpen ? 32 : 0;
+      const availableWidth = Math.max(320, viewportWidth - gutter);
+      const fitScale = Math.min(1, availableWidth / pageWidth);
+      const scale = isPreviewOpen && !mobileZoom ? fitScale : 1;
+
+      setMobilePreviewMetrics({
+        scale,
+        width: Math.ceil(pageWidth * scale),
+        height: Math.ceil(pageHeight * scale)
+      });
+    };
+
+    updatePreviewMetrics();
+    window.addEventListener('resize', updatePreviewMetrics);
+
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updatePreviewMetrics) : null;
+    if (observer && resumePageRef.current) observer.observe(resumePageRef.current);
+    if (observer && previewViewportRef.current) observer.observe(previewViewportRef.current);
+
+    return () => {
+      window.removeEventListener('resize', updatePreviewMetrics);
+      observer?.disconnect();
+    };
+  }, [isHydrated, isPreviewOpen, mobileZoom, data]);
 
   // Undo/Redo keyboard shortcuts
   useEffect(() => {
@@ -1388,9 +1469,11 @@ export default function FreeCVApp() {
 
       {/* PREVIEW PANEL (Desktop standard, Mobile Modal) */}
       <section 
+        ref={previewViewportRef}
         id="preview-panel"
         className={cn(
-        "flex-1 h-full overflow-y-auto overflow-x-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
+        "flex-1 h-full overflow-y-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
+        isPreviewOpen && !mobileZoom ? "overflow-x-hidden justify-center" : "overflow-x-auto",
         isPreviewOpen ? "fixed inset-0 z-50 flex-col" : "hidden lg:flex"
       )}>
         
@@ -1409,19 +1492,27 @@ export default function FreeCVApp() {
           </div>
         )}
 
-        <div className={cn(
-          "mx-auto lg:mx-0 shrink-0 shadow-2xl print:shadow-none bg-white transition-all print-safe-content",
-          isPreviewOpen ? "mb-32 mt-4" : ""
-        )}
-        style={{
-          ...(isPreviewOpen ? { 
-            zoom: mobileZoom ? '1' : 'min(1, calc((100vw - 32px) / 816))',
-            transformOrigin: 'top center'
-          } : {}),
-          '--theme-color': data.theme?.color || '#2563eb'
-        } as React.CSSProperties}
+        <div
+          className={cn(
+            "preview-scale-frame mx-auto lg:mx-0 shrink-0 transition-all print:block",
+            isPreviewOpen ? "mb-32 mt-4" : ""
+          )}
+          style={isPreviewOpen ? {
+            width: mobilePreviewMetrics.width,
+            minHeight: mobilePreviewMetrics.height
+          } : undefined}
         >
-          <SelectedTemplate data={data} />
+          <div
+            ref={resumePageRef}
+            className="shrink-0 shadow-2xl print:shadow-none bg-white transition-transform print-safe-content"
+            style={{
+              transform: isPreviewOpen ? `scale(${mobilePreviewMetrics.scale})` : undefined,
+              transformOrigin: 'top center',
+              '--theme-color': data.theme?.color || '#2563eb'
+            } as React.CSSProperties}
+          >
+            <SelectedTemplate data={data} />
+          </div>
         </div>
 
       </section>

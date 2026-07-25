@@ -96,6 +96,7 @@ body {
      that prevents page breaks entirely */
   .print-safe-content {
     transform: none !important;
+    zoom: 1 !important;
     position: static !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -106,6 +107,19 @@ body {
     overflow: visible !important;
     box-shadow: none !important;
     flex-shrink: 1 !important;
+  }
+
+  .preview-scale-frame {
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* --- Layer 6: The actual template root div ---
@@ -145,8 +159,9 @@ body {
     break-inside: avoid;
   }
 
-  /* Target typical section and item wrappers that have margin-bottom */
-  .print-safe-content > div > div > div {
+  /* Keep only explicitly atomic rows together; large layout wrappers must break naturally. */
+  .print-safe-content article,
+  .print-safe-content .break-inside-avoid {
     page-break-inside: avoid;
     break-inside: avoid;
   }

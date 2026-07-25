@@ -2,11 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { jobPages } from '@/lib/seo-job-data';
 import type { Metadata } from 'next';
-import Boardroom from '@/components/templates/Boardroom';
-import BrutalistMinimal from '@/components/templates/BrutalistMinimal';
-import DarkModeTech from '@/components/templates/DarkModeTech';
-import ElegantEditorial from '@/components/templates/ElegantEditorial';
-import SwissDesign from '@/components/templates/SwissDesign';
+import type { CSSProperties } from 'react';
+import { templates as resumeTemplates, type TemplateKey } from '@/components/templates';
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -76,13 +73,24 @@ export default async function JobTemplatePage({ params }: Props) {
     customSections: []
   };
 
-  const templates = [
-    { name: 'The Executive', component: Boardroom, category: 'Corporate', color: '#1f2937' },
-    { name: 'The Tech Lead', component: DarkModeTech, category: 'Technical', color: '#3b82f6' },
-    { name: 'The Minimalist', component: ElegantEditorial, category: 'Clean', color: '#000000' },
-    { name: 'The Creative', component: SwissDesign, category: 'Design', color: '#ef4444' },
-    { name: 'The Entry-Level', component: BrutalistMinimal, category: 'Modern', color: '#000000' }
+  const featuredTemplates: Array<{ key: TemplateKey; name: string; category: string; color: string }> = [
+    { key: 'Clarity', name: 'Clarity', category: 'ATS Executive', color: '#2563eb' },
+    { key: 'Beacon', name: 'Beacon', category: 'Modern Professional', color: '#0f766e' },
+    { key: 'BoardroomPro', name: 'Boardroom Pro', category: 'Leadership', color: '#111827' },
+    { key: 'Horizon', name: 'Horizon', category: 'Technical', color: '#0369a1' },
+    { key: 'SwissGrid', name: 'Swiss Grid', category: 'Structured', color: '#ef4444' }
   ];
+
+  const builderHref = (templateId: TemplateKey) => ({
+    pathname: '/',
+    query: {
+      source: 'seo',
+      jobTitle: sampleData.jobTitle,
+      template: templateId,
+      skills: sampleData.skills.join('|'),
+      summary: sampleData.summary
+    }
+  });
 
   return (
     <main className="min-h-screen bg-gray-950 text-gray-100 py-16 px-4 sm:px-6 lg:px-8">
@@ -96,7 +104,7 @@ export default async function JobTemplatePage({ params }: Props) {
             Land your next interview with a resume tailored for a {job.title}. Use our free ATS-friendly templates and expert examples to get started.
           </p>
           <Link 
-            href="/"
+            href={builderHref('Clarity')}
             className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-lg shadow-blue-500/30"
           >
             Build Your {job.title} Resume — Free
@@ -108,29 +116,34 @@ export default async function JobTemplatePage({ params }: Props) {
           <div className="lg:col-span-2 space-y-12">
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">Choose Your Template</h2>
-              <p className="text-gray-400 mb-8">We've selected 5 distinct layouts perfectly suited for a {job.title}.</p>
+              <p className="text-gray-400 mb-8">We&apos;ve selected 5 distinct layouts perfectly suited for a {job.title}.</p>
               
               <div className="space-y-16">
-                {templates.map((tpl, i) => (
-                  <div key={i} className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl">
+                {featuredTemplates.map((tpl) => {
+                  const TemplatePreview = resumeTemplates[tpl.key];
+
+                  return (
+                  <div key={tpl.key} className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl">
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <span className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-1 block">{tpl.category}</span>
                         <h3 className="text-2xl font-bold text-white">{tpl.name}</h3>
                       </div>
-                      <Link href="/" className="px-5 py-2 bg-white text-black font-bold rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                      <Link href={builderHref(tpl.key)} className="px-5 py-2 bg-white text-black font-bold rounded-lg text-sm hover:bg-gray-200 transition-colors">
                         Use Template
                       </Link>
                     </div>
                     
-                    {/* Scaled down preview wrapper */}
-                    <div className="bg-gray-800 rounded-xl p-4 overflow-hidden flex justify-center">
-                      <div className="w-[800px] bg-white text-black transform scale-[0.45] sm:scale-75 origin-top shadow-2xl rounded-sm overflow-hidden h-[1100px] pointer-events-none">
-                        <tpl.component data={{...resumeData, theme: { color: tpl.color }}} />
+                    <div className="bg-gray-800 rounded-xl p-4 overflow-hidden flex justify-center aspect-[8.5/11]">
+                      <div
+                        className="w-[816px] bg-white text-black transform scale-[0.42] sm:scale-[0.62] origin-top shadow-2xl rounded-sm pointer-events-none"
+                        style={{ '--theme-color': tpl.color } as CSSProperties}
+                      >
+                        <TemplatePreview data={{...resumeData, templateId: tpl.key, theme: { color: tpl.color }}} />
                       </div>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -162,7 +175,7 @@ export default async function JobTemplatePage({ params }: Props) {
                 Create a customized, ATS-friendly resume in minutes. No credit card required.
               </p>
               <Link 
-                href="/"
+                href={builderHref('Clarity')}
                 className="block w-full text-center px-4 py-2 bg-white text-blue-900 font-bold rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Start Building Now
