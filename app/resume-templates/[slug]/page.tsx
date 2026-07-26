@@ -65,8 +65,8 @@ export default async function JobTemplatePage({ params }: Props) {
     certifications: [],
     references: [],
     hasOptedIn: false,
-    templateId: 'brutalist-minimal',
-    theme: { color: 'blue' },
+    templateId: 'Executive',
+    theme: { color: '#2563eb' },
     showProjects: false,
     showCertifications: false,
     showReferences: false,
@@ -74,11 +74,11 @@ export default async function JobTemplatePage({ params }: Props) {
   };
 
   const featuredTemplates: Array<{ key: TemplateKey; name: string; category: string; color: string }> = [
-    { key: 'Clarity', name: 'Clarity', category: 'ATS Executive', color: '#2563eb' },
-    { key: 'Beacon', name: 'Beacon', category: 'Modern Professional', color: '#0f766e' },
-    { key: 'BoardroomPro', name: 'Boardroom Pro', category: 'Leadership', color: '#111827' },
-    { key: 'Horizon', name: 'Horizon', category: 'Technical', color: '#0369a1' },
-    { key: 'SwissGrid', name: 'Swiss Grid', category: 'Structured', color: '#ef4444' }
+    { key: 'Executive', name: 'Executive', category: 'ATS Executive', color: '#2563eb' },
+    { key: 'SwissDesign', name: 'Swiss Design', category: 'Modern Professional', color: '#0f766e' },
+    { key: 'CorporateBlue', name: 'Corporate', category: 'Leadership', color: '#111827' },
+    { key: 'TechPro', name: 'Tech Pro', category: 'Technical', color: '#0369a1' },
+    { key: 'Classic', name: 'Classic', category: 'Structured', color: '#ef4444' }
   ];
 
   const builderHref = (templateId: TemplateKey) => ({
@@ -104,7 +104,7 @@ export default async function JobTemplatePage({ params }: Props) {
             Land your next interview with a resume tailored for a {job.title}. Use our free ATS-friendly templates and expert examples to get started.
           </p>
           <Link 
-            href={builderHref('Clarity')}
+            href={builderHref('Executive')}
             className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-lg shadow-blue-500/30"
           >
             Build Your {job.title} Resume — Free
@@ -175,7 +175,7 @@ export default async function JobTemplatePage({ params }: Props) {
                 Create a customized, ATS-friendly resume in minutes. No credit card required.
               </p>
               <Link 
-                href={builderHref('Clarity')}
+                href={builderHref('Executive')}
                 className="block w-full text-center px-4 py-2 bg-white text-blue-900 font-bold rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Start Building Now

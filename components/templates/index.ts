@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { ResumeData } from '@/app/page';
+
 import Academic from './Academic';
 import AcademicJournal from './AcademicJournal';
 import Classic from './Classic';
@@ -18,18 +19,6 @@ import SwissMinimal from './SwissMinimal';
 import TechPro from './TechPro';
 import TypographyFirst from './TypographyFirst';
 import ZenJapanese from './ZenJapanese';
-import {
-  Atelier,
-  Beacon,
-  BoardroomPro,
-  Clarity,
-  Consultant,
-  Horizon,
-  LegalModern,
-  Nordic,
-  Operator,
-  PortfolioATS,
-} from './PremiumTemplates';
 
 export const templates = {
   Academic,
@@ -50,16 +39,6 @@ export const templates = {
   TechPro,
   TypographyFirst,
   ZenJapanese,
-  Atelier,
-  Beacon,
-  BoardroomPro,
-  Clarity,
-  Consultant,
-  Horizon,
-  LegalModern,
-  Nordic,
-  Operator,
-  PortfolioATS,
 } satisfies Record<string, ComponentType<{ data: ResumeData }>>;
 
 export type TemplateKey = keyof typeof templates;
