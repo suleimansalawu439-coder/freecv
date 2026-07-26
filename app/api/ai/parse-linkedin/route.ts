@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer sk-IAMjxLayKVD4Gb4SANWnhZdY1hJeMOSYICzkBQ1tImJDsbFr'
+        'Authorization': \`Bearer \${process.env.KIMI_API_KEY}\`
       },
       body: JSON.stringify({
         model: 'Kimi-K2.6',
