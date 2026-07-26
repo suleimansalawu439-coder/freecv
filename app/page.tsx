@@ -1578,8 +1578,9 @@ export default function FreeCVApp() {
 
       {/* ATS GRADER MODAL */}
       {isATSOpen && (
-        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className={cn("rounded-3xl max-w-2xl w-full p-8 shadow-2xl flex flex-col max-h-[90vh]", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
+          <div className="min-h-screen px-4 flex items-center justify-center py-10">
+            <div className={cn("rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl flex flex-col relative", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><BarChart3 className="text-emerald-500" /> ATS Resume Grader</h2>
@@ -1678,8 +1679,9 @@ export default function FreeCVApp() {
 
       {/* AI REWRITER MODAL */}
       {isRewriterOpen && (
-        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className={cn("rounded-3xl max-w-md w-full p-8 shadow-2xl transition-all", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
+          <div className="min-h-screen px-4 flex items-center justify-center py-10">
+            <div className={cn("rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl transition-all relative", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><RefreshCw className="text-purple-500" /> AI Rewriter</h2>
               <button onClick={() => setIsRewriterOpen(false)} className={cn("p-2 rounded-full transition-colors", isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}>
@@ -1716,6 +1718,7 @@ export default function FreeCVApp() {
               {isRewriting ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
               {isRewriting ? 'Rewriting Resume...' : 'Rewrite Entire Resume'}
             </button>
+          </div>
           </div>
         </div>
       )}
