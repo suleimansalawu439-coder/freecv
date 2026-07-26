@@ -46,7 +46,7 @@ ${cleanResume.substring(0, 3000)}
         model: 'Kimi-K2.6',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
-        max_tokens: 400
+        max_tokens: 1500
       })
     });
 

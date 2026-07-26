@@ -514,8 +514,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       if (json.text) {
@@ -574,8 +576,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       if (json.text) {
@@ -602,8 +606,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       if (json.text) {
@@ -741,8 +747,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'The AI request timed out. Please try again.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'The AI request timed out. Please try again.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const resData = await res.json();
       setAtsResult(resData);
@@ -779,8 +787,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       if (json.summary) {
@@ -810,8 +820,10 @@ export default function FreeCVApp() {
       });
       if (!res.ok) {
         const text = await res.text();
-        try { const err = JSON.parse(text); throw new Error(err.error); } 
-        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+        let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; }
+        catch(e) { errMsg = text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
       }
       const json = await res.json();
       if (json.skills) {

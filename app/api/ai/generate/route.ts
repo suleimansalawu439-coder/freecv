@@ -57,7 +57,7 @@ JSON structure: { "skills": string[] }`;
         model: 'Kimi-K2.6',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.2,
-        max_tokens: 600
+        max_tokens: 1500
       })
     });
 
