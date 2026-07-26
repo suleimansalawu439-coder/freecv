@@ -51,7 +51,7 @@ JSON structure must strictly match: { "skills": string[] }`;
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': \`Bearer \${process.env.KIMI_API_KEY}\`
+        'Authorization': `Bearer ${process.env.KIMI_API_KEY}`
       },
       body: JSON.stringify({
         model: 'Kimi-K2.6',
