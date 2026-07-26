@@ -17,35 +17,33 @@ export async function POST(request: Request) {
 
     let prompt = '';
 
+    const cleanResume = resumeData ? `
+Summary: ${resumeData.summary || ''}
+Experience: ${(resumeData.experience || []).map((e:any) => `${e.role} at ${e.company}: ${e.description}`).join(' | ')}
+    `.trim() : '';
+
     if (type === 'summary') {
       prompt = `Write a professional resume summary for a ${jobTitle}. 
-      Keep it concise, impactful, and between 3 to 4 sentences. 
-      Focus on highlighting expertise, leadership, and value delivered.
-      Do not include any placeholders like [Years of Experience].
-      Make it sound natural but highly professional.
-      ${additionalContext ? `Additional context to incorporate: ${additionalContext}` : ''}`;
+      Keep it strictly to 3 sentences. No placeholders.
+      ${additionalContext ? `Context: ${additionalContext}` : ''}`;
     } else if (type === 'experience') {
-      prompt = `Write 4 highly professional, action-oriented resume bullet points for a ${jobTitle}${company ? ` at ${company}` : ''}.
-      Start each bullet point with a strong action verb (e.g., Spearheaded, Orchestrated, Optimized).
-      Focus on measurable achievements and impact.
-      Do not use introductory text or conclusion, just output the bullet points.
-      Do not use asterisks or hyphens at the start of the lines, just the plain text for each bullet, separated by newlines.
-      ${additionalContext ? `Additional context to incorporate: ${additionalContext}` : ''}`;
+      prompt = `Write 3 highly professional bullet points for a ${jobTitle}${company ? ` at ${company}` : ''}.
+      Start with action verbs. Just output the plain text bullet points. No intro.
+      ${additionalContext ? `Context: ${additionalContext}` : ''}`;
     } else if (type === 'rewrite') {
-      prompt = `Rewrite the following resume summary and experience descriptions in a ${tone || 'Professional'} tone.
-Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
-JSON structure must strictly match: { "summary": string, "experience": [{ "id": string, "description": string }] }
-Resume Data:
-${JSON.stringify(resumeData, null, 2)}`;
+      prompt = `Rewrite this resume summary and experience in a ${tone || 'Professional'} tone.
+Return ONLY valid JSON. Keep it brief.
+JSON structure: { "summary": string, "experience": [{ "id": string, "description": string }] }
+Resume:
+${cleanResume.substring(0, 3000)}`;
     } else if (type === 'skills') {
-      prompt = `Provide a list of 10 highly relevant skills for a ${jobTitle}.
-Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
-JSON structure must strictly match: { "skills": string[] }`;
+      prompt = `List 10 relevant skills for a ${jobTitle}.
+Return ONLY valid JSON.
+JSON structure: { "skills": string[] }`;
     } else if (type === 'polish') {
-      prompt = `Rewrite the following resume experience description to be highly professional, impactful, and action-oriented. 
-      Start with a strong action verb (e.g., Spearheaded, Orchestrated, Optimized) and focus on measurable achievements.
-      Do not include any introductory text, asterisks, or markdown formatting. Just return the polished text.
-      Text to polish: "${additionalContext}"`;
+      prompt = `Rewrite this experience to be professional and action-oriented. 
+      No intro, no markdown. Just the text.
+      Text: "${additionalContext}"`;
     } else {
       return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
     }
@@ -58,7 +56,9 @@ JSON structure must strictly match: { "skills": string[] }`;
       },
       body: JSON.stringify({
         model: 'Kimi-K2.6',
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        max_tokens: 600
       })
     });
 

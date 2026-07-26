@@ -11,23 +11,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Resume data and job description are required' }, { status: 400 });
     }
 
-    const prompt = `Analyze the following resume against the provided job description.
-Return ONLY valid JSON (no markdown fences, no formatting, just raw JSON).
-JSON structure must strictly match:
-{
-  "score": number (0-100),
-  "strengths": string[],
-  "weaknesses": string[],
-  "missingKeywords": string[],
-  "tips": string[]
-}
-Be strict and honest with scoring. Score based on: keyword match, experience relevance, skills alignment, formatting quality.
+    const cleanResume = `
+Title: ${resumeData.personalInfo?.jobTitle || ''}
+Summary: ${resumeData.summary || ''}
+Experience: ${(resumeData.experience || []).map((e:any) => `${e.role} at ${e.company}: ${e.description}`).join(' | ')}
+Education: ${(resumeData.education || []).map((e:any) => `${e.degree} from ${e.school}`).join(' | ')}
+Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
+    `.trim();
 
-Job Description:
-${jobDescription}
+    const prompt = `Analyze the resume against the job description.
+Return ONLY valid JSON. Keep generation extremely brief to save time.
+JSON structure:
+{
+  "score": number, // 0-100
+  "strengths": string[], // exactly 2 short points
+  "weaknesses": string[], // exactly 2 short points
+  "missingKeywords": string[], // exactly 4 words
+  "tips": string[] // exactly 2 short points
+}
+
+Job:
+${jobDescription.substring(0, 3000)}
 
 Resume:
-${JSON.stringify(resumeData, null, 2)}
+${cleanResume.substring(0, 3000)}
 `;
 
     const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
@@ -38,7 +45,9 @@ ${JSON.stringify(resumeData, null, 2)}
       },
       body: JSON.stringify({
         model: 'Kimi-K2.6',
-        messages: [{ role: 'user', content: prompt }]
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        max_tokens: 400
       })
     });
 
