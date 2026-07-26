@@ -1673,6 +1673,7 @@ export default function FreeCVApp() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       )}
