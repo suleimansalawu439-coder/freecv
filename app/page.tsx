@@ -512,6 +512,11 @@ export default function FreeCVApp() {
           additionalContext: currentText 
         })
       });
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+      }
       const json = await res.json();
       if (json.text) {
         updateExperience(id, { description: json.text });
@@ -565,13 +570,16 @@ export default function FreeCVApp() {
       const res = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'summary', jobTitle: data.personalInfo.jobTitle })
+        body: JSON.stringify({ type: 'summary', jobTitle: data.personalInfo.jobTitle || 'Professional' })
       });
-      const resData = await res.json();
-      if (res.ok && resData.text) {
-        updateSummary(resData.text);
-      } else {
-        throw new Error(resData.error || 'Failed to generate');
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`); }
+      }
+      const json = await res.json();
+      if (json.text) {
+        updateSummary(json.text);
       }
     } catch (err: any) {
       alert("AI Generation failed: " + err.message);
@@ -592,11 +600,14 @@ export default function FreeCVApp() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'experience', jobTitle: jobTitleToUse, company })
       });
-      const resData = await res.json();
-      if (res.ok && resData.text) {
-        updateExperience(expId, { description: resData.text });
-      } else {
-        throw new Error(resData.error || 'Failed to generate');
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+      }
+      const json = await res.json();
+      if (json.text) {
+        updateExperience(expId, { description: json.text });
       }
     } catch (err: any) {
       alert("AI Generation failed: " + err.message);
@@ -720,24 +731,29 @@ export default function FreeCVApp() {
     setIsATSLoading(true);
     setAtsResult(null);
     try {
+      // Strip profilePicture to avoid massive base64 payload in prompt
+      const resumePayload = { ...data, personalInfo: { ...data.personalInfo, profilePicture: undefined } };
+      
       const res = await fetch('/api/ai/ats-score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeData: data, jobDescription: atsJobDesc })
+        body: JSON.stringify({ resumeData: resumePayload, jobDescription: atsJobDesc })
       });
-      const resData = await res.json();
-      if (res.ok) {
-        setAtsResult(resData);
-        if (resData.score >= 85) {
-          confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#10b981', '#3b82f6', '#8b5cf6']
-          });
-        }
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'The AI request timed out. Please try again.' : `API error: ${res.status}`); }
       }
-      else throw new Error(resData.error || 'Failed to grade');
+      const resData = await res.json();
+      setAtsResult(resData);
+      if (resData.score >= 85) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#10b981', '#3b82f6', '#8b5cf6']
+        });
+      }
     } catch (err: any) {
       alert('ATS Grading failed: ' + err.message);
     }
@@ -761,16 +777,19 @@ export default function FreeCVApp() {
           }
         })
       });
-      const resData = await res.json();
-      if (res.ok && resData.summary) {
-        updateSummary(resData.summary);
-        if (resData.experience) {
-          resData.experience.forEach((exp: any) => {
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out. Please try again.' : `API error: ${res.status}`); }
+      }
+      const json = await res.json();
+      if (json.summary) {
+        updateSummary(json.summary);
+        if (json.experience) {
+          json.experience.forEach((exp: any) => {
             if (exp.id && exp.description) updateExperience(exp.id, { description: exp.description });
           });
         }
-      } else {
-        throw new Error(resData.error || 'Failed to rewrite');
       }
     } catch (err: any) {
       alert('Rewrite failed: ' + err.message);
@@ -787,12 +806,17 @@ export default function FreeCVApp() {
       const res = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'skills', jobTitle: data.personalInfo.jobTitle })
+        body: JSON.stringify({ type: 'skills', jobTitle: data.personalInfo.jobTitle || 'Professional' })
       });
-      const resData = await res.json();
-      if (res.ok && resData.skills) {
+      if (!res.ok) {
+        const text = await res.text();
+        try { const err = JSON.parse(text); throw new Error(err.error); } 
+        catch(e) { throw new Error(text.includes('An error') ? 'Request timed out.' : `API error: ${res.status}`); }
+      }
+      const json = await res.json();
+      if (json.skills) {
         const existingNames = data.skills.map(s => s.name.toLowerCase());
-        setSuggestedSkills(resData.skills.filter((s: string) => !existingNames.includes(s.toLowerCase())));
+        setSuggestedSkills(json.skills.filter((s: string) => !existingNames.includes(s.toLowerCase())));
       }
     } catch (err) {
       console.error('Skill suggestion failed', err);
