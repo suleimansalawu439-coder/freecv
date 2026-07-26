@@ -34,7 +34,7 @@ ${JSON.stringify(resumeData, null, 2)}
         'Authorization': 'Bearer sk-IAMjxLayKVD4Gb4SANWnhZdY1hJeMOSYICzkBQ1tImJDsbFr'
       },
       body: JSON.stringify({
-        model: 'auto',
+        model: 'Kimi-K2.6',
         messages: [{ role: 'user', content: prompt }]
       })
     });
