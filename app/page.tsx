@@ -480,6 +480,9 @@ export default function FreeCVApp() {
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
 
+  // Mobile Download Modal
+  const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+
   
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
@@ -1486,28 +1489,27 @@ export default function FreeCVApp() {
             <button onClick={() => setMobileZoom(!mobileZoom)} className="flex-1 bg-gray-100 text-black py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 transition-colors active:bg-gray-200">
               {mobileZoom ? <ZoomOut size={16} /> : <ZoomIn size={16} />} Zoom
             </button>
-            <button onClick={handleDownload} className="flex-1 bg-black text-white py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:scale-95 transition-transform">
-              <Download size={16} /> Save
+            <button onClick={() => setIsDownloadModalOpen(true)} className="flex-1 bg-black text-white py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:scale-95 transition-transform">
+              <Download size={16} /> Download
             </button>
           </div>
         )}
 
         <div
           className={cn(
-            "preview-scale-frame mx-auto lg:mx-0 shrink-0 transition-all print:block",
-            isPreviewOpen ? "mb-32 mt-4" : ""
+            "preview-scale-frame shrink-0 transition-all print:block",
+            isPreviewOpen ? "mb-32 mt-8 lg:mt-4 mx-auto" : "mx-auto lg:mx-0"
           )}
           style={isPreviewOpen ? {
             width: mobilePreviewMetrics.width,
-            minHeight: mobilePreviewMetrics.height
+            height: mobilePreviewMetrics.height
           } : undefined}
         >
           <div
             ref={resumePageRef}
-            className="shrink-0 shadow-2xl print:shadow-none bg-white transition-transform print-safe-content"
+            className="w-[816px] origin-top-left shrink-0 shadow-2xl print:shadow-none bg-white transition-transform print-safe-content"
             style={{
-              transform: isPreviewOpen ? `scale(${mobilePreviewMetrics.scale})` : undefined,
-              transformOrigin: 'top center',
+              transform: isPreviewOpen && mobilePreviewMetrics.scale !== 1 ? `scale(${mobilePreviewMetrics.scale})` : undefined,
               '--theme-color': data.theme?.color || '#2563eb'
             } as React.CSSProperties}
           >
@@ -1714,6 +1716,30 @@ export default function FreeCVApp() {
               {isRewriting ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
               {isRewriting ? 'Rewriting Resume...' : 'Rewrite Entire Resume'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* DOWNLOAD OPTIONS MODAL (MOBILE) */}
+      {isDownloadModalOpen && (
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-end justify-center print:hidden lg:hidden">
+          <div className="bg-white w-full rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-full duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-black text-gray-900">Download Options</h2>
+              <button onClick={() => setIsDownloadModalOpen(false)} className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-black transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <button onClick={() => { setIsDownloadModalOpen(false); handleDownload(); }} className="w-full bg-black text-white p-4 rounded-2xl flex items-center gap-4 active:scale-95 transition-transform">
+                <div className="bg-white/20 p-2.5 rounded-xl"><Download size={20} /></div>
+                <div className="text-left flex-1"><div className="font-bold uppercase tracking-wider text-sm">Download PDF</div><div className="text-xs text-white/70">Best for printing & sharing</div></div>
+              </button>
+              <button onClick={() => { setIsDownloadModalOpen(false); handleDocxExport(); }} className="w-full bg-blue-600 text-white p-4 rounded-2xl flex items-center gap-4 active:scale-95 transition-transform mb-6">
+                <div className="bg-white/20 p-2.5 rounded-xl"><FileText size={20} /></div>
+                <div className="text-left flex-1"><div className="font-bold uppercase tracking-wider text-sm">Download Word (DOCX)</div><div className="text-xs text-white/70">Editable in Microsoft Word</div></div>
+              </button>
+            </div>
           </div>
         </div>
       )}

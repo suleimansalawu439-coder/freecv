@@ -1,9 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
-
-// Initialize the Google Gen AI SDK
-// It automatically picks up the GEMINI_API_KEY from environment variables
-const ai = new GoogleGenAI({});
 
 export async function POST(request: Request) {
   try {
@@ -52,15 +47,24 @@ JSON structure must strictly match: { "skills": string[] }`;
       return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-      config: {
-        temperature: 0.7,
-      }
+    const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sk-IAMjxLayKVD4Gb4SANWnhZdY1hJeMOSYICzkBQ1tImJDsbFr'
+      },
+      body: JSON.stringify({
+        model: 'auto',
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
 
-    let generatedText = response.text || '';
+    if (!res.ok) {
+      throw new Error(`API error: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    let generatedText = data.choices?.[0]?.message?.content || '';
 
     // If generating JSON for rewrite or skills, parse and return it directly
     if (type === 'rewrite' || type === 'skills') {

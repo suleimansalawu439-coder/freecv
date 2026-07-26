@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
-
-const ai = new GoogleGenAI({});
 
 export async function POST(request: Request) {
   try {
@@ -30,13 +27,24 @@ Resume:
 ${JSON.stringify(resumeData, null, 2)}
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-      config: { temperature: 0.3 }
+    const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sk-IAMjxLayKVD4Gb4SANWnhZdY1hJeMOSYICzkBQ1tImJDsbFr'
+      },
+      body: JSON.stringify({
+        model: 'auto',
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
 
-    let text = response.text || '';
+    if (!res.ok) {
+      throw new Error(`API error: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    let text = data.choices?.[0]?.message?.content || '';
     
     // Strip markdown code fences if present
     text = text.replace(/```json/gi, '').replace(/```/g, '').trim();

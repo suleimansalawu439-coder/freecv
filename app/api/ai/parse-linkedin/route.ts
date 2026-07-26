@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 
 export const runtime = 'nodejs';
 
@@ -25,9 +24,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to extract text from PDF or PDF is empty.' }, { status: 400 });
     }
 
-    // Call Gemini to structure the data
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    
     const prompt = `
       You are an expert resume parser. I am providing you with the raw text extracted from a LinkedIn Profile PDF.
       Your job is to extract the person's professional details and format them into a strict JSON object that matches our application's state.
@@ -76,15 +72,24 @@ export async function POST(req: NextRequest) {
       }
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-      config: {
-        temperature: 0.1,
-      }
+    const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer sk-IAMjxLayKVD4Gb4SANWnhZdY1hJeMOSYICzkBQ1tImJDsbFr'
+      },
+      body: JSON.stringify({
+        model: 'auto',
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
 
-    let rawJson = response.text || "{}";
+    if (!res.ok) {
+      throw new Error(`API error: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    let rawJson = data.choices?.[0]?.message?.content || "{}";
     
     // Strip markdown code block formatting if Gemini includes it
     if (rawJson.startsWith('\`\`\`json')) {
