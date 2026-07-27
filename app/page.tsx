@@ -39,7 +39,6 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import confetti from 'canvas-confetti';
-import SmartJobMatches from '@/components/jobs/SmartJobMatches';
 import { trackEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 
@@ -1703,10 +1702,6 @@ export default function FreeCVApp() {
                     <Share2 size={14} /> Share Score to LinkedIn
                   </button>
                 )}
-
-                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
-                  <SmartJobMatches jobTitle={data.personalInfo.jobTitle} />
-                </div>
               </div>
             )}
             </div>
