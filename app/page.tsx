@@ -482,6 +482,7 @@ export default function FreeCVApp() {
 
   // Mobile Download Modal
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [showDownloadSuccess, setShowDownloadSuccess] = useState(false);
 
   
   const onDragEnd = (result: any) => {
