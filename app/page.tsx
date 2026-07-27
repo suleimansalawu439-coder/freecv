@@ -915,6 +915,7 @@ export default function FreeCVApp() {
             <div>
               <h1 className="text-2xl font-black tracking-tighter uppercase">FreeCV</h1>
               <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mt-1", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Premium & Forever Free</p>
+              <a href="/resume-templates" className="mt-2 text-[11px] font-bold text-blue-500 hover:text-blue-600 block transition-colors">Browse Job Templates &rarr;</a>
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => useResumeStore.temporal.getState().undo()} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500')} title="Undo (Ctrl+Z)">
