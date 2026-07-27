@@ -93,93 +93,109 @@ export default async function JobTemplatePage({ params }: Props) {
   });
 
   return (
-    <main className="min-h-screen bg-gray-950 text-gray-100 py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-black text-gray-100 relative overflow-hidden font-sans selection:bg-white selection:text-black">
+      {/* Premium Background Effects */}
+      <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0"></div>
+      
+      {/* Navigation */}
+      <nav className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+        <Link href="/" className="text-2xl font-black tracking-tighter uppercase text-white hover:text-gray-300 transition-colors">
+          FreeCV
+        </Link>
+        <Link href="/resume-templates" className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors">
+          All Templates
+        </Link>
+      </nav>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-16">
         {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-6">
-            Professional {job.title} Resume Templates
+        <div className="text-center mb-24 max-w-4xl mx-auto">
+          <div className="inline-block px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-xs font-bold tracking-widest uppercase text-blue-400 mb-6">
+            100% ATS-Friendly Templates
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-6 leading-tight">
+            Professional <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">{job.title}</span> Resume Templates
           </h1>
-          <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
-            Land your next interview with a resume tailored for a {job.title}. Use our free ATS-friendly templates and expert examples to get started.
+          <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-medium">
+            Land your next interview with a resume perfectly tailored for a {job.title}. Start with our free, pre-written examples.
           </p>
           <Link 
             href={builderHref('Executive')}
-            className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-lg shadow-blue-500/30"
+            className="inline-flex items-center justify-center px-8 py-4 text-sm font-bold uppercase tracking-widest text-white bg-blue-600 hover:bg-blue-500 rounded-full transition-all duration-300 shadow-[0_0_40px_-10px_rgba(37,99,235,0.5)] hover:shadow-[0_0_60px_-10px_rgba(37,99,235,0.7)] hover:scale-105"
           >
-            Build Your {job.title} Resume — Free
+            Build Your Resume — Free
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           {/* Main Content - Resume Templates Grid */}
-          <div className="lg:col-span-2 space-y-12">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Choose Your Template</h2>
-              <p className="text-gray-400 mb-8">We&apos;ve selected 5 distinct layouts perfectly suited for a {job.title}.</p>
-              
-              <div className="space-y-16">
-                {featuredTemplates.map((tpl) => {
-                  const TemplatePreview = resumeTemplates[tpl.key];
+          <div className="lg:col-span-8 space-y-12">
+            <div className="flex items-center gap-4 mb-8">
+              <h2 className="text-2xl font-black tracking-tight text-white">Choose Your Layout</h2>
+              <div className="h-px bg-white/10 flex-1"></div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {featuredTemplates.map((tpl) => {
+                const TemplatePreview = resumeTemplates[tpl.key];
 
-                  return (
-                  <div key={tpl.key} className="bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-xl">
-                    <div className="flex justify-between items-center mb-6">
-                      <div>
-                        <span className="text-xs font-bold uppercase tracking-widest text-blue-500 mb-1 block">{tpl.category}</span>
-                        <h3 className="text-2xl font-bold text-white">{tpl.name}</h3>
-                      </div>
-                      <Link href={builderHref(tpl.key)} className="px-5 py-2 bg-white text-black font-bold rounded-lg text-sm hover:bg-gray-200 transition-colors">
-                        Use Template
-                      </Link>
+                return (
+                <div key={tpl.key} className="group bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400 mb-1 block">{tpl.category}</span>
+                      <h3 className="text-xl font-bold text-white tracking-tight">{tpl.name}</h3>
                     </div>
-                    
-                    <div className="bg-gray-800 rounded-xl p-4 overflow-hidden flex justify-center aspect-[8.5/11]">
-                      <div
-                        className="w-[816px] bg-white text-black transform scale-[0.42] sm:scale-[0.62] origin-top shadow-2xl rounded-sm pointer-events-none"
-                        style={{ '--theme-color': tpl.color } as CSSProperties}
-                      >
-                        <TemplatePreview data={{...resumeData, templateId: tpl.key, theme: { color: tpl.color }}} />
-                      </div>
+                    <Link href={builderHref(tpl.key)} className="opacity-0 group-hover:opacity-100 px-4 py-2 bg-white text-black font-bold uppercase tracking-widest text-[10px] rounded-full hover:bg-gray-200 transition-all transform translate-x-4 group-hover:translate-x-0 duration-300">
+                      Select
+                    </Link>
+                  </div>
+                  
+                  <div className="p-8 flex justify-center bg-[#0a0a0a]">
+                    <div
+                      className="w-[816px] bg-white text-black transform scale-[0.35] sm:scale-[0.45] origin-top shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-sm pointer-events-none transition-transform duration-500 group-hover:scale-[0.37] sm:group-hover:scale-[0.47]"
+                      style={{ '--theme-color': tpl.color } as CSSProperties}
+                    >
+                      <TemplatePreview data={{...resumeData, templateId: tpl.key, theme: { color: tpl.color }}} />
                     </div>
                   </div>
-                )})}
-              </div>
+                </div>
+              )})}
             </div>
           </div>
 
           {/* Sidebar - Skills & Tips */}
-          <div className="space-y-8">
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
-              <h3 className="text-xl font-bold text-white mb-4">
-                Recommended Skills
+          <div className="lg:col-span-4 space-y-8 sticky top-8">
+            <div className="bg-white/[0.02] border border-white/5 backdrop-blur-xl rounded-3xl p-8 shadow-xl">
+              <h3 className="text-lg font-black text-white mb-2 tracking-tight">
+                Highly Sought Skills
               </h3>
-              <p className="text-sm text-gray-400 mb-4">
-                Make sure to include these highly sought-after skills on your {job.title} resume if you have experience with them:
+              <p className="text-sm text-gray-400 mb-6 font-medium">
+                Include these on your {job.title} resume if you have experience with them:
               </p>
-              <ul className="space-y-3">
+              <div className="flex flex-wrap gap-2">
                 {sampleData.skills.map((skill, idx) => (
-                  <li key={idx} className="flex items-start">
-                    <svg className="h-5 w-5 text-blue-500 mr-2 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-gray-300 text-sm">{skill}</span>
-                  </li>
+                  <span key={idx} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs font-medium text-gray-300">
+                    {skill}
+                  </span>
                 ))}
-              </ul>
+              </div>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 rounded-xl p-6 border border-blue-800/50">
-              <h3 className="text-lg font-bold text-white mb-2">Ready to start?</h3>
-              <p className="text-sm text-blue-200 mb-4">
-                Create a customized, ATS-friendly resume in minutes. No credit card required.
-              </p>
-              <Link 
-                href={builderHref('Executive')}
-                className="block w-full text-center px-4 py-2 bg-white text-blue-900 font-bold rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                Start Building Now
-              </Link>
+            <div className="bg-gradient-to-br from-blue-600/20 to-emerald-600/10 border border-blue-500/20 backdrop-blur-xl rounded-3xl p-8 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+              <div className="relative z-10">
+                <h3 className="text-2xl font-black text-white mb-3 tracking-tight">Ready to build?</h3>
+                <p className="text-sm text-blue-200 mb-8 font-medium">
+                  Create a customized, ATS-friendly resume in minutes. No credit card required.
+                </p>
+                <Link 
+                  href={builderHref('Executive')}
+                  className="block w-full px-6 py-4 bg-white text-black font-bold uppercase tracking-widest text-xs rounded-xl hover:scale-105 transition-transform duration-300 shadow-xl"
+                >
+                  Start Building
+                </Link>
+              </div>
             </div>
           </div>
         </div>

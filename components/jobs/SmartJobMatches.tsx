@@ -19,12 +19,11 @@ export default function SmartJobMatches({ jobTitle }: { jobTitle?: string }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!jobTitle) return;
-
     const fetchJobs = async () => {
+      const query = jobTitle || 'Remote';
       setLoading(true);
       try {
-        const res = await fetch(`/api/jobs?keywords=${encodeURIComponent(jobTitle)}`);
+        const res = await fetch(`/api/jobs?keywords=${encodeURIComponent(query)}`);
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         setJobs(data.jobs || []);
@@ -38,7 +37,7 @@ export default function SmartJobMatches({ jobTitle }: { jobTitle?: string }) {
     fetchJobs();
   }, [jobTitle]);
 
-  if (!jobTitle) return null;
+  const displayTitle = jobTitle || 'Professional';
 
   return (
     <div className="w-full bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
@@ -46,7 +45,7 @@ export default function SmartJobMatches({ jobTitle }: { jobTitle?: string }) {
         <div>
           <h3 className="text-lg font-black text-white flex items-center gap-2">
             <Briefcase size={20} className="text-blue-200" />
-            Active {jobTitle} Roles
+            Active {displayTitle} Roles
           </h3>
           <p className="text-blue-100 text-sm mt-1">We found these matches near you based on your resume.</p>
         </div>
