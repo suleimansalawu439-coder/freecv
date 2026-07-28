@@ -42,7 +42,11 @@ ${cleanResume.substring(0, 3000)}
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash-lite',
       contents: prompt,
-      config: { temperature: 0.2, maxOutputTokens: 1500 }
+      config: { 
+        temperature: 0.2, 
+        maxOutputTokens: 1500,
+        responseMimeType: 'application/json'
+      }
     });
 
     let text = response.text || '';

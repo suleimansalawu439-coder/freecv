@@ -893,8 +893,22 @@ export default function FreeCVApp() {
     }, 150);
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     trackEvent('milestone_downloaded', data.templateId);
+    
+    // Register the CRM opt-in silently in the background
+    if (data.hasOptedIn && data.personalInfo.email) {
+      try {
+        fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.personalInfo.email, source: 'talent_crm_optin' })
+        }).catch(err => console.error('Silent CRM opt-in failed:', err));
+      } catch (err) {
+        console.error('Failed to trigger opt-in API', err);
+      }
+    }
+
     triggerPrint();
   };
 
