@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Users, BarChart, Settings, LogOut, Download, Mail, Activity, Database, CheckCircle2, Monitor, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 // --- Types ---
 interface StatsData {
   summary: {
