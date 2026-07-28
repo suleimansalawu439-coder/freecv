@@ -20,7 +20,6 @@ export default async function AdminPage() {
 
   if (analyticsError) console.error('Error fetching analytics:', analyticsError);
 
-  // New Features Data Fetches
   const { data: siteSettings } = await supabaseAdmin.from('site_settings').select('*').single();
   const { data: featureFlags } = await supabaseAdmin.from('feature_flags').select('*').order('key');
 
