@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -73,24 +76,12 @@ export async function POST(req: NextRequest) {
       }
     `;
 
-    const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.KIMI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'Kimi-K2.6',
-        messages: [{ role: 'user', content: prompt }]
-      })
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: prompt,
     });
 
-    if (!res.ok) {
-      throw new Error(`API error: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    let rawJson = data.choices?.[0]?.message?.content || "{}";
+    let rawJson = response.text || "{}";
     
     // Strip markdown code block formatting if Gemini includes it
     if (rawJson.startsWith('\`\`\`json')) {

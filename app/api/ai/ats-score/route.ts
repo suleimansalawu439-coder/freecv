@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export const runtime = 'edge';
 
@@ -36,26 +39,13 @@ Resume:
 ${cleanResume.substring(0, 3000)}
 `;
 
-    const res = await fetch('https://api.hcnsec.cn/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.KIMI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'Kimi-K2.6',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2,
-        max_tokens: 1500
-      })
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash-lite',
+      contents: prompt,
+      config: { temperature: 0.2, maxOutputTokens: 1500 }
     });
 
-    if (!res.ok) {
-      throw new Error(`API error: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    let text = data.choices?.[0]?.message?.content || '';
+    let text = response.text || '';
     
     // Strip markdown code fences if present
     text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
