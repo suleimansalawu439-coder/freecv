@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { sanitizeResumeData } from '@/lib/validation';
 
 export async function POST(request: Request) {
   try {

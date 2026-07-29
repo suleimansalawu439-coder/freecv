@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 

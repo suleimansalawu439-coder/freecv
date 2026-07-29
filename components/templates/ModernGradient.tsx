@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData } from '@/app/page';
+import { ResumeData } from '@/store/useResumeStore';
 
 export default function ModernGradient({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#4f46e5';

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { sanitizeResumeData } from '@/lib/validation';
 
 interface PersonalInfo {
   fullName: string; jobTitle: string; email: string; phone: string;

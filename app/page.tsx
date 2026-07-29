@@ -44,337 +44,15 @@ import { supabase } from '@/lib/supabase';
 
 import { templates, TemplateKey } from '@/components/templates';
 import NewsletterCapture from '@/components/NewsletterCapture';
+import { ImportResume } from '@/components/builder/ImportResume';
+import { CoverLetterTab } from '@/components/builder/CoverLetterTab';
 
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// --- Types ---
-export interface PersonalInfo {
-  fullName: string;
-  jobTitle: string;
-  email: string;
-  phone: string;
-  location: string;
-  website: string;
-  profilePicture?: string;
-}
-
-export interface Experience {
-  id: string;
-  company: string;
-  role: string;
-  startDate: string;
-  endDate: string;
-  description: string; 
-}
-
-export interface Education {
-  id: string;
-  school: string;
-  degree: string;
-  graduationYear: string;
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  link: string;
-}
-
-export interface Certification {
-  id: string;
-  name: string;
-  issuer: string;
-  date: string;
-}
-
-export interface CustomSectionItem {
-  id: string;
-  title: string;
-  subtitle: string;
-  date: string;
-  description: string;
-}
-
-export interface CustomSection {
-  id: string;
-  title: string;
-  items: CustomSectionItem[];
-}
-
-export interface Reference {
-  id: string;
-  name: string;
-  title: string;
-  company: string;
-  contact: string;
-}
-
-export interface ResumeData {
-  templateId: TemplateKey;
-  theme: {
-    color: string;
-  };
-  personalInfo: PersonalInfo;
-  summary: string;
-  experience: Experience[];
-  education: Education[];
-  skills: Skill[];
-  showProjects: boolean;
-  projects: Project[];
-  showCertifications: boolean;
-  certifications: Certification[];
-  showReferences: boolean;
-  references: Reference[];
-  hasOptedIn: boolean;
-  customSections: CustomSection[];
-}
-
-// --- Store ---
-interface ResumeStore {
-  data: ResumeData;
-  setTemplateId: (id: TemplateKey) => void;
-  setThemeColor: (color: string) => void;
-  updatePersonalInfo: (info: Partial<PersonalInfo>) => void;
-  updateSummary: (summary: string) => void;
-  addExperience: () => void;
-  updateExperience: (id: string, updates: Partial<Experience>) => void;
-  removeExperience: (id: string) => void;
-  addEducation: () => void;
-  updateEducation: (id: string, updates: Partial<Education>) => void;
-  removeEducation: (id: string) => void;
-  addSkill: (name: string) => void;
-  removeSkill: (id: string) => void;
-  toggleProjects: () => void;
-  addProject: () => void;
-  updateProject: (id: string, updates: Partial<Project>) => void;
-  removeProject: (id: string) => void;
-  toggleCertifications: () => void;
-  addCertification: () => void;
-  updateCertification: (id: string, updates: Partial<Certification>) => void;
-  removeCertification: (id: string) => void;
-  toggleReferences: () => void;
-  addReference: () => void;
-  updateReference: (id: string, updates: Partial<Reference>) => void;
-  removeReference: (id: string) => void;
-  setHasOptedIn: (optedIn: boolean) => void;
-  reorderExperience: (startIndex: number, endIndex: number) => void;
-  reorderEducation: (startIndex: number, endIndex: number) => void;
-  reorderSkills: (startIndex: number, endIndex: number) => void;
-  setAllData: (data: Partial<ResumeData>) => void;
-  addCustomSection: () => void;
-  updateCustomSectionTitle: (id: string, title: string) => void;
-  removeCustomSection: (id: string) => void;
-  addCustomSectionItem: (sectionId: string) => void;
-  updateCustomSectionItem: (sectionId: string, itemId: string, updates: Partial<CustomSectionItem>) => void;
-  removeCustomSectionItem: (sectionId: string, itemId: string) => void;
-  reorderCustomSections: (startIndex: number, endIndex: number) => void;
-  reorderCustomSectionItems: (sectionId: string, startIndex: number, endIndex: number) => void;
-}
-
-const initialData: ResumeData = {
-  templateId: 'Executive',
-  theme: { color: '#2563eb' },
-  personalInfo: {
-    fullName: "Jane Doe",
-    jobTitle: "Senior Product Designer",
-    email: "jane@freecv.dev",
-    phone: "(555) 123-4567",
-    location: "San Francisco, CA",
-    website: "janedoe.com",
-  },
-  summary: "Detail-oriented Product Designer with 6+ years of experience crafting premium digital experiences. Passionate about brutalist minimalism and accessible design systems.",
-  experience: [
-    {
-      id: '1',
-      company: "Acme Corp",
-      role: "Lead UI Designer",
-      startDate: "2022",
-      endDate: "Present",
-      description: "Led the redesign of the core SaaS platform.\nManaged a team of 3 designers.\nImplemented a new design system."
-    }
-  ],
-  education: [
-    {
-      id: '1',
-      school: "Rhode Island School of Design",
-      degree: "BFA in Interaction Design",
-      graduationYear: "2018"
-    }
-  ],
-  skills: [
-    { id: '1', name: "Figma" },
-    { id: '2', name: "React" },
-    { id: '3', name: "Tailwind" }
-  ],
-  showProjects: false,
-  projects: [],
-  showCertifications: false,
-  certifications: [],
-  showReferences: false,
-  references: [],
-  hasOptedIn: false,
-  customSections: []
-};
-
-const useResumeStore = create<ResumeStore>()(
-  temporal(
-    persist(
-      (set) => ({
-        data: initialData,
-        setTemplateId: (id) => set((state) => ({ data: { ...state.data, templateId: id } })),
-        setThemeColor: (color) => set((state) => ({ data: { ...state.data, theme: { color } } })),
-        updatePersonalInfo: (info) =>
-          set((state) => ({
-            data: { ...state.data, personalInfo: { ...state.data.personalInfo, ...info } },
-          })),
-        updateSummary: (summary) =>
-          set((state) => ({ data: { ...state.data, summary } })),
-        
-        addExperience: () => set((state) => ({
-          data: {
-            ...state.data,
-            experience: [...state.data.experience, { id: crypto.randomUUID(), company: '', role: '', startDate: '', endDate: '', description: '' }]
-          }
-        })),
-        updateExperience: (id, updates) => set((state) => ({
-          data: {
-            ...state.data,
-            experience: state.data.experience.map(exp => exp.id === id ? { ...exp, ...updates } : exp)
-          }
-        })),
-        removeExperience: (id) => set((state) => ({
-          data: { ...state.data, experience: state.data.experience.filter(exp => exp.id !== id) }
-        })),
-
-        addEducation: () => set((state) => ({
-          data: {
-            ...state.data,
-            education: [...state.data.education, { id: crypto.randomUUID(), school: '', degree: '', graduationYear: '' }]
-          }
-        })),
-        updateEducation: (id, updates) => set((state) => ({
-          data: {
-            ...state.data,
-            education: state.data.education.map(edu => edu.id === id ? { ...edu, ...updates } : edu)
-          }
-        })),
-        removeEducation: (id) => set((state) => ({
-          data: { ...state.data, education: state.data.education.filter(edu => edu.id !== id) }
-        })),
-
-        addSkill: (name) => set((state) => ({
-          data: { ...state.data, skills: [...state.data.skills, { id: crypto.randomUUID(), name }] }
-        })),
-        removeSkill: (id) => set((state) => ({
-          data: { ...state.data, skills: state.data.skills.filter(s => s.id !== id) }
-        })),
-
-        toggleProjects: () => set((state) => ({ data: { ...state.data, showProjects: !state.data.showProjects, projects: state.data.projects || [] } })),
-        addProject: () => set((state) => ({
-          data: { ...state.data, projects: [...(state.data.projects || []), { id: crypto.randomUUID(), name: '', description: '', link: '' }] }
-        })),
-        updateProject: (id, updates) => set((state) => ({
-          data: { ...state.data, projects: (state.data.projects || []).map(p => p.id === id ? { ...p, ...updates } : p) }
-        })),
-        removeProject: (id) => set((state) => ({
-          data: { ...state.data, projects: (state.data.projects || []).filter(p => p.id !== id) }
-        })),
-
-        toggleCertifications: () => set((state) => ({ data: { ...state.data, showCertifications: !state.data.showCertifications, certifications: state.data.certifications || [] } })),
-        addCertification: () => set((state) => ({
-          data: { ...state.data, certifications: [...(state.data.certifications || []), { id: crypto.randomUUID(), name: '', issuer: '', date: '' }] }
-        })),
-        updateCertification: (id, updates) => set((state) => ({
-          data: { ...state.data, certifications: (state.data.certifications || []).map(c => c.id === id ? { ...c, ...updates } : c) }
-        })),
-        removeCertification: (id) => set((state) => ({
-          data: { ...state.data, certifications: (state.data.certifications || []).filter(c => c.id !== id) }
-        })),
-
-        toggleReferences: () => set((state) => ({ data: { ...state.data, showReferences: !state.data.showReferences, references: state.data.references || [] } })),
-        addReference: () => set((state) => ({
-          data: { ...state.data, references: [...(state.data.references || []), { id: crypto.randomUUID(), name: '', title: '', company: '', contact: '' }] }
-        })),
-        updateReference: (id, updates) => set((state) => ({
-          data: { ...state.data, references: (state.data.references || []).map(r => r.id === id ? { ...r, ...updates } : r) }
-        })),
-        removeReference: (id) => set((state) => ({
-          data: { ...state.data, references: (state.data.references || []).filter(r => r.id !== id) }
-        })),
-
-        setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
-        addCustomSection: () => set((state) => ({
-          data: { ...state.data, customSections: [...(state.data.customSections || []), { id: crypto.randomUUID(), title: 'Custom Section', items: [] }] }
-        })),
-        updateCustomSectionTitle: (id, title) => set((state) => ({
-          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === id ? { ...s, title } : s) }
-        })),
-        removeCustomSection: (id) => set((state) => ({
-          data: { ...state.data, customSections: (state.data.customSections || []).filter(s => s.id !== id) }
-        })),
-        addCustomSectionItem: (sectionId) => set((state) => ({
-          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: [...s.items, { id: crypto.randomUUID(), title: '', subtitle: '', date: '', description: '' }] } : s) }
-        })),
-        updateCustomSectionItem: (sectionId, itemId, updates) => set((state) => ({
-          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: s.items.map(i => i.id === itemId ? { ...i, ...updates } : i) } : s) }
-        })),
-        removeCustomSectionItem: (sectionId, itemId) => set((state) => ({
-          data: { ...state.data, customSections: (state.data.customSections || []).map(s => s.id === sectionId ? { ...s, items: s.items.filter(i => i.id !== itemId) } : s) }
-        })),
-        reorderCustomSections: (startIndex, endIndex) => set((state) => {
-          const result = Array.from(state.data.customSections || []);
-          const [removed] = result.splice(startIndex, 1);
-          result.splice(endIndex, 0, removed);
-          return { data: { ...state.data, customSections: result } };
-        }),
-        reorderCustomSectionItems: (sectionId, startIndex, endIndex) => set((state) => {
-          const result = Array.from(state.data.customSections || []);
-          const sectionIndex = result.findIndex(s => s.id === sectionId);
-          if (sectionIndex === -1) return state;
-          const newItems = Array.from(result[sectionIndex].items);
-          const [removed] = newItems.splice(startIndex, 1);
-          newItems.splice(endIndex, 0, removed);
-          result[sectionIndex] = { ...result[sectionIndex], items: newItems };
-          return { data: { ...state.data, customSections: result } };
-        }),
-
-        reorderExperience: (startIndex, endIndex) => set((state) => {
-          const result = Array.from(state.data.experience);
-          const [removed] = result.splice(startIndex, 1);
-          result.splice(endIndex, 0, removed);
-          return { data: { ...state.data, experience: result } };
-        }),
-        reorderEducation: (startIndex, endIndex) => set((state) => {
-          const result = Array.from(state.data.education);
-          const [removed] = result.splice(startIndex, 1);
-          result.splice(endIndex, 0, removed);
-          return { data: { ...state.data, education: result } };
-        }),
-        reorderSkills: (startIndex, endIndex) => set((state) => {
-          const result = Array.from(state.data.skills);
-          const [removed] = result.splice(startIndex, 1);
-          result.splice(endIndex, 0, removed);
-          return { data: { ...state.data, skills: result } };
-        }),
-        setAllData: (newData) => set((state) => ({
-          data: { ...state.data, ...newData }
-        })),
-
-      }),
-      { name: 'freecv-storage' }
-    ),
-    { limit: 50 }
-  )
-);
+import { useResumeStore, initialData, type ResumeData, type PersonalInfo, type Experience, type Education, type Skill, type Project, type Certification, type CustomSection, type CustomSectionItem, type Reference } from '@/store/useResumeStore';
 
 // --- Components ---
 
@@ -478,6 +156,8 @@ export default function FreeCVApp() {
   // Smart Skills
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [isLoadingSkills, setIsLoadingSkills] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState('');
 
   // Mobile Download Modal
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
@@ -836,6 +516,26 @@ export default function FreeCVApp() {
   };
 
   // DOCX Export handler
+  const handlePublish = async () => {
+    setIsPublishing(true);
+    setPublishedUrl('');
+    try {
+      const res = await fetch('/api/resume/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to publish');
+      setPublishedUrl(result.url);
+      trackEvent('milestone_published_web', data.templateId);
+    } catch (err: any) {
+      alert('Publish failed: ' + err.message);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   const handleDocxExport = async () => {
     try {
       const res = await fetch('/api/export/docx', {
@@ -954,6 +654,17 @@ export default function FreeCVApp() {
               </button>
             </div>
           </header>
+          {publishedUrl && (
+            <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between">
+              <div>
+                <p className="text-green-800 font-bold text-sm">Your resume is live!</p>
+                <a href={publishedUrl} target="_blank" rel="noreferrer" className="text-green-600 text-xs hover:underline mt-1 block">{publishedUrl}</a>
+              </div>
+              <button onClick={() => { navigator.clipboard.writeText(publishedUrl); alert('Copied!'); }} className="px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg shadow hover:bg-green-700">
+                COPY LINK
+              </button>
+            </div>
+          )}
 
           {/* AI Tools Bar */}
           <div className="flex flex-wrap gap-2 mb-8">
@@ -1027,35 +738,7 @@ export default function FreeCVApp() {
 
           <DragDropContext onDragEnd={onDragEnd}>
           
-          {/* LinkedIn Import */}
-          <div className="mb-12 relative overflow-hidden bg-[#0A66C2] text-white p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl shadow-[#0A66C2]/20 flex flex-col sm:flex-row items-center gap-6 justify-between group">
-            <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="bg-white rounded-full p-3 shadow-[0_0_20px_rgba(10,102,194,0.15)] mb-4">
-                <svg className="w-8 h-8 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">Import from LinkedIn</h3>
-                <p className="text-blue-100 text-sm font-medium">Save hours of typing. Upload your LinkedIn PDF to auto-fill everything.</p>
-              </div>
-            </div>
-            <div className="relative z-10 shrink-0 w-full sm:w-auto">
-              <input 
-                type="file" 
-                accept="application/pdf"
-                onChange={handleLinkedInImport}
-                disabled={isImporting}
-                className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed z-20 w-full"
-                title="Upload LinkedIn Profile PDF"
-              />
-              <button disabled={isImporting} className="w-full sm:w-auto bg-white text-[#0A66C2] px-6 py-3 rounded-xl font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:translate-y-0">
-                {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {isImporting ? 'Importing magic...' : 'Upload PDF'}
-              </button>
-            </div>
-          </div>
+          <ImportResume />
 
           {/* Personal Info */}
           <SectionHeader icon={User} title="Personal Identity" description="Who are you and what do you do?" />
@@ -1496,6 +1179,9 @@ export default function FreeCVApp() {
             </button>
           </div>
 
+
+          {/* Cover Letter Generator */}
+          <CoverLetterTab />
 
           {/* Marketing Engine / Newsletter Capture */}
           <div className="mt-16 pt-8 border-t border-gray-200">

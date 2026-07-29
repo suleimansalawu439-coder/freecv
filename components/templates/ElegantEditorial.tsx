@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData } from '@/app/page';
+import { ResumeData } from '@/store/useResumeStore';
 
 export default function ElegantEditorial({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#b45309'; // default amber-700

@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import type { ResumeData } from '@/app/page';
+import type { ResumeData } from '@/store/useResumeStore';
 
 import Academic from './Academic';
 import AcademicJournal from './AcademicJournal';

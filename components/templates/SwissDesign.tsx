@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData } from '@/app/page';
+import { ResumeData } from '@/store/useResumeStore';
 
 export default function SwissDesign({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#dc2626'; // default red-600

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData } from '@/app/page';
+import { ResumeData } from '@/store/useResumeStore';
 
 export default function ZenJapanese({ data }: { data: ResumeData }) {
   return (

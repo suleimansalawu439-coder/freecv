@@ -66,6 +66,10 @@ export default function NewsletterCapture({ source = 'blog' }: { source?: string
             {status === 'loading' ? 'Joining...' : <>Join <ArrowRight size={18} /></>}
           </button>
         </form>
+        <p className="mt-4 text-xs text-gray-500 text-center max-w-md mx-auto">
+          By subscribing, you agree to our privacy policy. <br/>
+          <a href="/manage-data" className="underline hover:text-gray-300">Manage your data preferences</a>.
+        </p>
         {status === 'error' && <p className="text-red-400 text-sm font-bold mt-4">Something went wrong. Please try again.</p>}
       </div>
     </div>

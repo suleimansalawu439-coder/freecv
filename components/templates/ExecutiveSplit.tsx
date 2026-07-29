@@ -1,5 +1,5 @@
 import React from 'react';
-import { ResumeData } from '@/app/page';
+import { ResumeData } from '@/store/useResumeStore';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 
 export default function ExecutiveSplit({ data }: { data: ResumeData }) {

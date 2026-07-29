@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { signAdminToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -7,8 +8,10 @@ export async function POST(request: Request) {
     const adminPassword = process.env.ADMIN_PASSWORD || 'freecv2026';
 
     if (password === adminPassword) {
+      const token = await signAdminToken();
+      
       const cookieStore = await cookies();
-      cookieStore.set('admin_session', 'authenticated_admin', {
+      cookieStore.set('admin_session', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
