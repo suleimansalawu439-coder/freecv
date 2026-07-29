@@ -51,7 +51,7 @@ JSON structure: { "skills": string[] }`;
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash-lite',
+      model: 'gemini-3.6-flash',
       contents: prompt,
       config: { temperature: 0.2, maxOutputTokens: 1500 }
     });
