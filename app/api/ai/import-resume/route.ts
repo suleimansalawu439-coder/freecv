@@ -38,6 +38,7 @@ Rules:
 3. Do not make up information.
 4. Format dates consistently if possible (e.g., "Jan 2020 - Present").
 5. Return ONLY valid JSON. Do not include markdown code fences (like \`\`\`json) or any conversational text. Just the raw JSON object.
+6. If the resume contains information that does not fit into standard sections (like Volunteering, Awards, Publications, etc.), map them into the "customSections" array.
 
 JSON Schema to match:
 {
@@ -73,12 +74,52 @@ JSON Schema to match:
       "id": "string (generate random id)",
       "name": "string"
     }
+  ],
+  "projects": [
+    {
+      "id": "string",
+      "name": "string",
+      "description": "string",
+      "link": "string"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "string",
+      "name": "string",
+      "issuer": "string",
+      "date": "string"
+    }
+  ],
+  "references": [
+    {
+      "id": "string",
+      "name": "string",
+      "title": "string",
+      "company": "string",
+      "contact": "string"
+    }
+  ],
+  "customSections": [
+    {
+      "id": "string",
+      "title": "string (e.g. 'Awards', 'Volunteering')",
+      "items": [
+        {
+          "id": "string",
+          "title": "string",
+          "subtitle": "string",
+          "date": "string",
+          "description": "string"
+        }
+      ]
+    }
   ]
 }
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-1.5-flash-8b',
       contents: [
         {
           role: 'user',

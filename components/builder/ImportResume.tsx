@@ -78,15 +78,48 @@ export function ImportResume() {
       const parsedData = await res.json();
       
       const updates: any = {};
-      if (parsedData.personalInfo) updates.personalInfo = parsedData.personalInfo;
-      if (parsedData.summary) updates.summary = parsedData.summary;
-      if (parsedData.experience && Array.isArray(parsedData.experience)) updates.experience = parsedData.experience;
-      if (parsedData.education && Array.isArray(parsedData.education)) updates.education = parsedData.education;
-      if (parsedData.skills && Array.isArray(parsedData.skills)) updates.skills = parsedData.skills;
-
-      if (Object.keys(updates).length > 0) {
-        setAllData(updates);
+      
+      // Personal Info: merge with existing, or overwrite. We'll overwrite completely except email if we want to be safe, but user wants old fields removed.
+      updates.personalInfo = parsedData.personalInfo || { fullName: '', jobTitle: '', email: '', phone: '', location: '', website: '' };
+      updates.summary = parsedData.summary || '';
+      
+      // Explicitly set arrays to empty if not returned, so old data is wiped out
+      updates.experience = Array.isArray(parsedData.experience) ? parsedData.experience : [];
+      updates.education = Array.isArray(parsedData.education) ? parsedData.education : [];
+      updates.skills = Array.isArray(parsedData.skills) ? parsedData.skills : [];
+      
+      // Handle new sections
+      if (Array.isArray(parsedData.projects) && parsedData.projects.length > 0) {
+        updates.projects = parsedData.projects;
+        updates.showProjects = true;
+      } else {
+        updates.projects = [];
+        updates.showProjects = false;
       }
+
+      if (Array.isArray(parsedData.certifications) && parsedData.certifications.length > 0) {
+        updates.certifications = parsedData.certifications;
+        updates.showCertifications = true;
+      } else {
+        updates.certifications = [];
+        updates.showCertifications = false;
+      }
+
+      if (Array.isArray(parsedData.references) && parsedData.references.length > 0) {
+        updates.references = parsedData.references;
+        updates.showReferences = true;
+      } else {
+        updates.references = [];
+        updates.showReferences = false;
+      }
+
+      if (Array.isArray(parsedData.customSections)) {
+        updates.customSections = parsedData.customSections;
+      } else {
+        updates.customSections = [];
+      }
+
+      setAllData(updates);
 
       setIsOpen(false);
     } catch (err: any) {
