@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Users, BarChart, Settings, LogOut, Download, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -134,8 +132,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
     a.click();
   };
 
-  const exportPDF = () => {
-    const doc = new jsPDF();
+  const exportPDF = async () => {
+    // Dynamically import jsPDF and autoTable to prevent Next.js SSR build errors
+    const jsPDFModule = (await import('jspdf')).default;
+    const autoTableModule = (await import('jspdf-autotable')).default;
+    
+    const doc = new jsPDFModule();
     doc.text("FreeCV Candidate Export", 14, 15);
     
     const tableColumn = ["Name", "Email", "Job Title", "Location", "Opt-in Date"];
@@ -152,7 +154,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       tableRows.push(row);
     });
 
-    autoTable(doc, { head: [tableColumn], body: tableRows, startY: 20 });
+    autoTableModule(doc, { head: [tableColumn], body: tableRows, startY: 20 });
     doc.save(`candidates_export.pdf`);
   };
 
