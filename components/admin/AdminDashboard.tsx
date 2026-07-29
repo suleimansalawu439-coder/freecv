@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Users, BarChart, Settings, LogOut, Download, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -29,35 +29,70 @@ const COUNTRY_FLAGS: Record<string, string> = {
 function getFlag(country: string): string { return COUNTRY_FLAGS[country] || '🌍'; }
 
 export default function AdminDashboard({ candidates, analytics, siteSettings, featureFlags }: any) {
-  const [activeTab, setActiveTab] = useState<'crm' | 'analytics' | 'config'>('analytics');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'settings'>('dashboard');
+  const [timeframe, setTimeframe] = useState<'24h'|'7d'|'14d'|'30d'|'6m'|'1y'|'all'>('30d');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
 
+  const isWithinTimeframe = (dateString: string, tf: string) => {
+    if (tf === 'all') return true;
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    switch(tf) {
+      case '24h': return diffDays <= 1;
+      case '7d': return diffDays <= 7;
+      case '14d': return diffDays <= 14;
+      case '30d': return diffDays <= 30;
+      case '6m': return diffDays <= 180;
+      case '1y': return diffDays <= 365;
+      default: return true;
+    }
+  };
+
   useEffect(() => {
-    if (!analytics || analytics.length === 0) return;
+    if (!analytics) return;
+
+    // Filter analytics based on timeframe
+    const filteredAnalytics = analytics.filter((e:any) => isWithinTimeframe(e.created_at, timeframe));
+    const filteredCandidatesDb = candidates?.filter((c:any) => isWithinTimeframe(c.opted_in_at, timeframe)) || [];
+
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     
-    let summary = { totalEvents: analytics.length, uniqueSessions: new Set(analytics.map((e:any) => e.session_id)).size, started: 0, previewed: 0, downloads: 0, optIns: 0, todayEvents: 0 };
+    let summary = { 
+      totalEvents: filteredAnalytics.length, 
+      uniqueSessions: new Set(filteredAnalytics.map((e:any) => e.session_id)).size, 
+      started: 0, 
+      previewed: 0, 
+      downloads: 0, 
+      optIns: filteredCandidatesDb.length, // use exact candidate DB rows for accurate count
+      todayEvents: 0 
+    };
+    
     let countryMap: Record<string, number> = {};
     let deviceMap = { desktop: 0, mobile: 0, tablet: 0 };
     let browserMap: Record<string, number> = {};
     let osMap: Record<string, number> = {};
     let referrerMap: Record<string, number> = {};
     let templateMap: Record<string, number> = {};
-    let dateMap: Record<string, number> = {};
+    let dailyUniqueMap: Record<string, Set<string>> = {};
     
-    analytics.forEach((e:any) => {
+    filteredAnalytics.forEach((e:any) => {
       if (e.event_type === 'milestone_started') summary.started++;
       if (e.event_type === 'milestone_previewed') summary.previewed++;
       if (e.event_type === 'milestone_downloaded') summary.downloads++;
-      if (e.event_type === 'crm_optin_success') summary.optIns++;
       
       const dateStr = e.created_at.split('T')[0];
       if (dateStr === todayStr) summary.todayEvents++;
-      dateMap[dateStr] = (dateMap[dateStr] || 0) + 1;
+      
+      // For daily trend, use unique visitors per day
+      if (!dailyUniqueMap[dateStr]) dailyUniqueMap[dateStr] = new Set();
+      dailyUniqueMap[dateStr].add(e.session_id);
       
       if (e.country) countryMap[e.country] = (countryMap[e.country] || 0) + 1;
       if (e.device_type) deviceMap[e.device_type as keyof typeof deviceMap]++;
@@ -67,6 +102,10 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       if (e.template_id) templateMap[e.template_id] = (templateMap[e.template_id] || 0) + 1;
     });
 
+    const dailyTrend = Object.entries(dailyUniqueMap)
+      .map(([date, set]) => ({ date, count: set.size }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     setStats({
       summary,
       topCountries: Object.entries(countryMap).map(([country, count]) => ({ country, count })).sort((a, b) => b.count - a.count).slice(0, 10),
@@ -75,10 +114,10 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       topOS: Object.entries(osMap).map(([os, count]) => ({ os, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       topReferrers: Object.entries(referrerMap).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       topTemplates: Object.entries(templateMap).map(([template, count]) => ({ template, count })).sort((a, b) => b.count - a.count).slice(0, 5),
-      dailyTrend: Object.entries(dateMap).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date)).slice(-14),
-      recentActivity: analytics.slice(0, 20)
+      dailyTrend,
+      recentActivity: filteredAnalytics.slice(0, 20)
     });
-  }, [analytics]);
+  }, [analytics, candidates, timeframe]);
 
   const handleLogout = async () => {
     await fetch('/api/admin/login', { method: 'DELETE' });
@@ -86,9 +125,10 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   };
 
   const navItems = [
+    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { key: 'analytics', label: 'Analytics', icon: BarChart },
-    { key: 'crm', label: 'Talent CRM', icon: Users },
-    { key: 'config', label: 'Settings', icon: Settings }
+    { key: 'talent_pool', label: 'Talent Pool', icon: Users },
+    { key: 'settings', label: 'Settings', icon: Settings }
   ] as const;
 
   const filteredCandidates = candidates?.filter((c:any) => 
@@ -146,7 +186,6 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   };
 
   const exportPDF = async () => {
-    // Dynamically import jsPDF and autoTable to prevent Next.js SSR build errors
     const jsPDFModule = (await import('jspdf')).default;
     const autoTableModule = (await import('jspdf-autotable')).default;
     
@@ -215,47 +254,153 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
       {/* Main Content Area */}
       <div className={cn("flex-1 flex flex-col h-screen overflow-hidden", isDarkMode ? "bg-[#050505]" : "bg-[#FAFAFA]")}>
-        <header className={cn("h-16 border-b flex items-center px-8 shrink-0 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+        <header className={cn("h-16 border-b flex items-center justify-between px-8 shrink-0 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
           <h2 className="text-lg font-semibold">
             {navItems.find(n => n.key === activeTab)?.label}
           </h2>
+
+          {/* Timeframe Filter */}
+          {(activeTab === 'dashboard' || activeTab === 'analytics') && (
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className={isDarkMode ? "text-gray-400" : "text-gray-500"} />
+              <select 
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value as any)}
+                className={cn(
+                  "text-sm rounded-lg border py-1.5 pl-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors cursor-pointer",
+                  isDarkMode ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"
+                )}
+              >
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="14d">Last 14 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="6m">Last 6 Months</option>
+                <option value="1y">Last 1 Year</option>
+                <option value="all">All Time</option>
+              </select>
+            </div>
+          )}
         </header>
         
         <main className="flex-1 overflow-y-auto p-8">
           <div className="max-w-6xl mx-auto">
+            
+            {activeTab === 'dashboard' && stats && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                {/* Colorful High-Level Dashboard Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  
+                  {/* Total Visits Card */}
+                  <div className="rounded-2xl p-6 shadow-md text-white bg-gradient-to-br from-indigo-500 to-purple-600 transition-transform hover:scale-[1.02]">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-indigo-100 text-sm font-medium tracking-wide uppercase">Total Visits</p>
+                      <BarChart size={20} className="text-indigo-200" />
+                    </div>
+                    <h3 className="text-4xl font-extrabold">{stats.summary.totalEvents.toLocaleString()}</h3>
+                    <p className="text-xs text-indigo-200 mt-2">Events logged in {timeframe}</p>
+                  </div>
+                  
+                  {/* Unique Visitors Card */}
+                  <div className="rounded-2xl p-6 shadow-md text-white bg-gradient-to-br from-emerald-400 to-teal-500 transition-transform hover:scale-[1.02]">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-teal-50 text-sm font-medium tracking-wide uppercase">Unique Visitors</p>
+                      <Users size={20} className="text-teal-100" />
+                    </div>
+                    <h3 className="text-4xl font-extrabold">{stats.summary.uniqueSessions.toLocaleString()}</h3>
+                    <p className="text-xs text-teal-100 mt-2">Distinct sessions in {timeframe}</p>
+                  </div>
+
+                  {/* Total Opt-ins Card */}
+                  <div className="rounded-2xl p-6 shadow-md text-white bg-gradient-to-br from-amber-400 to-orange-500 transition-transform hover:scale-[1.02]">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-amber-50 text-sm font-medium tracking-wide uppercase">Total Opt-ins</p>
+                      <FileJson size={20} className="text-amber-100" />
+                    </div>
+                    <h3 className="text-4xl font-extrabold">{stats.summary.optIns.toLocaleString()}</h3>
+                    <p className="text-xs text-amber-100 mt-2">Database opt-ins in {timeframe}</p>
+                  </div>
+
+                  {/* Conversion Rate Card */}
+                  <div className="rounded-2xl p-6 shadow-md text-white bg-gradient-to-br from-rose-400 to-pink-600 transition-transform hover:scale-[1.02]">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-rose-100 text-sm font-medium tracking-wide uppercase">Conversion Rate</p>
+                      <Settings size={20} className="text-rose-200" />
+                    </div>
+                    <h3 className="text-4xl font-extrabold">
+                      {stats.summary.uniqueSessions > 0 ? ((stats.summary.optIns / stats.summary.uniqueSessions) * 100).toFixed(1) : '0.0'}%
+                    </h3>
+                    <p className="text-xs text-rose-200 mt-2">Opt-ins / Unique Visitors</p>
+                  </div>
+                </div>
+                
+                {/* Secondary Metrics */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-lg font-bold mb-4">Quick Insights</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                          <span className={cn(isDarkMode ? "text-gray-400" : "text-gray-600")}>Resumes Started</span>
+                          <span className="font-bold text-lg">{stats.summary.started.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+                          <span className={cn(isDarkMode ? "text-gray-400" : "text-gray-600")}>Resumes Previewed</span>
+                          <span className="font-bold text-lg">{stats.summary.previewed.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className={cn(isDarkMode ? "text-gray-400" : "text-gray-600")}>Resumes Downloaded</span>
+                          <span className="font-bold text-lg">{stats.summary.downloads.toLocaleString()}</span>
+                        </div>
+                      </div>
+                   </div>
+                   
+                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-lg font-bold mb-4">Daily Unique Visitors Trend</h3>
+                      <div className="h-48 flex items-end gap-2">
+                        {stats.dailyTrend.map((day, idx) => {
+                          const maxCount = Math.max(...stats.dailyTrend.map(d => d.count), 1);
+                          const height = (day.count / maxCount) * 100;
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col justify-end group relative">
+                              <div className={cn("w-full rounded-t-sm transition-all relative", isDarkMode ? "bg-blue-500/80 group-hover:bg-blue-400" : "bg-blue-500 group-hover:bg-blue-600")} style={{ height: `${height}%` }}>
+                                <div className={cn("absolute -top-8 left-1/2 -translate-x-1/2 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10", isDarkMode ? "bg-gray-100 text-gray-900" : "bg-gray-900 text-white")}>
+                                  {day.count} visitors
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                   </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'analytics' && stats && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { label: 'Total Visits', value: stats.summary.uniqueSessions },
-                    { label: 'Resumes Built', value: stats.summary.started },
-                    { label: 'Downloads', value: stats.summary.downloads },
-                    { label: 'CRM Opt-ins', value: stats.summary.optIns }
-                  ].map((stat, i) => (
-                    <div key={i} className={cn("border rounded-xl p-5 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                      <p className={cn("text-sm font-medium mb-1", isDarkMode ? "text-gray-400" : "text-gray-500")}>{stat.label}</p>
-                      <h3 className="text-3xl font-bold tracking-tight">{stat.value.toLocaleString()}</h3>
-                    </div>
-                  ))}
-                </div>
-
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Daily Trend */}
+                  {/* Daily Trend Expanded */}
                   <div className={cn("border rounded-xl p-6 shadow-sm lg:col-span-2 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                    <h3 className="text-base font-semibold mb-4">Traffic (Last 14 Days)</h3>
+                    <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+                      <BarChart size={18} className="text-indigo-500" />
+                      Daily Unique Visitors Trend
+                    </h3>
                     <div className="h-64 flex items-end gap-2">
-                      {stats.dailyTrend.map((day, idx) => {
+                      {stats.dailyTrend.length === 0 ? (
+                        <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">No data for selected timeframe</div>
+                      ) : stats.dailyTrend.map((day, idx) => {
                         const maxCount = Math.max(...stats.dailyTrend.map(d => d.count), 1);
                         const height = (day.count / maxCount) * 100;
                         return (
-                          <div key={idx} className="flex-1 flex flex-col justify-end group relative">
+                          <div key={idx} className="flex-1 flex flex-col justify-end group relative min-w-[12px]">
                             <div className={cn("w-full rounded-t-sm transition-all relative", isDarkMode ? "bg-indigo-500/80 group-hover:bg-indigo-400" : "bg-indigo-400 group-hover:bg-indigo-500")} style={{ height: `${height}%` }}>
                               <div className={cn("absolute -top-8 left-1/2 -translate-x-1/2 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10", isDarkMode ? "bg-gray-100 text-gray-900" : "bg-gray-900 text-white")}>
-                                {day.count} visits
+                                {day.count} visitors
                               </div>
                             </div>
-                            <div className="text-[10px] text-gray-400 mt-2 text-center truncate">{day.date.split('-').slice(1).join('/')}</div>
+                            {stats.dailyTrend.length <= 30 && (
+                              <div className="text-[10px] text-gray-400 mt-2 text-center truncate">{day.date.split('-').slice(1).join('/')}</div>
+                            )}
                           </div>
                         );
                       })}
@@ -266,15 +411,15 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                   <div className={cn("border rounded-xl p-6 shadow-sm flex flex-col transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                     <h3 className="text-base font-semibold mb-4">Device Usage</h3>
                     <div className="space-y-4 flex-1 flex flex-col justify-center">
-                      <div className={cn("flex items-center justify-between p-3 rounded-lg border", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-100")}>
+                      <div className={cn("flex items-center justify-between p-3 rounded-lg border border-l-4 border-l-emerald-500", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-r-gray-100 border-y-gray-100")}>
                         <div className="flex items-center gap-3"><Monitor size={18} className="text-emerald-500" /><span className="text-sm font-medium">Desktop</span></div>
                         <span className="font-bold">{stats.deviceCounts.desktop}</span>
                       </div>
-                      <div className={cn("flex items-center justify-between p-3 rounded-lg border", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-100")}>
+                      <div className={cn("flex items-center justify-between p-3 rounded-lg border border-l-4 border-l-amber-500", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-r-gray-100 border-y-gray-100")}>
                         <div className="flex items-center gap-3"><Smartphone size={18} className="text-amber-500" /><span className="text-sm font-medium">Mobile</span></div>
                         <span className="font-bold">{stats.deviceCounts.mobile}</span>
                       </div>
-                      <div className={cn("flex items-center justify-between p-3 rounded-lg border", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-100")}>
+                      <div className={cn("flex items-center justify-between p-3 rounded-lg border border-l-4 border-l-purple-500", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-r-gray-100 border-y-gray-100")}>
                         <div className="flex items-center gap-3"><Tablet size={18} className="text-purple-500" /><span className="text-sm font-medium">Tablet</span></div>
                         <span className="font-bold">{stats.deviceCounts.tablet}</span>
                       </div>
@@ -285,12 +430,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Top Countries */}
                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                    <h3 className="text-sm font-semibold mb-4">Top Countries</h3>
+                    <h3 className="text-sm font-semibold mb-4 text-emerald-500">Top Countries</h3>
                     <div className="space-y-3">
-                      {stats.topCountries.map((c, i) => (
+                      {stats.topCountries.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topCountries.map((c, i) => (
                         <div key={i} className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2"><span className="text-base">{getFlag(c.country)}</span><span className={isDarkMode ? "text-gray-300 truncate max-w-[100px]" : "text-gray-600 truncate max-w-[100px]"}>{c.country}</span></div>
-                          <span className="font-medium">{c.count}</span>
+                          <span className="font-bold text-gray-400">{c.count}</span>
                         </div>
                       ))}
                     </div>
@@ -298,12 +443,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
                   {/* Top Referrers */}
                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                    <h3 className="text-sm font-semibold mb-4">Top Referrers</h3>
+                    <h3 className="text-sm font-semibold mb-4 text-amber-500">Top Referrers</h3>
                     <div className="space-y-3">
-                      {stats.topReferrers.map((r, i) => (
+                      {stats.topReferrers.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topReferrers.map((r, i) => (
                         <div key={i} className="flex justify-between items-center text-sm">
                           <span className={isDarkMode ? "text-gray-300 truncate max-w-[120px]" : "text-gray-600 truncate max-w-[120px]"}>{r.source || 'Direct'}</span>
-                          <span className="font-medium">{r.count}</span>
+                          <span className="font-bold text-gray-400">{r.count}</span>
                         </div>
                       ))}
                     </div>
@@ -311,12 +456,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
                   {/* Top Browsers */}
                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                    <h3 className="text-sm font-semibold mb-4">Top Browsers</h3>
+                    <h3 className="text-sm font-semibold mb-4 text-purple-500">Top Browsers</h3>
                     <div className="space-y-3">
-                      {stats.topBrowsers.map((b, i) => (
+                      {stats.topBrowsers.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topBrowsers.map((b, i) => (
                         <div key={i} className="flex justify-between items-center text-sm">
                           <span className={isDarkMode ? "text-gray-300" : "text-gray-600"}>{b.browser || 'Unknown'}</span>
-                          <span className="font-medium">{b.count}</span>
+                          <span className="font-bold text-gray-400">{b.count}</span>
                         </div>
                       ))}
                     </div>
@@ -324,12 +469,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
                   {/* Top Templates */}
                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                    <h3 className="text-sm font-semibold mb-4">Top Templates</h3>
+                    <h3 className="text-sm font-semibold mb-4 text-rose-500">Top Templates</h3>
                     <div className="space-y-3">
-                      {stats.topTemplates.map((t, i) => (
+                      {stats.topTemplates.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topTemplates.map((t, i) => (
                         <div key={i} className="flex justify-between items-center text-sm">
                           <span className={isDarkMode ? "text-gray-300 truncate max-w-[120px]" : "text-gray-600 truncate max-w-[120px]"}>{t.template || 'N/A'}</span>
-                          <span className="font-medium">{t.count}</span>
+                          <span className="font-bold text-gray-400">{t.count}</span>
                         </div>
                       ))}
                     </div>
@@ -338,14 +483,14 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
               </div>
             )}
 
-            {activeTab === 'crm' && (
+            {activeTab === 'talent_pool' && (
               <div className="space-y-6 animate-in fade-in duration-500">
                 <div className={cn("flex justify-between items-center p-4 rounded-xl border shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                   <div className="relative w-72">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input 
                       type="text" 
-                      placeholder="Search candidates by name, email, or job..."
+                      placeholder="Search talent by name, email, job..."
                       value={searchTerm}
                       onChange={e => setSearchTerm(e.target.value)}
                       className={cn("w-full border rounded-lg py-2 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all", isDarkMode ? "bg-gray-900 border-gray-700 text-white placeholder:text-gray-500" : "bg-gray-50 border-gray-200 text-gray-900")}
@@ -404,7 +549,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                       {(!filteredCandidates || filteredCandidates.length === 0) && (
                         <tr>
                           <td colSpan={5} className={cn("px-6 py-12 text-center", isDarkMode ? "text-gray-500 bg-gray-900/50" : "text-gray-500 bg-gray-50")}>
-                            No candidates found.
+                            No candidates found in the Talent Pool.
                           </td>
                         </tr>
                       )}
@@ -414,7 +559,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
               </div>
             )}
 
-            {activeTab === 'config' && (
+            {activeTab === 'settings' && (
               <div className="max-w-2xl animate-in fade-in duration-500 space-y-6">
                 <div className={cn("border rounded-xl p-6 shadow-sm space-y-4 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                   <h3 className={cn("text-base font-semibold border-b pb-4 mb-4", isDarkMode ? "border-gray-800 text-white" : "border-gray-100 text-gray-900")}>Feature Flags</h3>
