@@ -5,6 +5,9 @@ export async function POST(request: Request) {
   try {
     const resumeData = await request.json();
     const email = resumeData?.personalInfo?.email;
+    const country = request.headers.get('x-vercel-ip-country') || 'Unknown';
+    const userAgent = request.headers.get('user-agent') || 'Unknown';
+    const device_type = userAgent.includes('Mobi') ? 'mobile' : userAgent.includes('Tablet') ? 'tablet' : 'desktop';
 
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
@@ -17,6 +20,8 @@ export async function POST(request: Request) {
         name: resumeData.personalInfo.fullName || '',
         job_title: resumeData.personalInfo.jobTitle || '',
         location: resumeData.personalInfo.location || '',
+        country,
+        device_type,
         resume_data: resumeData
       }]);
 

@@ -99,7 +99,19 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
   // --- Export Functions ---
   const exportJSON = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredCandidates, null, 2));
+    const formattedData = filteredCandidates?.map((c: any) => ({
+      candidate_id: c.id,
+      name: c.name,
+      email: c.email,
+      job_title: c.job_title,
+      location: c.location,
+      geo_country: c.country || 'Unknown',
+      device: c.device_type || 'Unknown',
+      opted_in_date: c.opted_in_at,
+      cv_content: c.resume_data
+    }));
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(formattedData, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "candidates_export.json");
