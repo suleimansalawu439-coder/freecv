@@ -119,7 +119,7 @@ JSON Schema to match:
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-8b',
+      model: 'gemini-3.6-flash',
       contents: [
         {
           role: 'user',
