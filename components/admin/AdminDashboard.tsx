@@ -33,6 +33,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   const [stats, setStats] = useState<StatsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
 
   useEffect(() => {
     if (!analytics || analytics.length === 0) return;
@@ -376,7 +377,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                           <td className={cn("px-6 py-4", isDarkMode ? "text-gray-400" : "text-gray-500")}>{new Date(candidate.opted_in_at).toLocaleDateString()}</td>
                           <td className="px-6 py-4">
                             {candidate.resume_data ? (
-                              <span className={cn("px-2 py-1 text-xs font-semibold rounded-md", isDarkMode ? "bg-blue-900/30 text-blue-400" : "bg-blue-50 text-blue-600")}>Available</span>
+                              <button 
+                                onClick={() => setSelectedCandidate(candidate)}
+                                className={cn("px-3 py-1.5 text-xs font-semibold rounded-md transition-colors", isDarkMode ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50" : "bg-blue-50 text-blue-600 hover:bg-blue-100")}
+                              >
+                                View CV Data
+                              </button>
                             ) : (
                               <span className={cn("px-2 py-1 text-xs font-semibold rounded-md", isDarkMode ? "bg-gray-800 text-gray-500" : "bg-gray-100 text-gray-400")}>No Data</span>
                             )}
@@ -418,6 +424,94 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
           </div>
         </main>
       </div>
+
+      {/* CV Preview Modal */}
+      {selectedCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={cn("w-full max-w-3xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden", isDarkMode ? "bg-[#0A0A0A] border border-gray-800" : "bg-white border border-gray-200")}>
+            <div className={cn("p-6 border-b flex justify-between items-center shrink-0", isDarkMode ? "border-gray-800" : "border-gray-100")}>
+              <div>
+                <h3 className="text-xl font-bold">{selectedCandidate.name || 'Anonymous'}</h3>
+                <p className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-500")}>{selectedCandidate.email} • {selectedCandidate.job_title}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedCandidate(null)}
+                className={cn("p-2 rounded-full transition-colors", isDarkMode ? "hover:bg-gray-800 text-gray-400" : "hover:bg-gray-100 text-gray-500")}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 flex-1">
+              {selectedCandidate.resume_data?.summary && (
+                <div>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider mb-2", isDarkMode ? "text-gray-500" : "text-gray-400")}>Professional Summary</h4>
+                  <p className="text-sm leading-relaxed">{selectedCandidate.resume_data.summary}</p>
+                </div>
+              )}
+
+              {selectedCandidate.resume_data?.experience && selectedCandidate.resume_data.experience.length > 0 && (
+                <div>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider mb-3", isDarkMode ? "text-gray-500" : "text-gray-400")}>Experience</h4>
+                  <div className="space-y-4">
+                    {selectedCandidate.resume_data.experience.map((exp: any, i: number) => (
+                      <div key={i} className={cn("p-4 rounded-xl border", isDarkMode ? "bg-gray-900/50 border-gray-800" : "bg-gray-50 border-gray-100")}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="font-semibold">{exp.role}</div>
+                            <div className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-600")}>{exp.company}</div>
+                          </div>
+                          <div className={cn("text-xs font-medium px-2 py-1 rounded-md", isDarkMode ? "bg-gray-800 text-gray-300" : "bg-white border text-gray-600")}>
+                            {exp.startDate} - {exp.endDate || 'Present'}
+                          </div>
+                        </div>
+                        <p className={cn("text-sm whitespace-pre-wrap mt-2", isDarkMode ? "text-gray-300" : "text-gray-700")}>{exp.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCandidate.resume_data?.education && selectedCandidate.resume_data.education.length > 0 && (
+                <div>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider mb-3", isDarkMode ? "text-gray-500" : "text-gray-400")}>Education</h4>
+                  <div className="space-y-3">
+                    {selectedCandidate.resume_data.education.map((edu: any, i: number) => (
+                      <div key={i} className="flex justify-between items-center text-sm">
+                        <div>
+                          <span className="font-medium">{edu.degree}</span>
+                          <span className={cn("ml-2", isDarkMode ? "text-gray-400" : "text-gray-500")}>at {edu.school}</span>
+                        </div>
+                        <span className={isDarkMode ? "text-gray-400" : "text-gray-500"}>{edu.graduationYear}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedCandidate.resume_data?.skills && selectedCandidate.resume_data.skills.length > 0 && (
+                <div>
+                  <h4 className={cn("text-sm font-bold uppercase tracking-wider mb-3", isDarkMode ? "text-gray-500" : "text-gray-400")}>Skills</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCandidate.resume_data.skills.map((skill: any, i: number) => (
+                      <span key={i} className={cn("px-3 py-1 text-xs font-medium rounded-full", isDarkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-700")}>
+                        {skill.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {(!selectedCandidate.resume_data?.experience?.length && !selectedCandidate.resume_data?.summary && !selectedCandidate.resume_data?.skills?.length) && (
+                <div className={cn("text-center py-8 text-sm italic", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+                  This candidate only provided basic contact information.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
