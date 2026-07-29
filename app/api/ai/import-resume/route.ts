@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 import { checkRateLimit } from '@/lib/rate-limit';
-const pdfParse = require('pdf-parse');
 
-// Use Node.js runtime (default) because pdf-parse relies on Node APIs
-export const dynamic = 'force-dynamic';
+// Edge runtime is fully supported now since we removed native dependencies
+export const runtime = 'edge';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -24,20 +23,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Please upload a valid PDF file' }, { status: 400 });
     }
 
-    // Extract text from PDF
+    // Read PDF as base64
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const pdfData = await pdfParse(buffer);
-    const textContent = pdfData.text;
-
-    if (!textContent || textContent.trim().length === 0) {
-      return NextResponse.json({ error: 'Could not extract text from the PDF' }, { status: 400 });
-    }
+    const base64Data = Buffer.from(arrayBuffer).toString('base64');
 
     // Prompt Gemini to structure the data
     const prompt = `
-You are an expert ATS (Applicant Tracking System) parser. I will provide you with the raw text extracted from a user's resume PDF.
-Your job is to parse this text and structure it EXACTLY according to the JSON schema provided below.
+You are an expert ATS (Applicant Tracking System) parser. I have attached a user's resume PDF.
+Your job is to read the attached PDF and structure it EXACTLY according to the JSON schema provided below.
 
 Rules:
 1. Extract as much relevant information as possible.
@@ -82,16 +75,24 @@ JSON Schema to match:
     }
   ]
 }
-
-Raw Resume Text:
-"""
-${textContent}
-"""
     `;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
-      contents: prompt,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: 'application/pdf'
+              }
+            }
+          ]
+        }
+      ],
       config: { 
         temperature: 0.1, 
         maxOutputTokens: 2500,
