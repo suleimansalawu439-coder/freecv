@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import DOMPurify from 'isomorphic-dompurify';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -18,6 +19,7 @@ interface StatsData {
   topReferrers: { source: string; count: number }[];
   topTemplates: { template: string; count: number }[];
   variants?: { variant: string; views: number; downloads: number; rate: number; }[];
+  cohorts?: { source: string; started: number; downloaded: number; rate: number; }[];
   dailyTrend: { date: string; count: number; isForecast?: boolean }[];
   combinedTrend?: { date: string; count: number; isForecast?: boolean }[];
   recentActivity: any[];
@@ -35,7 +37,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   const [timeframe, setTimeframe] = useState<'24h'|'7d'|'14d'|'30d'|'6m'|'1y'|'all'>('30d');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [billingSettings, setBillingSettings] = useState({ amount: 990000, currency: 'NGN' });
   const [isSavingBilling, setIsSavingBilling] = useState(false);
@@ -119,6 +121,23 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       }
     });
 
+    // Compute cohort retention by referrer
+    let cohortMap: Record<string, { started: Set<string>, downloaded: Set<string> }> = {};
+    filteredAnalytics.forEach((e:any) => {
+      const source = e.referrer || 'Direct';
+      if (!cohortMap[source]) cohortMap[source] = { started: new Set(), downloaded: new Set() };
+      
+      if (e.event_type === 'milestone_started') cohortMap[source].started.add(e.session_id);
+      if (e.event_type === 'milestone_downloaded') cohortMap[source].downloaded.add(e.session_id);
+    });
+
+    const cohorts = Object.entries(cohortMap).map(([source, data]) => ({
+      source,
+      started: data.started.size,
+      downloaded: data.downloaded.size,
+      rate: data.started.size > 0 ? (data.downloaded.size / data.started.size) * 100 : 0
+    })).sort((a, b) => b.started - a.started).slice(0, 5);
+
     const dailyTrend = Object.entries(dailyUniqueMap)
       .map(([date, set]) => ({ date, count: set.size }))
       .sort((a, b) => a.date.localeCompare(b.date));
@@ -155,6 +174,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       topReferrers: Object.entries(referrerMap).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       topTemplates: Object.entries(templateMap).map(([template, count]) => ({ template, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       variants: Object.entries(variantMap).map(([variant, data]) => ({ variant, views: Math.max(data.views, 1), downloads: data.downloads, rate: (data.downloads / Math.max(data.views, 1)) * 100 })).sort((a, b) => b.rate - a.rate),
+      cohorts,
       dailyTrend,
       combinedTrend,
       recentActivity: filteredAnalytics.slice(0, 20)
@@ -466,6 +486,25 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                     </div>
                   </div>
 
+                  {/* Cohort Retention */}
+                  <div className={cn("border rounded-xl p-6 shadow-sm flex flex-col transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                    <h3 className="text-base font-semibold mb-4">Cohort Retention (Start → DL)</h3>
+                    <div className="space-y-3 flex-1 flex flex-col">
+                      {stats.cohorts?.length === 0 ? <p className="text-sm text-gray-500">No cohort data</p> : stats.cohorts?.map((c:any, i:number) => (
+                        <div key={i} className={cn("flex items-center justify-between p-2 rounded-lg border", isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-100")}>
+                          <div className="w-1/2">
+                            <div className="text-sm font-medium truncate" title={c.source}>{c.source}</div>
+                            <div className={cn("text-[10px] mt-0.5", isDarkMode ? "text-gray-400" : "text-gray-500")}>{c.downloaded}/{c.started} converted</div>
+                          </div>
+                          <div className="w-1/2 flex items-center justify-end gap-2">
+                            <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden flex"><div className="h-full bg-blue-500" style={{ width: `${c.rate}%` }}></div></div>
+                            <span className="font-bold text-xs w-10 text-right">{c.rate.toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Device Usage */}
                   <div className={cn("border rounded-xl p-6 shadow-sm flex flex-col transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                     <h3 className="text-base font-semibold mb-4">Device Usage</h3>
@@ -728,9 +767,9 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
             
             <div className="p-6 overflow-y-auto space-y-8 flex-1">
               {selectedCandidate.resume_data?.summary && (
-                <div>
+                <div className="mb-6">
                   <h4 className={cn("text-sm font-bold uppercase tracking-wider mb-2", isDarkMode ? "text-gray-500" : "text-gray-400")}>Professional Summary</h4>
-                  <p className="text-sm leading-relaxed">{selectedCandidate.resume_data.summary}</p>
+                  <p className={cn("text-sm leading-relaxed", isDarkMode ? "text-gray-300" : "text-gray-700")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedCandidate.resume_data.summary) }}></p>
                 </div>
               )}
 
@@ -746,10 +785,10 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                             <div className={cn("text-sm", isDarkMode ? "text-gray-400" : "text-gray-600")}>{exp.company}</div>
                           </div>
                           <div className={cn("text-xs font-medium px-2 py-1 rounded-md", isDarkMode ? "bg-gray-800 text-gray-300" : "bg-white border text-gray-600")}>
-                            {exp.startDate} - {exp.endDate || 'Present'}
+                            {DOMPurify.sanitize(exp.startDate)} - {DOMPurify.sanitize(exp.endDate || 'Present')}
                           </div>
                         </div>
-                        <p className={cn("text-sm whitespace-pre-wrap mt-2", isDarkMode ? "text-gray-300" : "text-gray-700")}>{exp.description}</p>
+                        <p className={cn("text-sm whitespace-pre-wrap mt-2", isDarkMode ? "text-gray-300" : "text-gray-700")} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description) }}></p>
                       </div>
                     ))}
                   </div>

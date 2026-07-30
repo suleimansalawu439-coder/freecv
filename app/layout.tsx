@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ConsentManager } from "@/components/ConsentManager";
+
 export default function RootLayout({
   children,
 }: {
@@ -24,7 +26,10 @@ export default function RootLayout({
       lang="en"
       className="h-full antialiased font-sans"
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ConsentManager />
+      </body>
     </html>
   );
 }

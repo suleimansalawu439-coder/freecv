@@ -65,6 +65,14 @@ export default function PrivacyPolicy() {
             We retain analytics events for 12 months. Inactive candidate profiles are automatically anonymized or deleted after 24 months of inactivity.
           </p>
 
+          <h2>5. Data Protection Officer (DPO)</h2>
+          <p>
+            If you have any questions about this Privacy Policy, your rights, or how we handle your data, please contact our Data Protection Officer:
+            <br /><br />
+            <strong>Cvyon Privacy Team</strong><br />
+            Email: <a href="mailto:dpo@cvyon.dev" className="text-blue-600 hover:underline">dpo@cvyon.dev</a>
+          </p>
+
           <div className="mt-12 pt-8 border-t border-gray-200">
             <Link href="/" className="text-blue-600 font-bold hover:underline">← Back to Cvyon</Link>
           </div>

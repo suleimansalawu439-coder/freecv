@@ -31,28 +31,7 @@ export async function POST(request: Request) {
 
     const supabase = supabaseAdmin;
 
-    // 1. Insert or update candidate (Canonical Data)
-    const { data: candidate, error: candidateError } = await supabase
-      .from('candidates')
-      .upsert({ 
-        email, 
-        name: resumeData.personalInfo?.fullName || '',
-        job_title: resumeData.personalInfo?.jobTitle || '',
-        location: resumeData.personalInfo?.location || '',
-        country,
-        device_type,
-        resume_data: resumeData,
-        opted_in_at: new Date().toISOString()
-      }, { onConflict: 'email' })
-      .select('id')
-      .single();
-
-    if (candidateError) {
-      console.error("CRM Opt-in Error (candidates):", candidateError);
-      throw candidateError;
-    }
-
-    // 2. Structured Extraction using Gemini
+    // 1. Structured Extraction using Gemini
     let extracted = {
       title_category: '',
       industry: '',
@@ -109,44 +88,54 @@ ${JSON.stringify({
       extracted.experience_years = resumeData.experience?.length * 2 || 0; // naive fallback
     }
 
-    // 3. Insert into candidate_profiles (Search Index)
-    const consents = resumeData.consents || { recruiterShare: false, emailJobs: false, analytics: true };
-    const completeness_score = calculateCompleteness(resumeData);
-
-    const { error: profileError } = await supabase
-      .from('candidate_profiles')
-      .upsert({
-        id: candidate.id,
-        full_name: resumeData.personalInfo?.fullName || '',
-        current_title: resumeData.personalInfo?.jobTitle || '',
-        title_category: extracted.title_category || 'Other',
-        industry: extracted.industry || 'Other',
+    // 2. Insert or update candidate (Canonical Data + Normalized Fields)
+    const { data: candidate, error: candidateError } = await supabase
+      .from('candidates')
+      .upsert({ 
+        email, 
+        name: resumeData.personalInfo?.fullName || '',
+        job_title: resumeData.personalInfo?.jobTitle || '',
+        location: resumeData.personalInfo?.location || '',
         country,
+        device_type,
+        resume_data: resumeData,
+        opted_in_at: new Date().toISOString(),
+        // Normalized fields
         city: resumeData.personalInfo?.location?.split(',')[0] || '',
+        industry: extracted.industry || 'Other',
+        current_title: resumeData.personalInfo?.jobTitle || '',
         experience_years: extracted.experience_years || 0,
+        highest_education: extracted.highest_education || 'Unknown',
+        salary_expectation: extracted.salary_expectation || '',
         employment_status: extracted.employment_status || 'Open to work',
         preferred_work: extracted.preferred_work || 'Any',
-        highest_education: extracted.highest_education || 'Unknown',
+        skills: extracted.skills || [],
+        languages: [], // we don't extract this currently
         degree: resumeData.education?.[0]?.degree || '',
         university: resumeData.education?.[0]?.school || '',
-        skills: extracted.skills || [],
-        skill_categories: extracted.skill_categories || [],
-        salary_expectation: extracted.salary_expectation || '',
-        linkedin_url: resumeData.personalInfo?.website?.includes('linkedin') ? resumeData.personalInfo.website : '',
-        portfolio_url: !resumeData.personalInfo?.website?.includes('linkedin') ? resumeData.personalInfo.website : '',
-        completeness_score,
-        freshness_days: 0,
-        consent_recruiter_share: consents.recruiterShare,
-        consent_email_jobs: consents.emailJobs,
-        consent_analytics: consents.analytics,
-        consent_version: 'v1.0-2026-07',
-        resume_data: resumeData,
+        github: resumeData.personalInfo?.website?.includes('github') ? resumeData.personalInfo.website : '',
+        linkedin: resumeData.personalInfo?.website?.includes('linkedin') ? resumeData.personalInfo.website : '',
+        portfolio: !resumeData.personalInfo?.website?.includes('linkedin') && !resumeData.personalInfo?.website?.includes('github') ? resumeData.personalInfo.website : '',
         updated_at: new Date().toISOString()
-      }, { onConflict: 'id' });
+      }, { onConflict: 'email' })
+      .select('id')
+      .single();
 
-    if (profileError) {
-      console.error("Profile Opt-in Error:", profileError);
+    if (candidateError) {
+      console.error("CRM Opt-in Error (candidates):", candidateError);
+      throw candidateError;
     }
+
+    // Insert consent log
+    const consents = resumeData.consents || { recruiterShare: false, emailJobs: false, analytics: true };
+    await supabase.from('consent_logs').insert({
+      session_id: request.headers.get('x-forwarded-for') || 'unknown',
+      email: email,
+      consent_marketing: consents.recruiterShare || consents.emailJobs,
+      consent_ai: true, // They opted in to use AI when agreeing to terms initially, or we'd check it
+      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
+      user_agent: userAgent
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

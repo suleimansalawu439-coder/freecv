@@ -1192,6 +1192,17 @@ export default function FreeCVApp() {
             <NewsletterCapture source="main_editor" />
           </div>
 
+          {/* Main Footer Links */}
+          <footer className={cn("mt-12 pt-6 border-t flex flex-wrap gap-4 text-xs font-medium justify-center pb-8", isDarkMode ? "border-gray-800 text-gray-400" : "border-gray-200 text-gray-500")}>
+            <Link href="/blog" className="hover:text-blue-500 transition-colors">Career Blog</Link>
+            <span>&bull;</span>
+            <Link href="/recruiter" className="hover:text-blue-500 transition-colors">Recruiter Portal</Link>
+            <span>&bull;</span>
+            <Link href="/privacy" className="hover:text-blue-500 transition-colors">Privacy Policy & GDPR</Link>
+            <span>&bull;</span>
+            <Link href="/manage-data" className="hover:text-blue-500 transition-colors">Manage Data</Link>
+          </footer>
+
           </DragDropContext>
         </div>
       </section>
@@ -1209,14 +1220,13 @@ export default function FreeCVApp() {
         </button>
       </div>
 
-      {/* PREVIEW PANEL (Desktop standard, Mobile Modal) */}
       <section 
         ref={previewViewportRef}
         id="preview-panel"
         className={cn(
-        "flex-1 lg:sticky lg:top-0 lg:h-screen overflow-y-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
+        "flex-1 bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start print-safe-container",
         isPreviewOpen && !mobileZoom ? "overflow-x-hidden justify-center" : "overflow-x-auto",
-        isPreviewOpen ? "fixed inset-0 z-50 flex-col" : "hidden lg:flex"
+        isPreviewOpen ? "fixed inset-0 z-50 flex-col h-screen overflow-y-auto custom-scrollbar" : "hidden lg:flex"
       )}>
         
         {/* Mobile Modal Actions */}
