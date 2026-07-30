@@ -761,10 +761,10 @@ export default function CvyonApp() {
                   <p className={cn("text-xs", isDarkMode ? 'text-blue-500' : 'text-blue-700')}>Allow recruiters to find your resume on Cvyon.</p>
                 </div>
                 <button
-                  onClick={() => setHasOptedIn(!data.hasOptedIn)}
-                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.hasOptedIn ? 'bg-blue-600' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
+                  onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}
+                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.consents.recruiterShare ? 'bg-blue-600' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
                 >
-                  <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.hasOptedIn ? 'translate-x-7' : 'translate-x-1')} />
+                  <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-7' : 'translate-x-1')} />
                 </button>
               </div>
               <div className="col-span-1 sm:col-span-2 mt-2 flex justify-center sm:justify-start">

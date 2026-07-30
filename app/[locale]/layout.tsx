@@ -17,18 +17,19 @@ export const metadata: Metadata = {
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 
-export default async function RootLayout({
-  children,
-}: {
+export default async function RootLayout(props: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  const params = await props.params;
+  const messages = await getMessages({ locale: params.locale });
+
   return (
     <html
-      lang="en"
+      lang={params.locale}
       className="h-full antialiased font-sans"
     >
-      <body className="min-h-full flex flex-col"><NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider></body>
+      <body className="min-h-full flex flex-col"><NextIntlClientProvider messages={messages}>{props.children}</NextIntlClientProvider></body>
     </html>
   );
 }

@@ -4,10 +4,11 @@ import { templates, TemplateKey } from '@/components/templates';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: { handle: string }
+  params: Promise<{ handle: string }>
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params;
   const { data } = await supabaseAdmin
     .from('public_resumes')
     .select('data')
@@ -32,7 +33,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PublicResumePage({ params }: Props) {
+export default async function PublicResumePage(props: Props) {
+  const params = await props.params;
   // Fetch resume data
   const { data: record, error } = await supabaseAdmin
     .from('public_resumes')

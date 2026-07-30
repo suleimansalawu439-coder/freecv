@@ -10,8 +10,11 @@ const redis = new Redis({
 
 export const runtime = 'edge';
 
-function hashText(text: string) {
-  return crypto.createHash('sha256').update(text).digest('hex');
+async function hashText(text: string) {
+  const msgUint8 = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function POST(request: Request) {
@@ -37,7 +40,7 @@ Education: ${(resumeData.education || []).map((e:any) => `${e.degree} from ${e.s
 Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
     `.trim().substring(0, 10000);
 
-    const jdHash = hashText(jobDescription);
+    const jdHash = await hashText(jobDescription);
     const cacheKey = `jd_analysis:${jdHash}`;
     let jdAnalysis = '';
 
