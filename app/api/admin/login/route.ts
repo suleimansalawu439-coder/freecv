@@ -5,7 +5,11 @@ import { signAdminToken } from '@/lib/auth';
 export async function POST(request: Request) {
   try {
     const { password } = await request.json();
-    const adminPassword = process.env.ADMIN_PASSWORD || '***REMOVED***';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminPassword) {
+      return NextResponse.json({ success: false, error: 'Server misconfiguration: missing ADMIN_PASSWORD' }, { status: 500 });
+    }
 
     if (password === adminPassword) {
       const token = await signAdminToken();

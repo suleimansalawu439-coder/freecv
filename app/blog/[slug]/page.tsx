@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
+import DOMPurify from 'isomorphic-dompurify';
 import { ArrowLeft, Calendar } from 'lucide-react';
 
 export const revalidate = 60; // Revalidate every minute
@@ -62,7 +63,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {/* We render the content as raw HTML since the editor supports plain text/HTML */}
           <div 
             className="text-gray-800 leading-relaxed space-y-6 text-lg"
-            dangerouslySetInnerHTML={{ __html: post.content }} 
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} 
           />
         </article>
       </main>

@@ -1,7 +1,11 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const secretKey = process.env.JWT_SECRET || process.env.ADMIN_PASSWORD || '***REMOVED***';
-const key = new TextEncoder().encode(secretKey);
+const secretKeyString = process.env.JWT_SECRET;
+if (!secretKeyString) {
+  throw new Error('JWT_SECRET environment variable is missing.');
+}
+
+const key = new TextEncoder().encode(secretKeyString);
 
 export async function signAdminToken() {
   return await new SignJWT({ role: 'admin' })

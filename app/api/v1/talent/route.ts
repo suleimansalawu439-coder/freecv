@@ -10,10 +10,13 @@ export async function GET(req: Request) {
 
   const token = authHeader.split(' ')[1];
 
-  // In a real scenario, this token maps to an active recruiter subscription.
-  // We'll mock the check by looking up a subscription if we treated the token as the sub ID.
-  // For now, let's just do a dummy check or allow it if a dummy token '***REMOVED***' is used.
-  if (token !== process.env.B2B_API_KEY && token !== '***REMOVED***') {
+  // We'll require a valid B2B_API_KEY for now. 
+  const b2bKey = process.env.B2B_API_KEY;
+  if (!b2bKey) {
+    return NextResponse.json({ error: 'Server misconfiguration: missing B2B_API_KEY' }, { status: 500 });
+  }
+
+  if (token !== b2bKey) {
     return NextResponse.json({ error: 'Invalid API Key' }, { status: 403 });
   }
 
@@ -24,6 +27,7 @@ export async function GET(req: Request) {
   let query = supabaseAdmin
     .from('candidate_profiles')
     .select('id, full_name, current_title, skills, country, experience_years')
+    .eq('consent_recruiter_share', true)
     .limit(limit);
 
   if (skill) {

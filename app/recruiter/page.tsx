@@ -45,10 +45,15 @@ export default function RecruiterPortal() {
   const fetchCandidates = async (query = '') => {
     setIsSearching(true);
     try {
-      let reqQuery = supabase.from('candidates').select('*').limit(20);
+      let reqQuery = supabase
+        .from('candidate_profiles') // Must read from candidate_profiles to check consent
+        .select('*, candidates(*)')
+        .eq('consent_recruiter_share', true)
+        .limit(20);
+      
       if (query) {
         // basic text search
-        reqQuery = reqQuery.ilike('resume_data->personalInfo->jobTitle', `%${query}%`);
+        reqQuery = reqQuery.ilike('current_title', `%${query}%`);
       }
       const { data } = await reqQuery;
       if (data) setCandidates(data);
