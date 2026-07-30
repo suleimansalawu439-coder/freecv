@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Search, Lock, CreditCard, Check, Building2, Users } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function RecruiterPortal() {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function RecruiterPortal() {
       if (data) setCandidates(data);
     } catch (e) {
       console.error(e);
+      toast.error("Failed to load candidates");
     } finally {
       setIsSearching(false);
     }
@@ -60,7 +62,8 @@ export default function RecruiterPortal() {
 
   const handleCheckout = async () => {
     if (!user) {
-      alert("Please sign in first via the Builder page to create an account.");
+      toast.error("Please sign in or create an account first.");
+      router.push("/recruiter/login");
       return;
     }
     try {
@@ -69,11 +72,11 @@ export default function RecruiterPortal() {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || "Something went wrong.");
+        toast.error(data.error || "Something went wrong.");
       }
     } catch (e) {
       console.error(e);
-      alert("Failed to initialize checkout.");
+      toast.error("Failed to initialize checkout.");
     }
   };
 
@@ -90,9 +93,24 @@ export default function RecruiterPortal() {
         <div className="flex items-center gap-4">
           <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Back to Builder</Link>
           {user ? (
-            <div className="text-sm font-medium bg-gray-100 px-3 py-1.5 rounded-lg">{user.email}</div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm font-medium bg-gray-100 px-3 py-1.5 rounded-lg">{user.email}</div>
+              <button 
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setUser(null);
+                  router.push('/recruiter');
+                }}
+                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
           ) : (
-            <Link href="/" className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">Sign In</Link>
+            <div className="flex items-center gap-3">
+              <Link href="/recruiter/login" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Log In</Link>
+              <Link href="/recruiter/signup" className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">Sign Up</Link>
+            </div>
           )}
         </div>
       </header>

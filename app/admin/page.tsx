@@ -27,6 +27,10 @@ export default async function AdminPage() {
 
   const { data: siteSettings } = await supabaseAdmin.from('site_settings').select('*').single();
   const { data: featureFlags } = await supabaseAdmin.from('feature_flags').select('*').order('key');
+  
+  const { data: recruiters } = await supabaseAdmin
+    .from('recruiters')
+    .select('*, subscriptions(*)');
 
   return (
     <AdminDashboard 
@@ -35,6 +39,7 @@ export default async function AdminPage() {
       aiLogs={aiLogs || []}
       siteSettings={siteSettings || {}}
       featureFlags={featureFlags || []}
+      recruiters={recruiters || []}
     />
   );
 }

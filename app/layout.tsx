@@ -16,6 +16,8 @@ export const metadata: Metadata = {
 
 import { ConsentManager } from "@/components/ConsentManager";
 
+import { Toaster } from 'react-hot-toast';
+
 export default function RootLayout({
   children,
 }: {
@@ -29,6 +31,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <ConsentManager />
+        <Toaster position="top-right" />
       </body>
     </html>
   );
