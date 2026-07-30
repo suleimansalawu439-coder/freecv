@@ -3,18 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Search, Lock, CreditCard, Check, Building2, Users } from 'lucide-react';
+import { Search, Lock, CreditCard, Check, Building2, Users, Code, Activity, Terminal, ExternalLink, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 export default function RecruiterPortal() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [candidates, setCandidates] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState<'search' | 'api' | 'billing'>('search');
+  const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
 
   useEffect(() => {
     const checkAuthAndSub = async () => {
@@ -32,10 +35,13 @@ export default function RecruiterPortal() {
         .eq('user_id', session.user.id)
         .single();
       
-      if (recruiter && recruiter.subscriptions && recruiter.subscriptions.length > 0) {
-        const activeSub = recruiter.subscriptions.find((s: any) => s.status === 'active');
-        setSubscription(activeSub);
-        if (activeSub) fetchCandidates();
+      if (recruiter) {
+        setRecruiterProfile(recruiter);
+        if (recruiter.subscriptions && recruiter.subscriptions.length > 0) {
+          const activeSub = recruiter.subscriptions.find((s: any) => s.status === 'active');
+          setSubscription(activeSub);
+          if (activeSub) fetchCandidates();
+        }
       }
       setLoading(false);
     };
@@ -85,12 +91,34 @@ export default function RecruiterPortal() {
     }
   };
 
+  const regenerateApiKey = async () => {
+    if (!confirm('Are you sure? Any existing applications using your current API key will break immediately.')) return;
+    
+    setIsRegeneratingKey(true);
+    try {
+      const res = await fetch('/api/recruiter/api-key', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to regenerate key');
+      const data = await res.json();
+      setRecruiterProfile({ ...recruiterProfile, api_key: data.api_key });
+      toast.success("API Key Regenerated successfully.");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsRegeneratingKey(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <Building2 className="text-blue-600" />
           <span className="font-bold text-xl tracking-tight">Cvyon <span className="text-blue-600">Recruiter</span></span>
@@ -129,7 +157,7 @@ export default function RecruiterPortal() {
               <Lock size={40} />
             </div>
             <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">Unlock the Talent Pool</h1>
-            <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto">Get unlimited access to thousands of highly-structured, passive candidates. Instantly search, filter, and connect with top talent.</p>
+            <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto">Get unlimited access to thousands of highly-structured, passive candidates. Instantly search, filter, and connect with top talent via our Dashboard and API.</p>
             
             <div className="bg-gray-50 rounded-2xl p-6 mb-10 max-w-md mx-auto border border-gray-100 text-left">
               <h3 className="font-bold text-gray-900 text-xl mb-4">Pro Recruiter Tier</h3>
@@ -152,68 +180,199 @@ export default function RecruiterPortal() {
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Talent Search</h1>
-                <p className="text-gray-500 mt-1">Search the database of opted-in candidates.</p>
-              </div>
-              <div className="relative w-full md:w-96">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search by job title or keyword..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && fetchCandidates(searchTerm)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
-                />
-              </div>
+          <div>
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-8">
+              <button 
+                onClick={() => setActiveTab('search')}
+                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'search' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                <div className="flex items-center gap-2"><Search size={16} /> Talent Search</div>
+                {activeTab === 'search' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
+              </button>
+              <button 
+                onClick={() => setActiveTab('api')}
+                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'api' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                <div className="flex items-center gap-2"><Code size={16} /> API & Integrations</div>
+                {activeTab === 'api' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
+              </button>
+              <button 
+                onClick={() => setActiveTab('billing')}
+                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'billing' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+              >
+                <div className="flex items-center gap-2"><CreditCard size={16} /> Billing & Subscription</div>
+                {activeTab === 'billing' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
+              </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Candidate</th>
-                      <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Target Role</th>
-                      <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Location</th>
-                      <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Opted In</th>
-                      <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {candidates.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                          {isSearching ? 'Searching...' : 'No candidates found. Try a different search.'}
-                        </td>
-                      </tr>
-                    ) : (
-                      candidates.map((c) => (
-                        <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-semibold text-gray-900">{c.name || 'Anonymous'}</div>
-                            <div className="text-sm text-gray-500">{c.email}</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {c.job_title || 'Generalist'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{c.country || 'Unknown'}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.opted_in_at).toLocaleDateString()}</td>
-                          <td className="px-6 py-4 text-right">
-                            <a href={`mailto:${c.email}`} className="text-sm font-semibold text-blue-600 hover:text-blue-800">Contact</a>
-                          </td>
+            {activeTab === 'search' && (
+              <div className="space-y-6 animate-in fade-in">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Talent Search</h1>
+                    <p className="text-gray-500 mt-1">Search the database of opted-in candidates.</p>
+                  </div>
+                  <div className="relative w-full md:w-96">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Search by job title or keyword..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && fetchCandidates(searchTerm)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Candidate</th>
+                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Target Role</th>
+                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Location</th>
+                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Opted In</th>
+                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Action</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {candidates.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                              {isSearching ? 'Searching...' : 'No candidates found. Try a different search.'}
+                            </td>
+                          </tr>
+                        ) : (
+                          candidates.map((c) => (
+                            <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="font-semibold text-gray-900">{c.name || 'Anonymous'}</div>
+                                <div className="text-sm text-gray-500">{c.email}</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {c.job_title || 'Generalist'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-600">{c.country || 'Unknown'}</td>
+                              <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.opted_in_at).toLocaleDateString()}</td>
+                              <td className="px-6 py-4 text-right">
+                                <a href={`mailto:${c.email}`} className="text-sm font-semibold text-blue-600 hover:text-blue-800">Contact</a>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === 'api' && (
+              <div className="space-y-6 animate-in fade-in max-w-4xl">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">API & Integrations</h1>
+                  <p className="text-gray-500 mt-1">Manage your B2B API keys and access the developer documentation.</p>
+                </div>
+                
+                <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Terminal className="text-blue-600" size={24} />
+                    <h2 className="text-xl font-bold text-gray-900">Master API Key</h2>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <p className="text-sm text-gray-600">
+                      Use this API key to authenticate requests to the Cvyon B2B API. Do not share this key publicly.
+                    </p>
+                    
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Your Secret Key</label>
+                      <div className="flex gap-2">
+                        <input 
+                          type="password" 
+                          readOnly 
+                          value={recruiterProfile?.api_key || 'No key generated yet'}
+                          className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-mono text-sm outline-none"
+                        />
+                        <button 
+                          onClick={() => copyToClipboard(recruiterProfile?.api_key || '')}
+                          className="px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                      <div>
+                        <div className="font-semibold text-gray-900">API Usage</div>
+                        <div className="text-sm text-gray-500">{recruiterProfile?.api_calls_count || 0} total requests made</div>
+                      </div>
+                      <button 
+                        onClick={regenerateApiKey}
+                        disabled={isRegeneratingKey}
+                        className="px-4 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      >
+                        <RefreshCw size={16} className={isRegeneratingKey ? "animate-spin" : ""} />
+                        Regenerate Key
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-4">
+                  <Activity className="text-blue-600 mt-1 shrink-0" size={24} />
+                  <div>
+                    <h3 className="font-bold text-blue-900 mb-1">Developer Documentation</h3>
+                    <p className="text-blue-800/80 text-sm mb-4">Learn how to extract candidates programmatically, filter by skills, and integrate Cvyon into your ATS or custom workflows.</p>
+                    <Link href="/developers" className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors">
+                      Read the Docs <ExternalLink size={16} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'billing' && (
+              <div className="space-y-6 animate-in fade-in max-w-4xl">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
+                  <p className="text-gray-500 mt-1">Manage your active subscription and payment methods.</p>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">Pro Recruiter Tier</h3>
+                      <p className="text-sm text-gray-500">Billed monthly via Paystack</p>
+                    </div>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full">Active</span>
+                  </div>
+
+                  <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 space-y-4 mb-6">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Company</span>
+                      <span className="font-medium text-gray-900">{recruiterProfile?.company_name}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Customer Code</span>
+                      <span className="font-medium font-mono text-gray-900">{recruiterProfile?.paystack_customer_code}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600">Subscription Ref</span>
+                      <span className="font-medium font-mono text-gray-900">{subscription?.paystack_subscription_code}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-gray-500 text-center">To cancel your subscription or update your payment method, please contact support or use the link in your latest Paystack invoice email.</p>
+                </div>
+              </div>
+            )}
+
           </div>
         )}
       </main>

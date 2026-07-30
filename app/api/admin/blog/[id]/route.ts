@@ -3,9 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  // Authentication is handled by proxy.ts for all /api/admin/* routes
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  if (!session || session.value !== 'authenticated') {
+  if (!cookieStore.get('admin_session')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -31,9 +31,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  // Authentication is handled by proxy.ts for all /api/admin/* routes
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  if (!session || session.value !== 'authenticated') {
+  if (!cookieStore.get('admin_session')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar, Building2 } from 'lucide-react';
+import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar, Building2, HelpCircle } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import DOMPurify from 'isomorphic-dompurify';
+import BlogManager from './BlogManager';
+import SupportManager from './SupportManager';
+import RecruiterManager from './RecruiterManager';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,8 +42,8 @@ const COUNTRY_FLAGS: Record<string, string> = {
 };
 function getFlag(country: string): string { return COUNTRY_FLAGS[country] || '🌍'; }
 
-export default function AdminDashboard({ candidates, analytics, aiLogs, siteSettings, featureFlags, recruiters }: any) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'recruiters' | 'settings'>('dashboard');
+export default function AdminDashboard({ candidates, analytics, aiLogs, siteSettings, featureFlags, recruiters, blogPosts, tickets }: any) {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'recruiters' | 'blog' | 'support' | 'settings'>('dashboard');
   const [timeframe, setTimeframe] = useState<'24h'|'7d'|'14d'|'30d'|'6m'|'1y'|'all'>('30d');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -250,6 +253,8 @@ export default function AdminDashboard({ candidates, analytics, aiLogs, siteSett
     { key: 'analytics', label: 'Analytics', icon: BarChart },
     { key: 'talent_pool', label: 'Talent Pool', icon: Users },
     { key: 'recruiters', label: 'Recruiters', icon: Building2 },
+    { key: 'blog', label: 'Blog CMS', icon: FileText },
+    { key: 'support', label: 'Helpdesk', icon: HelpCircle },
     { key: 'settings', label: 'Settings', icon: Settings }
   ] as const;
 
@@ -838,64 +843,15 @@ export default function AdminDashboard({ candidates, analytics, aiLogs, siteSett
             )}
 
             {activeTab === 'recruiters' && (
-              <div className="animate-in fade-in duration-500">
-                <div className={cn("rounded-xl border shadow-sm overflow-hidden transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
-                  <div className={cn("px-6 py-4 border-b transition-colors", isDarkMode ? "border-gray-800" : "border-gray-200")}>
-                    <h3 className="font-semibold text-lg">Recruiters ({recruiters?.length || 0})</h3>
-                    <p className={cn("text-sm mt-1", isDarkMode ? "text-gray-400" : "text-gray-500")}>Manage corporate recruiters and their subscriptions.</p>
-                  </div>
-                  
-                  <table className="w-full text-left text-sm whitespace-nowrap">
-                    <thead className={cn("text-xs uppercase font-semibold border-b transition-colors tracking-wider", isDarkMode ? "bg-gray-900/50 text-gray-400 border-gray-800" : "bg-gray-50 text-gray-500 border-gray-200")}>
-                      <tr>
-                        <th className="px-6 py-4">Company Name</th>
-                        <th className="px-6 py-4">Subscription Status</th>
-                        <th className="px-6 py-4">Customer Code</th>
-                        <th className="px-6 py-4">Joined Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className={cn("divide-y transition-colors", isDarkMode ? "divide-gray-800" : "divide-gray-100")}>
-                      {recruiters?.map((rec:any) => {
-                        const sub = rec.subscriptions?.[0];
-                        return (
-                          <tr key={rec.id} className={cn("transition-colors", isDarkMode ? "hover:bg-gray-900/30" : "hover:bg-gray-50")}>
-                            <td className="px-6 py-4">
-                              <div className="font-bold flex items-center gap-2">
-                                <Building2 size={16} className="text-blue-500" />
-                                {rec.company_name}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {sub ? (
-                                <span className={cn("px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full", sub.status === 'active' ? (isDarkMode ? "bg-emerald-900/30 text-emerald-400" : "bg-emerald-100 text-emerald-700") : (isDarkMode ? "bg-amber-900/30 text-amber-400" : "bg-amber-100 text-amber-700"))}>
-                                  {sub.status}
-                                </span>
-                              ) : (
-                                <span className={cn("px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full", isDarkMode ? "bg-gray-800 text-gray-400" : "bg-gray-100 text-gray-600")}>
-                                  No Subscription
-                                </span>
-                              )}
-                            </td>
-                            <td className={cn("px-6 py-4 font-mono text-xs", isDarkMode ? "text-gray-400" : "text-gray-500")}>
-                              {rec.paystack_customer_code || 'N/A'}
-                            </td>
-                            <td className={cn("px-6 py-4", isDarkMode ? "text-gray-400" : "text-gray-500")}>
-                              {new Date(rec.created_at).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {(!recruiters || recruiters.length === 0) && (
-                        <tr>
-                          <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
-                            No recruiters found.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              <RecruiterManager recruiters={recruiters} isDarkMode={isDarkMode} />
+            )}
+
+            {activeTab === 'blog' && (
+              <BlogManager blogPosts={blogPosts} isDarkMode={isDarkMode} />
+            )}
+
+            {activeTab === 'support' && (
+              <SupportManager tickets={tickets} isDarkMode={isDarkMode} />
             )}
 
             {activeTab === 'settings' && (

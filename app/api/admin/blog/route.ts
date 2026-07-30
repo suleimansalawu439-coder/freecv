@@ -3,9 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  if (!session || session.value !== 'authenticated') {
+  // Authentication is handled by proxy.ts for all /api/admin/* routes
+  // But we can double check the cookie exists just in case
+  if (!cookieStore.get('admin_session')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -22,9 +22,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  // Authentication is handled by proxy.ts for all /api/admin/* routes
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  if (!session || session.value !== 'authenticated') {
+  if (!cookieStore.get('admin_session')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

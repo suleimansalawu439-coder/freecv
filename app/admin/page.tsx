@@ -32,6 +32,16 @@ export default async function AdminPage() {
     .from('recruiters')
     .select('*, subscriptions(*)');
 
+  const { data: blogPosts } = await supabaseAdmin
+    .from('blog_posts')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const { data: tickets } = await supabaseAdmin
+    .from('support_tickets')
+    .select('*')
+    .order('created_at', { ascending: false });
+
   return (
     <AdminDashboard 
       candidates={candidates || []} 
@@ -40,6 +50,8 @@ export default async function AdminPage() {
       siteSettings={siteSettings || {}}
       featureFlags={featureFlags || []}
       recruiters={recruiters || []}
+      blogPosts={blogPosts || []}
+      tickets={tickets || []}
     />
   );
 }
