@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase = supabaseAdmin;
 
     // 1. Insert or update candidate (Canonical Data)
     const { data: candidate, error: candidateError } = await supabase

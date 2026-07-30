@@ -57,7 +57,7 @@ export async function generateContentWithRetry(
           const costEstimate = (inputTokens / 1000000) * 0.075 + (outputTokens / 1000000) * 0.30;
           
           await supabaseAdmin.from('ai_usage_logs').insert({
-            id: randomUUID(),
+            id: crypto.randomUUID(),
             session_id: 'anonymous', // we can extract from headers later if needed
             endpoint: endpointName,
             input_tokens: inputTokens,

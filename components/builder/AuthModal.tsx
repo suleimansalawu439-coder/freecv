@@ -78,7 +78,7 @@ export function AuthModal({ isOpen, onClose, isDarkMode }: { isOpen: boolean, on
             <p className="text-sm opacity-90">We sent a secure magic link to <strong>{email}</strong>.</p>
           </div>
         ) : (
-          
+          <>
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 type="button"
@@ -146,6 +146,7 @@ export function AuthModal({ isOpen, onClose, isDarkMode }: { isOpen: boolean, on
               )}
             </button>
           </form>
+          </>
         )}
       </div>
     </div>

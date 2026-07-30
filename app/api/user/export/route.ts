@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase = supabaseAdmin;
 
     const { data, error } = await supabase
       .from('candidates')

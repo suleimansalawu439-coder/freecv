@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
     }
 
-    const supabase = getSupabaseAdmin();
+    const supabase = supabaseAdmin;
 
     // Delete from public_resumes first if they have one (if handle is email-based, though we use handles, we can look it up, but for now we delete from candidates and cascade)
     // Actually we just delete from candidates. If candidate_profiles has a foreign key with CASCADE, it will auto-delete.

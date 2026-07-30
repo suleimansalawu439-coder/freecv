@@ -17,7 +17,9 @@ interface StatsData {
   topOS: { os: string; count: number }[];
   topReferrers: { source: string; count: number }[];
   topTemplates: { template: string; count: number }[];
-  dailyTrend: { date: string; count: number }[];
+  variants?: { variant: string; views: number; downloads: number; rate: number; }[];
+  dailyTrend: { date: string; count: number; isForecast?: boolean }[];
+  combinedTrend?: { date: string; count: number; isForecast?: boolean }[];
   recentActivity: any[];
 }
 
@@ -145,6 +147,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       topTemplates: Object.entries(templateMap).map(([template, count]) => ({ template, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       variants: Object.entries(variantMap).map(([variant, data]) => ({ variant, views: Math.max(data.views, 1), downloads: data.downloads, rate: (data.downloads / Math.max(data.views, 1)) * 100 })).sort((a, b) => b.rate - a.rate),
       dailyTrend,
+      combinedTrend,
       recentActivity: filteredAnalytics.slice(0, 20)
     });
   }, [analytics, candidates, timeframe]);
@@ -388,8 +391,8 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                       <h3 className="text-lg font-bold mb-4">Daily Unique Visitors Trend</h3>
                       <div className="h-48 flex items-end gap-2">
-                        {stats.combinedTrend || stats.dailyTrend.map((day, idx) => {
-                          const maxCount = Math.max(...stats.combinedTrend || stats.dailyTrend.map(d => d.count), 1);
+                      {(stats.combinedTrend || stats.dailyTrend).map((day, idx) => {
+                          const maxCount = Math.max(...(stats.combinedTrend || stats.dailyTrend).map(d => d.count), 1);
                           const height = (day.count / maxCount) * 100;
                           return (
                             <div key={idx} className="flex-1 flex flex-col justify-end group relative">
@@ -417,10 +420,10 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                       Daily Unique Visitors Trend
                     </h3>
                     <div className="h-64 flex items-end gap-2">
-                      {stats.combinedTrend || stats.dailyTrend.length === 0 ? (
+                      {(stats.combinedTrend || stats.dailyTrend).length === 0 ? (
                         <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">No data for selected timeframe</div>
-                      ) : stats.combinedTrend || stats.dailyTrend.map((day, idx) => {
-                        const maxCount = Math.max(...stats.combinedTrend || stats.dailyTrend.map(d => d.count), 1);
+                      ) : (stats.combinedTrend || stats.dailyTrend).map((day, idx) => {
+                        const maxCount = Math.max(...(stats.combinedTrend || stats.dailyTrend).map(d => d.count), 1);
                         const height = (day.count / maxCount) * 100;
                         return (
                           <div key={idx} className="flex-1 flex flex-col justify-end group relative min-w-[12px]">
@@ -429,7 +432,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                                 {day.count} visitors
                               </div>
                             </div>
-                            {stats.combinedTrend || stats.dailyTrend.length <= 30 && (
+                            {(stats.combinedTrend || stats.dailyTrend).length <= 30 && (
                               <div className="text-[10px] text-gray-400 mt-2 text-center truncate">{day.date.split('-').slice(1).join('/')}</div>
                             )}
                           </div>
