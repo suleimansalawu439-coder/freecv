@@ -116,7 +116,7 @@ async function getGeoData(): Promise<GeoData> {
 }
 
 // ---- Main Track Event ----
-export const trackEvent = async (eventType: string, templateId?: string) => {
+export const trackEvent = async (eventType: string, templateId?: string, metadata?: Record<string, any>) => {
   try {
     const geo = await getGeoData();
 
@@ -132,6 +132,7 @@ export const trackEvent = async (eventType: string, templateId?: string) => {
       referrer: getReferrer(),
       page_url: typeof window !== 'undefined' ? window.location.pathname : null,
       screen_width: typeof window !== 'undefined' ? window.innerWidth : null,
+      metadata: metadata || null
     }]);
   } catch (error) {
     console.error('Analytics tracking failed', error);

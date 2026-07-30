@@ -23,6 +23,13 @@ interface StatsData {
   dailyTrend: { date: string; count: number; isForecast?: boolean }[];
   combinedTrend?: { date: string; count: number; isForecast?: boolean }[];
   recentActivity: any[];
+  topIndustries?: { industry: string; count: number }[];
+  topColors?: { color: string; count: number }[];
+  downloadFormats?: { pdf: number; docx: number };
+  aiUsage?: { totalRequests: number; atsScans: number };
+  avgResumeLength?: number;
+  skippedSections?: { section: string; count: number }[];
+  dropoffFunnel?: { pageViews: number; started: number; previewed: number; downloaded: number };
 }
 
 const COUNTRY_FLAGS: Record<string, string> = {
@@ -32,7 +39,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
 };
 function getFlag(country: string): string { return COUNTRY_FLAGS[country] || '🌍'; }
 
-export default function AdminDashboard({ candidates, analytics, siteSettings, featureFlags }: any) {
+export default function AdminDashboard({ candidates, analytics, aiLogs, siteSettings, featureFlags }: any) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'settings'>('dashboard');
   const [timeframe, setTimeframe] = useState<'24h'|'7d'|'14d'|'30d'|'6m'|'1y'|'all'>('30d');
   const [stats, setStats] = useState<StatsData | null>(null);
@@ -74,6 +81,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
     const filteredAnalytics = analytics.filter((e:any) => isWithinTimeframe(e.created_at, timeframe));
     const filteredCandidatesDb = candidates?.filter((c:any) => isWithinTimeframe(c.updated_at || c.opted_in_at, timeframe)) || [];
 
+    // Process candidates for industries
+    filteredCandidatesDb.forEach((c:any) => {
+      const industry = c.title_category || 'Other';
+      industryMap[industry] = (industryMap[industry] || 0) + 1;
+    });
+
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     
@@ -95,8 +108,44 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
     let templateMap: Record<string, number> = {};
     let dailyUniqueMap: Record<string, Set<string>> = {};
     let variantMap: Record<string, { views: number, downloads: number }> = {};
+    let industryMap: Record<string, number> = {};
+    let colorMap: Record<string, number> = {};
+    let formatMap = { pdf: 0, docx: 0 };
+    let skippedSectionsMap: Record<string, number> = {};
+    let totalLength = 0;
+    let lengthCount = 0;
+    
+    // Funnel mapping
+    let funnel = { pageViews: 0, started: 0, previewed: 0, downloaded: 0 };
+    
     
     filteredAnalytics.forEach((e:any) => {
+      // Funnel tracking
+      if (e.event_type === 'page_view') funnel.pageViews++;
+      if (e.event_type === 'milestone_started') funnel.started++;
+      if (e.event_type === 'milestone_previewed') funnel.previewed++;
+      if (e.event_type === 'milestone_downloaded') funnel.downloaded++;
+      
+      // Metadata processing
+      if (e.event_type === 'milestone_downloaded' && e.metadata) {
+        if (e.metadata.format === 'pdf') formatMap.pdf++;
+        if (e.metadata.format === 'docx') formatMap.docx++;
+        
+        if (e.metadata.themeColor) {
+          colorMap[e.metadata.themeColor] = (colorMap[e.metadata.themeColor] || 0) + 1;
+        }
+        
+        if (typeof e.metadata.resume_length === 'number') {
+          totalLength += e.metadata.resume_length;
+          lengthCount++;
+        }
+        
+        if (Array.isArray(e.metadata.skipped_sections)) {
+          e.metadata.skipped_sections.forEach((sec: string) => {
+            skippedSectionsMap[sec] = (skippedSectionsMap[sec] || 0) + 1;
+          });
+        }
+      }
       if (e.event_type === 'milestone_started') summary.started++;
       if (e.event_type === 'milestone_previewed') summary.previewed++;
       if (e.event_type === 'milestone_downloaded') summary.downloads++;
@@ -177,9 +226,19 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       cohorts,
       dailyTrend,
       combinedTrend,
-      recentActivity: filteredAnalytics.slice(0, 20)
+      recentActivity: filteredAnalytics.slice(0, 20),
+      topIndustries: Object.entries(industryMap).map(([industry, count]) => ({ industry, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+      topColors: Object.entries(colorMap).map(([color, count]) => ({ color, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+      downloadFormats: formatMap,
+      avgResumeLength: lengthCount > 0 ? Math.round(totalLength / lengthCount) : 0,
+      skippedSections: Object.entries(skippedSectionsMap).map(([section, count]) => ({ section, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+      dropoffFunnel: funnel,
+      aiUsage: {
+        totalRequests: typeof aiLogs !== 'undefined' ? aiLogs.filter((l:any) => isWithinTimeframe(l.created_at, timeframe)).length : 0,
+        atsScans: typeof aiLogs !== 'undefined' ? aiLogs.filter((l:any) => l.endpoint?.includes('ats') && isWithinTimeframe(l.created_at, timeframe)).length : 0
+      }
     });
-  }, [analytics, candidates, timeframe]);
+  }, [analytics, candidates, aiLogs, timeframe]);
 
   const handleLogout = async () => {
     await fetch('/api/admin/login', { method: 'DELETE' });
@@ -526,6 +585,104 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  
+                  {/* New BI Metrics Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 col-span-full">
+                    {/* Top Industries */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-cyan-500">Top Industries</h3>
+                      <div className="space-y-3">
+                        {stats.topIndustries?.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topIndustries?.map((ind, i) => (
+                          <div key={i} className="flex justify-between items-center text-sm">
+                            <span className={isDarkMode ? "text-gray-300 truncate max-w-[120px]" : "text-gray-600 truncate max-w-[120px]"}>{ind.industry}</span>
+                            <span className="font-bold text-gray-400">{ind.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Funnel Metrics */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-orange-500">Drop-off Funnel</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs"><span className="text-gray-400">Page Views</span><span className="font-bold">{stats.dropoffFunnel?.pageViews}</span></div>
+                        <div className="w-full h-1 bg-gray-800 rounded-full"><div className="h-full bg-orange-500 rounded-full" style={{width: '100%'}}></div></div>
+                        
+                        <div className="flex justify-between text-xs mt-2"><span className="text-gray-400">Started</span><span className="font-bold">{stats.dropoffFunnel?.started}</span></div>
+                        <div className="w-full h-1 bg-gray-800 rounded-full"><div className="h-full bg-orange-400 rounded-full" style={{width: stats.dropoffFunnel?.pageViews ? `${(stats.dropoffFunnel.started/stats.dropoffFunnel.pageViews)*100}%` : '0%'}}></div></div>
+
+                        <div className="flex justify-between text-xs mt-2"><span className="text-gray-400">Previewed</span><span className="font-bold">{stats.dropoffFunnel?.previewed}</span></div>
+                        <div className="w-full h-1 bg-gray-800 rounded-full"><div className="h-full bg-orange-300 rounded-full" style={{width: stats.dropoffFunnel?.pageViews ? `${(stats.dropoffFunnel.previewed/stats.dropoffFunnel.pageViews)*100}%` : '0%'}}></div></div>
+
+                        <div className="flex justify-between text-xs mt-2"><span className="text-gray-400">Downloaded</span><span className="font-bold">{stats.dropoffFunnel?.downloaded}</span></div>
+                        <div className="w-full h-1 bg-gray-800 rounded-full"><div className="h-full bg-orange-200 rounded-full" style={{width: stats.dropoffFunnel?.pageViews ? `${(stats.dropoffFunnel.downloaded/stats.dropoffFunnel.pageViews)*100}%` : '0%'}}></div></div>
+                      </div>
+                    </div>
+
+                    {/* AI Usage */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-violet-500">AI Usage</h3>
+                      <div className="space-y-4 flex flex-col justify-center h-full pb-4">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-violet-400">{stats.aiUsage?.totalRequests}</div>
+                          <div className="text-xs text-gray-500 uppercase mt-1">Total AI Requests</div>
+                        </div>
+                        <div className="text-center border-t border-gray-800 pt-4">
+                          <div className="text-2xl font-bold text-violet-300">{stats.aiUsage?.atsScans}</div>
+                          <div className="text-xs text-gray-500 uppercase mt-1">Job Descriptions Analyzed</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Document Stats */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-pink-500">Document Stats</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">Avg. Length</span>
+                          <span className="font-bold">{stats.avgResumeLength} chars</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">PDFs Generated</span>
+                          <span className="font-bold">{stats.downloadFormats?.pdf || 0}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-400">DOCX Generated</span>
+                          <span className="font-bold">{stats.downloadFormats?.docx || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Secondary BI Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 col-span-full">
+                    {/* Top Colors */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-indigo-400">Top Theme Colors</h3>
+                      <div className="flex flex-wrap gap-4">
+                        {stats.topColors?.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.topColors?.map((c, i) => (
+                          <div key={i} className="flex flex-col items-center gap-2">
+                            <div className="w-8 h-8 rounded-full border border-gray-600 shadow" style={{backgroundColor: c.color}}></div>
+                            <span className="text-xs text-gray-400">{c.count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Skipped Sections */}
+                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                      <h3 className="text-sm font-semibold mb-4 text-rose-400">Most Skipped Sections</h3>
+                      <div className="space-y-3">
+                        {stats.skippedSections?.length === 0 ? <p className="text-sm text-gray-500">No data</p> : stats.skippedSections?.map((s, i) => (
+                          <div key={i} className="flex justify-between items-center text-sm">
+                            <span className={isDarkMode ? "text-gray-300" : "text-gray-600"}>{s.section}</span>
+                            <span className="font-bold text-gray-400">{s.count} skips</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Top Countries */}
                   <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                     <h3 className="text-sm font-semibold mb-4 text-emerald-500">Top Countries</h3>

@@ -20,6 +20,11 @@ export default async function AdminPage() {
 
   if (analyticsError) console.error('Error fetching analytics:', analyticsError);
 
+  const { data: aiLogs } = await supabaseAdmin
+    .from('ai_usage_logs')
+    .select('*')
+    .order('created_at', { ascending: false });
+
   const { data: siteSettings } = await supabaseAdmin.from('site_settings').select('*').single();
   const { data: featureFlags } = await supabaseAdmin.from('feature_flags').select('*').order('key');
 
@@ -27,6 +32,7 @@ export default async function AdminPage() {
     <AdminDashboard 
       candidates={candidates || []} 
       analytics={analytics || []} 
+      aiLogs={aiLogs || []}
       siteSettings={siteSettings || {}}
       featureFlags={featureFlags || []}
     />

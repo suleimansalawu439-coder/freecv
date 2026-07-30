@@ -541,6 +541,25 @@ export default function FreeCVApp() {
     }
   };
 
+  const getTelemetryMetadata = (format: 'pdf' | 'docx') => {
+    let length = 0;
+    if (data.summary) length += data.summary.length;
+    data.experience.forEach(e => { length += (e.description?.length || 0); });
+    
+    const skipped_sections: string[] = [];
+    if (!data.summary) skipped_sections.push('Summary');
+    if (data.experience.length === 0) skipped_sections.push('Experience');
+    if (data.education.length === 0) skipped_sections.push('Education');
+    if (data.skills.length === 0) skipped_sections.push('Skills');
+
+    return {
+      format,
+      themeColor: data.theme.color,
+      resume_length: length,
+      skipped_sections
+    };
+  };
+
   const handleDocxExport = async () => {
     try {
       const res = await fetch('/api/export/docx', {
@@ -558,7 +577,7 @@ export default function FreeCVApp() {
       a.download = `${safeName}_${safeRole}_Resume.docx`.replace(/\s+/g, '_');
       a.click();
       URL.revokeObjectURL(url);
-      trackEvent('milestone_docx_downloaded', data.templateId);
+      trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('docx'));
     } catch (err: any) {
       alert('DOCX export failed: ' + err.message);
     }
@@ -599,7 +618,7 @@ export default function FreeCVApp() {
   };
 
   const handleDownload = async () => {
-    trackEvent('milestone_downloaded', data.templateId);
+    trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('pdf'));
     
     // Register the CRM opt-in silently in the background
     if ((data.consents.recruiterShare || data.consents.emailJobs || data.consents.analytics) && data.personalInfo.email) {
