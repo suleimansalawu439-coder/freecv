@@ -86,7 +86,7 @@ export async function GET(req: Request) {
     }
 
     // 5. Increment API Call Count asynchronously (don't block the response)
-    supabaseAdmin.rpc('increment_api_calls', { row_id: recruiter.id }).catch(e => {
+    supabaseAdmin.rpc('increment_api_calls', { row_id: recruiter.id }).catch((e: any) => {
       // fallback if RPC doesn't exist, just use update
       supabaseAdmin
         .from('recruiters')
