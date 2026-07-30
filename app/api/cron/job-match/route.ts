@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
           Score this candidate's match for this job from 0 to 100.
           Return ONLY a JSON object: {"score": number}
-        \`;
+        `;
 
         try {
           const response = await ai.models.generateContent({
