@@ -7,11 +7,11 @@ export const dynamic = 'force-dynamic';
 export default async function AdminPage() {
   // Original Data Fetches
   const { data: candidates, error: candidatesError } = await supabaseAdmin
-    .from('candidates')
+    .from('candidate_profiles')
     .select('*')
-    .order('opted_in_at', { ascending: false });
+    .order('updated_at', { ascending: false });
 
-  if (candidatesError) console.error('Error fetching candidates:', candidatesError);
+  if (candidatesError) console.error('Error fetching candidate profiles:', candidatesError);
 
   const { data: analytics, error: analyticsError } = await supabaseAdmin
     .from('analytics_events')

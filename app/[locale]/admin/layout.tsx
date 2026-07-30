@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const metadata = {
-  title: 'FreeCV Admin',
+  title: 'Cvyon Admin',
   robots: 'noindex, nofollow'
 };
 

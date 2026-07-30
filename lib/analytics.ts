@@ -3,10 +3,10 @@ import { supabase } from './supabase';
 // ---- Session ID ----
 const getSessionId = () => {
   if (typeof window === 'undefined') return 'server';
-  let sid = localStorage.getItem('freecv_session_id');
+  let sid = localStorage.getItem('cvyon_session_id');
   if (!sid) {
     sid = crypto.randomUUID();
-    localStorage.setItem('freecv_session_id', sid);
+    localStorage.setItem('cvyon_session_id', sid);
   }
   return sid;
 };
@@ -71,7 +71,7 @@ async function getGeoData(): Promise<GeoData> {
   if (typeof window === 'undefined') return { country: '', city: '' };
 
   // Check session cache first
-  const cached = sessionStorage.getItem('freecv_geo');
+  const cached = sessionStorage.getItem('cvyon_geo');
   if (cached) {
     try { return JSON.parse(cached); } catch { /* fall through */ }
   }
@@ -87,7 +87,7 @@ async function getGeoData(): Promise<GeoData> {
       const data = await res.json();
       if (data.country_name) {
         const geo = { country: data.country_name, city: data.city || '' };
-        sessionStorage.setItem('freecv_geo', JSON.stringify(geo));
+        sessionStorage.setItem('cvyon_geo', JSON.stringify(geo));
         return geo;
       }
     }
@@ -105,7 +105,7 @@ async function getGeoData(): Promise<GeoData> {
     if (res.ok) {
       const data = await res.json();
       const geo = { country: data.country || '', city: data.city || '' };
-      sessionStorage.setItem('freecv_geo', JSON.stringify(geo));
+      sessionStorage.setItem('cvyon_geo', JSON.stringify(geo));
       return geo;
     }
   } catch {

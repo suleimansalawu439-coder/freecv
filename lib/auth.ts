@@ -21,3 +21,25 @@ export async function verifyAdminToken(token: string) {
     return false;
   }
 }
+
+export async function signUserToken(email: string) {
+  return await new SignJWT({ role: 'user', email })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('30d')
+    .sign(key);
+}
+
+export async function verifyUserToken(token: string) {
+  try {
+    const { payload } = await jwtVerify(token, key, {
+      algorithms: ['HS256'],
+    });
+    if (payload?.role === 'user' && typeof payload?.email === 'string') {
+      return payload.email;
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}

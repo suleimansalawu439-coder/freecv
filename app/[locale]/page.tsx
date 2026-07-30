@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
@@ -33,6 +34,7 @@ import {
   ZoomIn,
   ZoomOut,
   Upload,
+  Save,
   Share2
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -46,6 +48,7 @@ import { templates, TemplateKey } from '@/components/templates';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import { ImportResume } from '@/components/builder/ImportResume';
 import { CoverLetterTab } from '@/components/builder/CoverLetterTab';
+import { AuthModal } from '@/components/builder/AuthModal';
 
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
@@ -103,7 +106,8 @@ const Card = ({ children, className }: any) => (
 
 // --- Main Page ---
 
-export default function FreeCVApp() {
+export default function CvyonApp() {
+  const t = useTranslations('Index');
   const [isHydrated, setIsHydrated] = useState(false);
   const onboardingAppliedRef = useRef(false);
   const previewViewportRef = useRef<HTMLElement | null>(null);
@@ -115,7 +119,7 @@ export default function FreeCVApp() {
     addSkill, removeSkill,
     toggleProjects, addProject, updateProject, removeProject,
     toggleCertifications, addCertification, updateCertification, removeCertification,
-    toggleReferences, addReference, updateReference, removeReference, setHasOptedIn,
+    toggleReferences, addReference, updateReference, removeReference, setConsents,
     reorderExperience, reorderEducation, reorderSkills, setAllData, addCustomSection, updateCustomSectionTitle, removeCustomSection, addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem, reorderCustomSections, reorderCustomSectionItems
   } = useResumeStore();
   
@@ -125,7 +129,7 @@ export default function FreeCVApp() {
     certifications: storeData.certifications || [],
     references: storeData.references || [],
     customSections: storeData.customSections || [],
-    hasOptedIn: storeData.hasOptedIn || false
+    consents: storeData.consents || { recruiterShare: false, emailJobs: false, analytics: true }
   }), [storeData]);
 
   const [skillInput, setSkillInput] = useState('');
@@ -139,6 +143,7 @@ export default function FreeCVApp() {
   const [generatingExpId, setGeneratingExpId] = useState<string | null>(null);
   const [polishingExpId, setPolishingExpId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Dark Mode
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -304,7 +309,7 @@ export default function FreeCVApp() {
     setIsHydrated(true); 
     trackEvent('milestone_started');
     // Load dark mode preference
-    const savedDark = localStorage.getItem('freecv-dark-mode');
+    const savedDark = localStorage.getItem('cvyon-dark-mode');
     if (savedDark === 'true') setIsDarkMode(true);
   }, []);
 
@@ -405,7 +410,7 @@ export default function FreeCVApp() {
   const toggleDarkMode = useCallback(() => {
     setIsDarkMode(prev => {
       const next = !prev;
-      localStorage.setItem('freecv-dark-mode', String(next));
+      localStorage.setItem('cvyon-dark-mode', String(next));
       return next;
     });
   }, []);
@@ -597,7 +602,7 @@ export default function FreeCVApp() {
     trackEvent('milestone_downloaded', data.templateId);
     
     // Register the CRM opt-in silently in the background
-    if (data.hasOptedIn && data.personalInfo.email) {
+    if ((data.consents.recruiterShare || data.consents.emailJobs || data.consents.analytics) && data.personalInfo.email) {
       try {
         fetch('/api/crm/optin', {
           method: 'POST',
@@ -625,7 +630,7 @@ export default function FreeCVApp() {
           
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
-              <h1 className="text-2xl font-black tracking-tighter uppercase">FreeCV</h1>
+              <h1 className="text-2xl font-black tracking-tighter uppercase">Cvyon</h1>
               <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mt-1", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Premium & Forever Free</p>
             </div>
             <div className="flex items-center gap-2">
@@ -753,7 +758,7 @@ export default function FreeCVApp() {
               <div className={cn("col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 rounded-xl border", isDarkMode ? 'bg-blue-900/10 border-blue-900' : 'bg-blue-50 border-blue-100')}>
                 <div>
                   <h4 className={cn("font-bold text-sm", isDarkMode ? 'text-blue-400' : 'text-blue-900')}>Make profile public</h4>
-                  <p className={cn("text-xs", isDarkMode ? 'text-blue-500' : 'text-blue-700')}>Allow recruiters to find your resume on FreeCV.</p>
+                  <p className={cn("text-xs", isDarkMode ? 'text-blue-500' : 'text-blue-700')}>Allow recruiters to find your resume on Cvyon.</p>
                 </div>
                 <button
                   onClick={() => setHasOptedIn(!data.hasOptedIn)}
@@ -1394,7 +1399,7 @@ export default function FreeCVApp() {
                 {atsResult.score >= 85 && (
                   <button
                     onClick={() => {
-                      const text = `I just scored a ${atsResult.score}% on my resume using FreeCV! 🚀 Check out this free AI ATS Grader at freecv.com`;
+                      const text = `I just scored a ${atsResult.score}% on my resume using Cvyon! 🚀 Check out this free AI ATS Grader at cvyon.com`;
                       window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, '_blank');
                     }}
                     className="w-full bg-[#0A66C2] hover:bg-[#004182] text-white py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all flex justify-center items-center gap-2 mt-4 shadow-lg shadow-blue-500/20"

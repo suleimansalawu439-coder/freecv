@@ -6,7 +6,7 @@ import { ArrowRight, Calendar } from 'lucide-react';
 export const revalidate = 60; // Revalidate every minute
 
 export const metadata = {
-  title: 'FreeCV Blog - Career Advice & Resume Tips',
+  title: 'Cvyon Blog - Career Advice & Resume Tips',
   description: 'Expert advice on resume building, job hunting, and career advancement to help you land your dream job.',
 };
 
@@ -24,7 +24,7 @@ export default async function BlogIndex() {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <Link href="/" className="inline-block text-gray-400 hover:text-white font-bold tracking-widest text-xs uppercase mb-8 transition-colors">
-            ← Back to FreeCV
+            ← Back to Cvyon
           </Link>
           <h1 className="text-5xl sm:text-6xl font-black uppercase tracking-tighter mb-4">The Career Hub</h1>
           <p className="text-gray-400 text-lg sm:text-xl font-medium max-w-2xl mx-auto">

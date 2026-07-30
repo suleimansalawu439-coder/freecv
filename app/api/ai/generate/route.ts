@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 import { checkRateLimit } from '@/lib/rate-limit';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { generateContentWithRetry } from '@/lib/ai-retry';
 
 export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = await checkRateLimit(request);
+    if (rateLimitResponse) return rateLimitResponse;
+    
     const { type, jobTitle, company, additionalContext, tone, resumeData } = await request.json();
 
     if (!type) {
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
     }
 
     let prompt = '';
+    let isJson = false;
 
     const cleanResume = resumeData ? `
 Summary: ${resumeData.summary || ''}
@@ -34,15 +36,17 @@ Experience: ${(resumeData.experience || []).map((e:any) => `${e.role} at ${e.com
       Start with action verbs. Just output the plain text bullet points. No intro.
       ${additionalContext ? `Context: ${additionalContext}` : ''}`;
     } else if (type === 'rewrite') {
+      isJson = true;
       prompt = `Rewrite this resume summary and experience in a ${tone || 'Professional'} tone.
 Return ONLY valid JSON. Keep it brief.
-JSON structure: { "summary": string, "experience": [{ "id": string, "description": string }] }
+JSON structure: { "summary": "string", "experience": [{ "id": "string", "description": "string" }] }
 Resume:
 ${cleanResume.substring(0, 3000)}`;
     } else if (type === 'skills') {
+      isJson = true;
       prompt = `List 10 relevant skills for a ${jobTitle}.
 Return ONLY valid JSON.
-JSON structure: { "skills": string[] }`;
+JSON structure: { "skills": ["string"] }`;
     } else if (type === 'polish') {
       prompt = `Rewrite this experience to be professional and action-oriented. 
       No intro, no markdown. Just the text.
@@ -51,27 +55,14 @@ JSON structure: { "skills": string[] }`;
       return NextResponse.json({ error: 'Invalid generation type' }, { status: 400 });
     }
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-      config: { temperature: 0.2, maxOutputTokens: 1500 }
-    });
+    const systemInstruction = "You are an expert Resume writer.";
+    const result = await generateContentWithRetry(prompt, systemInstruction, 1500, isJson, [], `generate_${type}`);
 
-    let generatedText = response.text || '';
-
-    // If generating JSON for rewrite or skills, parse and return it directly
-    if (type === 'rewrite' || type === 'skills') {
-      generatedText = generatedText.replace(/```json/gi, '').replace(/```/g, '').trim();
-      try {
-        const result = JSON.parse(generatedText);
-        return NextResponse.json(result);
-      } catch (parseError) {
-        console.error('Failed to parse JSON from AI response:', generatedText);
-        return NextResponse.json({ error: 'Failed to parse AI response into valid JSON' }, { status: 500 });
-      }
+    if (isJson) {
+      return NextResponse.json(result);
     }
-
-    return NextResponse.json({ text: generatedText });
+    
+    return NextResponse.json({ text: result });
   } catch (error: any) {
     console.error('AI Generation Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate content' }, { status: 500 });

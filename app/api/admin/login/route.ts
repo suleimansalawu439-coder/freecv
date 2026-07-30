@@ -5,7 +5,7 @@ import { signAdminToken } from '@/lib/auth';
 export async function POST(request: Request) {
   try {
     const { password } = await request.json();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'freecv2026';
+    const adminPassword = process.env.ADMIN_PASSWORD || '***REMOVED***';
 
     if (password === adminPassword) {
       const token = await signAdminToken();

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Shield, Trash2, Download, AlertTriangle } from 'lucide-react';
 
 export const metadata = {
-  title: 'Manage Your Data | FreeCV',
+  title: 'Manage Your Data | Cvyon',
   description: 'Manage your privacy, download your data, or request deletion.'
 };
 
@@ -19,7 +19,7 @@ export default function ManageDataPage() {
         
         <h1 className="text-3xl font-black tracking-tight text-center mb-4">Your Privacy Matters</h1>
         <p className="text-gray-500 text-center mb-10 text-sm font-medium">
-          FreeCV is committed to radical transparency. You have complete control over your data. If you opted into our Talent CRM, you can download everything we have on you or delete it permanently.
+          Cvyon is committed to radical transparency. You have complete control over your data. If you opted into our Talent CRM, you can download everything we have on you or delete it permanently.
         </p>
 
         <div className="space-y-6">

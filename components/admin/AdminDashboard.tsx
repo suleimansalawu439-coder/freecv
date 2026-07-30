@@ -59,7 +59,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
     // Filter analytics based on timeframe
     const filteredAnalytics = analytics.filter((e:any) => isWithinTimeframe(e.created_at, timeframe));
-    const filteredCandidatesDb = candidates?.filter((c:any) => isWithinTimeframe(c.opted_in_at, timeframe)) || [];
+    const filteredCandidatesDb = candidates?.filter((c:any) => isWithinTimeframe(c.updated_at || c.opted_in_at, timeframe)) || [];
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
@@ -81,6 +81,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
     let referrerMap: Record<string, number> = {};
     let templateMap: Record<string, number> = {};
     let dailyUniqueMap: Record<string, Set<string>> = {};
+    let variantMap: Record<string, { views: number, downloads: number }> = {};
     
     filteredAnalytics.forEach((e:any) => {
       if (e.event_type === 'milestone_started') summary.started++;
@@ -100,11 +101,39 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       if (e.os) osMap[e.os] = (osMap[e.os] || 0) + 1;
       if (e.referrer) referrerMap[e.referrer] = (referrerMap[e.referrer] || 0) + 1;
       if (e.template_id) templateMap[e.template_id] = (templateMap[e.template_id] || 0) + 1;
+      if (e.variant_assignment) {
+        if (!variantMap[e.variant_assignment]) variantMap[e.variant_assignment] = { views: 0, downloads: 0 };
+        if (e.event_type === 'page_view' || e.event_type === 'milestone_started') variantMap[e.variant_assignment].views++;
+        if (e.event_type === 'milestone_downloaded') variantMap[e.variant_assignment].downloads++;
+      }
     });
 
     const dailyTrend = Object.entries(dailyUniqueMap)
       .map(([date, set]) => ({ date, count: set.size }))
       .sort((a, b) => a.date.localeCompare(b.date));
+
+    // Simple linear regression for predictive forecasting
+    let forecastTrend: { date: string, count: number, isForecast: boolean }[] = [];
+    if (dailyTrend.length > 2) {
+      const n = dailyTrend.length;
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+      dailyTrend.forEach((d, i) => {
+        sumX += i;
+        sumY += d.count;
+        sumXY += i * d.count;
+        sumXX += i * i;
+      });
+      const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+      const intercept = (sumY - slope * sumX) / n;
+      
+      const lastDate = new Date(dailyTrend[n-1].date);
+      for (let i = 0; i < 7; i++) { // Project 7 days
+        lastDate.setDate(lastDate.getDate() + 1);
+        const projectedCount = Math.max(0, Math.round(slope * (n + i) + intercept));
+        forecastTrend.push({ date: lastDate.toISOString().split('T')[0], count: projectedCount, isForecast: true });
+      }
+    }
+    const combinedTrend = [...dailyTrend.map(d => ({ ...d, isForecast: false })), ...forecastTrend];
 
     setStats({
       summary,
@@ -114,6 +143,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       topOS: Object.entries(osMap).map(([os, count]) => ({ os, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       topReferrers: Object.entries(referrerMap).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       topTemplates: Object.entries(templateMap).map(([template, count]) => ({ template, count })).sort((a, b) => b.count - a.count).slice(0, 5),
+      variants: Object.entries(variantMap).map(([variant, data]) => ({ variant, views: Math.max(data.views, 1), downloads: data.downloads, rate: (data.downloads / Math.max(data.views, 1)) * 100 })).sort((a, b) => b.rate - a.rate),
       dailyTrend,
       recentActivity: filteredAnalytics.slice(0, 20)
     });
@@ -133,8 +163,9 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
   const filteredCandidates = candidates?.filter((c:any) => 
     c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.job_title?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (c.skills && c.skills.some((s:string) => s.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+    c.current_title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // --- Export Functions ---
@@ -190,7 +221,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
     const autoTableModule = (await import('jspdf-autotable')).default;
     
     const doc = new jsPDFModule();
-    doc.text("FreeCV Candidate Export", 14, 15);
+    doc.text("Cvyon Candidate Export", 14, 15);
     
     const tableColumn = ["Name", "Email", "Job Title", "Location", "Opt-in Date"];
     const tableRows: any[] = [];
@@ -217,7 +248,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
       <div className={cn("w-64 border-r flex flex-col shrink-0 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
         <div className={cn("p-6 border-b transition-colors", isDarkMode ? "border-gray-800" : "border-gray-100")}>
           <h1 className="text-xl font-bold tracking-tight flex items-center justify-between">
-            FreeCV Admin
+            Cvyon Admin
             <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               {isDarkMode ? <Sun size={18} className="text-gray-400" /> : <Moon size={18} className="text-gray-400" />}
             </button>
@@ -357,12 +388,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                    <div className={cn("border rounded-xl p-6 shadow-sm transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                       <h3 className="text-lg font-bold mb-4">Daily Unique Visitors Trend</h3>
                       <div className="h-48 flex items-end gap-2">
-                        {stats.dailyTrend.map((day, idx) => {
-                          const maxCount = Math.max(...stats.dailyTrend.map(d => d.count), 1);
+                        {stats.combinedTrend || stats.dailyTrend.map((day, idx) => {
+                          const maxCount = Math.max(...stats.combinedTrend || stats.dailyTrend.map(d => d.count), 1);
                           const height = (day.count / maxCount) * 100;
                           return (
                             <div key={idx} className="flex-1 flex flex-col justify-end group relative">
-                              <div className={cn("w-full rounded-t-sm transition-all relative", isDarkMode ? "bg-blue-500/80 group-hover:bg-blue-400" : "bg-blue-500 group-hover:bg-blue-600")} style={{ height: `${height}%` }}>
+                              <div className={cn("w-full rounded-t-sm transition-all relative", day.isForecast ? (isDarkMode ? "bg-gray-800 border border-dashed border-gray-600" : "bg-gray-100 border border-dashed border-gray-300") : (isDarkMode ? "bg-blue-500/80 group-hover:bg-blue-400" : "bg-blue-500 group-hover:bg-blue-600"))} style={{ height: `${height}%` }}>
                                 <div className={cn("absolute -top-8 left-1/2 -translate-x-1/2 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10", isDarkMode ? "bg-gray-100 text-gray-900" : "bg-gray-900 text-white")}>
                                   {day.count} visitors
                                 </div>
@@ -378,7 +409,7 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
 
             {activeTab === 'analytics' && stats && (
               <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                   {/* Daily Trend Expanded */}
                   <div className={cn("border rounded-xl p-6 shadow-sm lg:col-span-2 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
                     <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
@@ -386,24 +417,40 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                       Daily Unique Visitors Trend
                     </h3>
                     <div className="h-64 flex items-end gap-2">
-                      {stats.dailyTrend.length === 0 ? (
+                      {stats.combinedTrend || stats.dailyTrend.length === 0 ? (
                         <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">No data for selected timeframe</div>
-                      ) : stats.dailyTrend.map((day, idx) => {
-                        const maxCount = Math.max(...stats.dailyTrend.map(d => d.count), 1);
+                      ) : stats.combinedTrend || stats.dailyTrend.map((day, idx) => {
+                        const maxCount = Math.max(...stats.combinedTrend || stats.dailyTrend.map(d => d.count), 1);
                         const height = (day.count / maxCount) * 100;
                         return (
                           <div key={idx} className="flex-1 flex flex-col justify-end group relative min-w-[12px]">
-                            <div className={cn("w-full rounded-t-sm transition-all relative", isDarkMode ? "bg-indigo-500/80 group-hover:bg-indigo-400" : "bg-indigo-400 group-hover:bg-indigo-500")} style={{ height: `${height}%` }}>
+                            <div className={cn("w-full rounded-t-sm transition-all relative", day.isForecast ? (isDarkMode ? "bg-gray-800 border border-dashed border-gray-600" : "bg-gray-100 border border-dashed border-gray-300") : (isDarkMode ? "bg-indigo-500/80 group-hover:bg-indigo-400" : "bg-indigo-400 group-hover:bg-indigo-500"))} style={{ height: `${height}%` }}>
                               <div className={cn("absolute -top-8 left-1/2 -translate-x-1/2 text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10", isDarkMode ? "bg-gray-100 text-gray-900" : "bg-gray-900 text-white")}>
                                 {day.count} visitors
                               </div>
                             </div>
-                            {stats.dailyTrend.length <= 30 && (
+                            {stats.combinedTrend || stats.dailyTrend.length <= 30 && (
                               <div className="text-[10px] text-gray-400 mt-2 text-center truncate">{day.date.split('-').slice(1).join('/')}</div>
                             )}
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+
+                  {/* A/B Testing Variants */}
+                  <div className={cn("border rounded-xl p-6 shadow-sm flex flex-col transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                    <h3 className="text-base font-semibold mb-4">A/B Testing Variants (Conv. Rate)</h3>
+                    <div className="space-y-4 flex-1 flex flex-col justify-center">
+                      {stats.variants?.length === 0 ? <p className="text-sm text-gray-500">No variant data</p> : stats.variants?.map((v:any, i:number) => (
+                        <div key={i} className={cn("flex items-center justify-between p-3 rounded-lg border", i === 0 ? (isDarkMode ? "bg-emerald-900/20 border-emerald-800/50" : "bg-emerald-50 border-emerald-100") : (isDarkMode ? "bg-gray-800/50 border-gray-700" : "bg-gray-50 border-gray-100"))}>
+                          <div>
+                            <div className="flex items-center gap-2"><span className="text-sm font-medium">{v.variant}</span>{i === 0 && <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500 text-white rounded font-bold">WINNER</span>}</div>
+                            <div className={cn("text-[10px] mt-0.5", isDarkMode ? "text-gray-400" : "text-gray-500")}>{v.downloads} dl / {v.views} views</div>
+                          </div>
+                          <span className="font-bold text-lg">{v.rate.toFixed(1)}%</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -516,29 +563,51 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                     <thead className={cn("border-b text-xs font-semibold uppercase tracking-wider", isDarkMode ? "bg-gray-900 border-gray-800 text-gray-400" : "bg-gray-50 border-gray-200 text-gray-500")}>
                       <tr>
                         <th className="px-6 py-4">Candidate</th>
-                        <th className="px-6 py-4">Job Title</th>
-                        <th className="px-6 py-4">Location</th>
-                        <th className="px-6 py-4">Opt-in Date</th>
-                        <th className="px-6 py-4">Resume Payload</th>
+                        <th className="px-6 py-4">Role & Industry</th>
+                        <th className="px-6 py-4">Experience</th>
+                        <th className="px-6 py-4">Top Skills</th>
+                        <th className="px-6 py-4">Strength</th>
+                        <th className="px-6 py-4">Action</th>
                       </tr>
                     </thead>
                     <tbody className={cn("divide-y", isDarkMode ? "divide-gray-800" : "divide-gray-100")}>
                       {filteredCandidates?.map((candidate:any) => (
                         <tr key={candidate.id} className={cn("transition-colors", isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-gray-50")}>
                           <td className="px-6 py-4">
-                            <div className="font-medium">{candidate.name || 'Anonymous'}</div>
-                            <div className={cn("text-xs mt-0.5", isDarkMode ? "text-gray-400" : "text-gray-500")}>{candidate.email}</div>
+                            <div className="font-medium">{candidate.full_name || candidate.name || 'Anonymous'}</div>
+                            <div className={cn("text-xs mt-0.5", isDarkMode ? "text-gray-400" : "text-gray-500")}>{candidate.city ? candidate.city + ', ' : ''}{candidate.country || 'Unknown'}</div>
                           </td>
-                          <td className={cn("px-6 py-4", isDarkMode ? "text-gray-300" : "text-gray-700")}>{candidate.job_title || 'Not specified'}</td>
-                          <td className="px-6 py-4">{candidate.location || '-'}</td>
-                          <td className={cn("px-6 py-4", isDarkMode ? "text-gray-400" : "text-gray-500")}>{new Date(candidate.opted_in_at).toLocaleDateString()}</td>
+                          <td className="px-6 py-4">
+                            <div className={cn("font-medium", isDarkMode ? "text-gray-300" : "text-gray-700")}>{candidate.current_title || candidate.job_title || 'Not specified'}</div>
+                            <div className={cn("text-[10px] mt-0.5 uppercase tracking-wider", isDarkMode ? "text-blue-400" : "text-blue-600")}>{candidate.title_category || 'Other'}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="font-medium">{candidate.experience_years ? `${candidate.experience_years} years` : '-'}</div>
+                            <div className={cn("text-[10px] mt-0.5 text-gray-500")}>{candidate.employment_status || ''}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-1 max-w-[200px]">
+                              {(candidate.skills || []).slice(0, 3).map((s:string, i:number) => (
+                                <span key={i} className={cn("px-1.5 py-0.5 text-[10px] rounded", isDarkMode ? "bg-gray-800 text-gray-300" : "bg-gray-100 text-gray-600")}>{s}</span>
+                              ))}
+                              {(candidate.skills?.length || 0) > 3 && <span className="px-1.5 py-0.5 text-[10px] text-gray-500">+{candidate.skills.length - 3}</span>}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {candidate.completeness_score ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden flex"><div className="h-full bg-blue-500" style={{ width: `${candidate.completeness_score}%` }}></div></div>
+                                <span className="text-xs font-bold">{candidate.completeness_score}%</span>
+                              </div>
+                            ) : '-'}
+                          </td>
                           <td className="px-6 py-4">
                             {candidate.resume_data ? (
                               <button 
                                 onClick={() => setSelectedCandidate(candidate)}
-                                className={cn("px-3 py-1.5 text-xs font-semibold rounded-md transition-colors", isDarkMode ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50" : "bg-blue-50 text-blue-600 hover:bg-blue-100")}
+                                className={cn("px-3 py-1.5 text-xs font-semibold rounded-md transition-colors whitespace-nowrap", isDarkMode ? "bg-blue-900/30 text-blue-400 hover:bg-blue-900/50" : "bg-blue-50 text-blue-600 hover:bg-blue-100")}
                               >
-                                View CV Data
+                                View CV
                               </button>
                             ) : (
                               <span className={cn("px-2 py-1 text-xs font-semibold rounded-md", isDarkMode ? "bg-gray-800 text-gray-500" : "bg-gray-100 text-gray-400")}>No Data</span>

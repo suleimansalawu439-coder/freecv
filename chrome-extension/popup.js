@@ -21,10 +21,10 @@ document.getElementById('extractBtn').addEventListener('click', async () => {
       throw new Error('Could not find job description on this page.');
     }
 
-    statusText.textContent = 'Job found! Redirecting to FreeCV...';
+    statusText.textContent = 'Job found! Redirecting to Cvyon...';
 
-    // Encode the JD and redirect to FreeCV builder with the JD pre-filled
-    const url = new URL('https://freecv.app/');
+    // Encode the JD and redirect to Cvyon builder with the JD pre-filled
+    const url = new URL('https://cvyon.com/');
     url.searchParams.set('jobTitle', jobData.title || '');
     url.searchParams.set('company', jobData.company || '');
     url.searchParams.set('jd', encodeURIComponent(jobData.description));

@@ -32,7 +32,7 @@ const mockClient = (table: string) => {
         ];
       case 'site_settings':
         return [
-          { id: 1, site_name: 'FreeCV', maintenance_mode: false }
+          { id: 1, site_name: 'Cvyon', maintenance_mode: false }
         ];
       default:
         return [];

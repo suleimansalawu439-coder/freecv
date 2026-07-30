@@ -20,8 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   }
 
   return {
-    title: `${post.title} | FreeCV Blog`,
-    description: post.meta_description || `Read ${post.title} on the FreeCV Career Hub.`,
+    title: `${post.title} | Cvyon Blog`,
+    description: post.meta_description || `Read ${post.title} on the Cvyon Career Hub.`,
   };
 }
 

@@ -72,6 +72,8 @@ export interface Reference {
 }
 
 export interface ResumeData {
+  currentResumeId?: string | null;
+  resumeTitle?: string;
   templateId: TemplateKey;
   theme: {
     color: string;
@@ -87,12 +89,18 @@ export interface ResumeData {
   certifications: Certification[];
   showReferences: boolean;
   references: Reference[];
-  hasOptedIn: boolean;
+  consents: {
+    recruiterShare: boolean;
+    emailJobs: boolean;
+    analytics: boolean;
+  };
   customSections: CustomSection[];
 }
 
 // --- Store ---
 interface ResumeStore {
+  setCurrentResumeId: (id: string | null) => void;
+  setResumeTitle: (title: string) => void;
   data: ResumeData;
   setTemplateId: (id: TemplateKey) => void;
   setThemeColor: (color: string) => void;
@@ -118,7 +126,7 @@ interface ResumeStore {
   addReference: () => void;
   updateReference: (id: string, updates: Partial<Reference>) => void;
   removeReference: (id: string) => void;
-  setHasOptedIn: (optedIn: boolean) => void;
+  setConsents: (consents: Partial<{ recruiterShare: boolean; emailJobs: boolean; analytics: boolean }>) => void;
   reorderExperience: (startIndex: number, endIndex: number) => void;
   reorderEducation: (startIndex: number, endIndex: number) => void;
   reorderSkills: (startIndex: number, endIndex: number) => void;
@@ -134,12 +142,14 @@ interface ResumeStore {
 }
 
 export const initialData: ResumeData = {
+  currentResumeId: null,
+  resumeTitle: "Untitled Resume",
   templateId: 'Executive',
   theme: { color: '#2563eb' },
   personalInfo: {
     fullName: "Jane Doe",
     jobTitle: "Senior Product Designer",
-    email: "jane@freecv.dev",
+    email: "jane@cvyon.dev",
     phone: "(555) 123-4567",
     location: "San Francisco, CA",
     website: "janedoe.com",
@@ -174,7 +184,11 @@ export const initialData: ResumeData = {
   certifications: [],
   showReferences: false,
   references: [],
-  hasOptedIn: false,
+  consents: {
+    recruiterShare: false,
+    emailJobs: false,
+    analytics: true
+  },
   customSections: []
 };
 
@@ -183,6 +197,8 @@ export const useResumeStore = create<ResumeStore>()(
     persist(
       (set) => ({
         data: initialData,
+        setCurrentResumeId: (id) => set((state) => ({ data: { ...state.data, currentResumeId: id } })),
+        setResumeTitle: (title) => set((state) => ({ data: { ...state.data, resumeTitle: title } })),
         setTemplateId: (id) => set((state) => ({ data: { ...state.data, templateId: id } })),
         setThemeColor: (color) => set((state) => ({ data: { ...state.data, theme: { color } } })),
         updatePersonalInfo: (info) =>
@@ -264,7 +280,7 @@ export const useResumeStore = create<ResumeStore>()(
           data: { ...state.data, references: (state.data.references || []).filter(r => r.id !== id) }
         })),
 
-        setHasOptedIn: (optedIn) => set((state) => ({ data: { ...state.data, hasOptedIn: optedIn } })),
+        setConsents: (consents) => set((state) => ({ data: { ...state.data, consents: { ...state.data.consents, ...consents } } })),
         addCustomSection: () => set((state) => ({
           data: { ...state.data, customSections: [...(state.data.customSections || []), { id: crypto.randomUUID(), title: 'Custom Section', items: [] }] }
         })),
@@ -323,7 +339,7 @@ export const useResumeStore = create<ResumeStore>()(
         })),
 
       }),
-      { name: 'freecv-storage' }
+      { name: 'cvyon-storage' }
     ),
     { limit: 50 }
   )

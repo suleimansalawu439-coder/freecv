@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { sanitizeResumeData } from '@/lib/validation';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { GoogleGenAI } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+function calculateCompleteness(data: any): number {
+  let score = 0;
+  if (data?.personalInfo?.fullName) score += 5;
+  if (data?.personalInfo?.jobTitle) score += 10;
+  if (data?.skills?.length > 0) score += 20;
+  if (data?.experience?.length > 0) score += 20;
+  if (data?.education?.length > 0) score += 10;
+  if (data?.personalInfo?.email || data?.personalInfo?.phone) score += 15;
+  if (data?.personalInfo?.location) score += 10;
+  if (data?.summary) score += 10;
+  return Math.min(100, score);
+}
 
 export async function POST(request: Request) {
   try {
@@ -14,23 +29,123 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const supabase = getSupabaseAdmin();
+
+    // 1. Insert or update candidate (Canonical Data)
+    const { data: candidate, error: candidateError } = await supabase
       .from('candidates')
-      .insert([{ 
+      .upsert({ 
         email, 
-        name: resumeData.personalInfo.fullName || '',
-        job_title: resumeData.personalInfo.jobTitle || '',
-        location: resumeData.personalInfo.location || '',
+        name: resumeData.personalInfo?.fullName || '',
+        job_title: resumeData.personalInfo?.jobTitle || '',
+        location: resumeData.personalInfo?.location || '',
         country,
         device_type,
-        resume_data: resumeData
-      }]);
+        resume_data: resumeData,
+        opted_in_at: new Date().toISOString()
+      }, { onConflict: 'email' })
+      .select('id')
+      .single();
 
-    // Ignore unique constraint errors (if they are already in the CRM, we can either update or ignore)
-    // Supabase will throw error code 23505 for unique violations
-    if (error && error.code !== '23505') {
-      console.error("CRM Opt-in Error:", error);
-      throw error;
+    if (candidateError) {
+      console.error("CRM Opt-in Error (candidates):", candidateError);
+      throw candidateError;
+    }
+
+    // 2. Structured Extraction using Gemini
+    let extracted = {
+      title_category: '',
+      industry: '',
+      experience_years: 0,
+      employment_status: 'Open to work',
+      preferred_work: 'Any',
+      highest_education: '',
+      skills: [] as string[],
+      skill_categories: [] as string[],
+      salary_expectation: ''
+    };
+
+    try {
+      const prompt = `
+Extract structured data from the following candidate JSON.
+Return ONLY valid JSON matching this schema:
+{
+  "title_category": "string (e.g. Engineering, Design, Marketing, Sales, Healthcare, etc.)",
+  "industry": "string",
+  "experience_years": number (compute total years of experience from dates),
+  "employment_status": "string (Employed, Open to work, Freelance, Student)",
+  "preferred_work": "string (Remote, Hybrid, On-site, Any)",
+  "highest_education": "string (High School, Bachelor's, Master's, PhD, Bootcamp, None)",
+  "skills": ["string (canonical tech/skill names)"],
+  "skill_categories": ["string (e.g. Frontend, Backend, DevOps, Management)"],
+  "salary_expectation": "string (extract if present, otherwise empty string)"
+}
+
+Candidate JSON:
+${JSON.stringify({
+  personalInfo: resumeData.personalInfo,
+  experience: resumeData.experience,
+  education: resumeData.education,
+  skills: resumeData.skills
+})}
+`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-1.5-flash-8b',
+        contents: prompt,
+        config: { 
+          temperature: 0.1, 
+          responseMimeType: 'application/json' 
+        }
+      });
+
+      let rawJson = response.text || '{}';
+      rawJson = rawJson.replace(/```json\n?|\n?```/g, '').trim();
+      extracted = JSON.parse(rawJson);
+    } catch (e) {
+      console.error('Gemini extraction failed, using defaults', e);
+      // fallback to manual extraction if Gemini fails
+      extracted.skills = (resumeData.skills || []).map((s: any) => s.name);
+      extracted.experience_years = resumeData.experience?.length * 2 || 0; // naive fallback
+    }
+
+    // 3. Insert into candidate_profiles (Search Index)
+    const consents = resumeData.consents || { recruiterShare: false, emailJobs: false, analytics: true };
+    const completeness_score = calculateCompleteness(resumeData);
+
+    const { error: profileError } = await supabase
+      .from('candidate_profiles')
+      .upsert({
+        id: candidate.id,
+        full_name: resumeData.personalInfo?.fullName || '',
+        current_title: resumeData.personalInfo?.jobTitle || '',
+        title_category: extracted.title_category || 'Other',
+        industry: extracted.industry || 'Other',
+        country,
+        city: resumeData.personalInfo?.location?.split(',')[0] || '',
+        experience_years: extracted.experience_years || 0,
+        employment_status: extracted.employment_status || 'Open to work',
+        preferred_work: extracted.preferred_work || 'Any',
+        highest_education: extracted.highest_education || 'Unknown',
+        degree: resumeData.education?.[0]?.degree || '',
+        university: resumeData.education?.[0]?.school || '',
+        skills: extracted.skills || [],
+        skill_categories: extracted.skill_categories || [],
+        salary_expectation: extracted.salary_expectation || '',
+        linkedin_url: resumeData.personalInfo?.website?.includes('linkedin') ? resumeData.personalInfo.website : '',
+        portfolio_url: !resumeData.personalInfo?.website?.includes('linkedin') ? resumeData.personalInfo.website : '',
+        completeness_score,
+        freshness_days: 0,
+        consent_recruiter_share: consents.recruiterShare,
+        consent_email_jobs: consents.emailJobs,
+        consent_analytics: consents.analytics,
+        consent_version: 'v1.0-2026-07',
+        resume_data: resumeData,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+
+    if (profileError) {
+      console.error("Profile Opt-in Error:", profileError);
     }
 
     return NextResponse.json({ success: true });

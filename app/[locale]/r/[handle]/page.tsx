@@ -14,19 +14,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .eq('handle', params.handle)
     .single();
 
-  if (!data) return { title: 'Resume Not Found | FreeCV' };
+  if (!data) return { title: 'Resume Not Found | Cvyon' };
 
   const name = data.data?.personalInfo?.fullName || 'Candidate';
   const role = data.data?.personalInfo?.jobTitle || 'Professional';
 
   return {
-    title: `${name} - ${role} Resume | FreeCV`,
+    title: `${name} - ${role} Resume | Cvyon`,
     description: `View the professional resume of ${name}.`,
     openGraph: {
       title: `${name} - ${role}`,
-      description: data.data?.summary?.substring(0, 160) || `View ${name}'s resume on FreeCV.`,
-      url: `https://freecv.app/r/${params.handle}`,
-      siteName: 'FreeCV',
+      description: data.data?.summary?.substring(0, 160) || `View ${name}'s resume on Cvyon.`,
+      url: `https://cvyon.com/r/${params.handle}`,
+      siteName: 'Cvyon',
       type: 'profile'
     }
   };
@@ -58,9 +58,9 @@ export default async function PublicResumePage({ params }: Props) {
         <SelectedTemplate data={resumeData} />
       </div>
 
-      {/* Discrete Built with FreeCV footer */}
+      {/* Discrete Built with Cvyon footer */}
       <footer className="mt-12 text-center text-sm font-medium text-gray-500 pb-10">
-        Built free with <a href="/" className="font-bold text-black hover:underline">FreeCV</a>. Create yours in minutes.
+        Built free with <a href="/" className="font-bold text-black hover:underline">Cvyon</a>. Create yours in minutes.
       </footer>
     </div>
   );

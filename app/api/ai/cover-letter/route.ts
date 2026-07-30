@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { generateContentWithRetry } from '@/lib/ai-retry';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+export const runtime = 'edge';
 
 export async function POST(req: Request) {
   const rateLimitResponse = await checkRateLimit(req);
@@ -16,9 +16,6 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-You are an expert career coach and executive resume writer. 
-Write a highly-tailored, professional, and compelling cover letter for the candidate based on their resume data and the target job description.
-
 Candidate Resume Summary & Experience:
 ${resumeData.summary}
 ${resumeData.experience.map((e: any) => `- ${e.role} at ${e.company} (${e.startDate} - ${e.endDate})\n  ${e.description}`).join('\n')}
@@ -34,18 +31,16 @@ Rules:
 3. Keep it concise, engaging, and highly specific to the provided experience.
 4. Output ONLY the raw text of the cover letter. No markdown formatting, no conversational filler.
     `;
+    
+    const systemInstruction = "You are an expert career coach and executive resume writer. Write a highly-tailored, professional, and compelling cover letter for the candidate based on their resume data and the target job description.";
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: prompt,
-      config: { temperature: 0.7, maxOutputTokens: 1500 }
-    });
+    const result = await generateContentWithRetry(prompt, systemInstruction, 1500, false, [], 'cover_letter');
 
-    if (!response.text) {
+    if (!result) {
       throw new Error("No response from AI");
     }
 
-    return NextResponse.json({ text: response.text });
+    return NextResponse.json({ text: result });
   } catch (error: any) {
     console.error('Cover Letter API Error:', error);
     return NextResponse.json(

@@ -74,7 +74,7 @@ export default function AdminLogin() {
         </div>
         
         <p className="text-center text-[10px] font-mono text-gray-600 mt-8 uppercase tracking-widest">
-          FreeCV Architecture © 2026
+          Cvyon Architecture © 2026
         </p>
       </div>
     </div>
