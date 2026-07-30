@@ -8,6 +8,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import BlogManager from './BlogManager';
 import SupportManager from './SupportManager';
 import RecruiterManager from './RecruiterManager';
+import toast from 'react-hot-toast';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -898,14 +899,15 @@ export default function AdminDashboard({ candidates, analytics, aiLogs, siteSett
                       onClick={async () => {
                         setIsSavingBilling(true);
                         try {
-                          await fetch('/api/admin/settings', {
+                          const res = await fetch('/api/admin/settings', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ key: 'billing', value: billingSettings })
                           });
-                          alert('Billing settings saved successfully!');
+                          if (!res.ok) throw new Error('Failed to save');
+                          toast.success('Billing settings saved successfully!');
                         } catch (err) {
-                          alert('Failed to save billing settings');
+                          toast.error('Failed to save billing settings');
                         }
                         setIsSavingBilling(false);
                       }}

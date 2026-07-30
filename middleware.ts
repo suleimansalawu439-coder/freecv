@@ -11,7 +11,7 @@ if (secretKeyString) {
   key = new TextEncoder().encode(secretKeyString);
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect /admin routes (except login and API login route)

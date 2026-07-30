@@ -1,5 +1,6 @@
 "use client";
 
+import toast from 'react-hot-toast';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -182,7 +183,7 @@ export default function FreeCVApp() {
 
   const handlePolishExperience = async (id: string, currentText: string) => {
     if (!currentText.trim() || !data.personalInfo.jobTitle) {
-      alert("Please enter a Job Title and some text to polish.");
+      toast.error("Please enter a Job Title and some text to polish.");
       return;
     }
     try {
@@ -207,11 +208,11 @@ export default function FreeCVApp() {
       if (json.text) {
         updateExperience(id, { description: json.text });
       } else if (json.error) {
-        alert(json.error);
+        toast.error(json.error);
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to polish text. Please try again.");
+      toast.error("Failed to polish text. Please try again.");
     } finally {
       setPolishingExpId(null);
     }
@@ -238,7 +239,7 @@ export default function FreeCVApp() {
         throw new Error(resData.error || 'Failed to parse LinkedIn PDF');
       }
     } catch (err: any) {
-      alert("LinkedIn Import failed: " + err.message);
+      toast.error("LinkedIn Import failed: " + err.message);
     }
     setIsImporting(false);
     // Reset file input
@@ -248,7 +249,7 @@ export default function FreeCVApp() {
 
   const handleGenerateSummary = async () => {
     if (!data.personalInfo.jobTitle) {
-      alert("Please enter a Job Title in the Personal Info section first so the AI knows what to write about.");
+      toast.error("Please enter a Job Title in the Personal Info section first so the AI knows what to write about.");
       return;
     }
     setIsGeneratingSummary(true);
@@ -270,7 +271,7 @@ export default function FreeCVApp() {
         updateSummary(json.text);
       }
     } catch (err: any) {
-      alert("AI Generation failed: " + err.message);
+      toast.error("AI Generation failed: " + err.message);
     }
     setIsGeneratingSummary(false);
   };
@@ -278,7 +279,7 @@ export default function FreeCVApp() {
   const handleGenerateExperience = async (expId: string, role: string, company: string) => {
     const jobTitleToUse = role || data.personalInfo.jobTitle;
     if (!jobTitleToUse) {
-      alert("Please enter a Role for this experience (or a global Job Title) so the AI knows what to write.");
+      toast.error("Please enter a Role for this experience (or a global Job Title) so the AI knows what to write.");
       return;
     }
     setGeneratingExpId(expId);
@@ -300,7 +301,7 @@ export default function FreeCVApp() {
         updateExperience(expId, { description: json.text });
       }
     } catch (err: any) {
-      alert("AI Generation failed: " + err.message);
+      toast.error("AI Generation failed: " + err.message);
     }
     setGeneratingExpId(null);
   };
@@ -447,7 +448,7 @@ export default function FreeCVApp() {
         });
       }
     } catch (err: any) {
-      alert('ATS Grading failed: ' + err.message);
+      toast.error('ATS Grading failed: ' + err.message);
     }
     setIsATSLoading(false);
   };
@@ -486,7 +487,7 @@ export default function FreeCVApp() {
         }
       }
     } catch (err: any) {
-      alert('Rewrite failed: ' + err.message);
+      toast.error('Rewrite failed: ' + err.message);
     }
     setIsRewriting(false);
     setIsRewriterOpen(false);
@@ -535,7 +536,7 @@ export default function FreeCVApp() {
       setPublishedUrl(result.url);
       trackEvent('milestone_published_web', data.templateId);
     } catch (err: any) {
-      alert('Publish failed: ' + err.message);
+      toast.error('Publish failed: ' + err.message);
     } finally {
       setIsPublishing(false);
     }
@@ -579,7 +580,7 @@ export default function FreeCVApp() {
       URL.revokeObjectURL(url);
       trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('docx'));
     } catch (err: any) {
-      alert('DOCX export failed: ' + err.message);
+      toast.error('DOCX export failed: ' + err.message);
     }
   };
 
@@ -684,7 +685,7 @@ export default function FreeCVApp() {
                 <p className="text-green-800 font-bold text-sm">Your resume is live!</p>
                 <a href={publishedUrl} target="_blank" rel="noreferrer" className="text-green-600 text-xs hover:underline mt-1 block">{publishedUrl}</a>
               </div>
-              <button onClick={() => { navigator.clipboard.writeText(publishedUrl); alert('Copied!'); }} className="px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg shadow hover:bg-green-700">
+              <button onClick={() => { navigator.clipboard.writeText(publishedUrl); toast.success('Copied!'); }} className="px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg shadow hover:bg-green-700">
                 COPY LINK
               </button>
             </div>
