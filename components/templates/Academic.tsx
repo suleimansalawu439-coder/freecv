@@ -100,7 +100,29 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      )}\n
+          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
+            section.items.length > 0 && (
+              <div key={section.id} className="mb-6">
+                <h2 className="text-base font-bold uppercase border-b border-black mb-3">{section.title}</h2>
+                <div className="space-y-3">
+                  {section.items.map(item => (
+                    <div key={item.id} className="mb-2">
+                      <div className="flex justify-between items-baseline">
+                        <div>
+                          <p className="text-sm font-bold">{item.title}</p>
+                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
+                        </div>
+                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
+                      </div>
+                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          ))}
+
 
       {data.skills.length > 0 && (
         <div className="mb-6">

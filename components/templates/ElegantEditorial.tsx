@@ -66,6 +66,24 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
               ))}
             </div>
           )}
+
+          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
+            section.items.length > 0 && (
+              <div key={section.id} className="mt-8">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
+                  {section.title}
+                </h3>
+                {section.items.map(item => (
+                  <div key={item.id} className="mb-4">
+                    <p className="text-xs font-bold italic">{item.title}</p>
+                    {item.subtitle && <p className="text-xs text-gray-600 mt-1">{item.subtitle}</p>}
+                    {item.date && <p className="text-xs font-bold mt-1" style={{ color: c }}>{item.date}</p>}
+                    {item.description && <p className="text-xs mt-1 text-gray-700 whitespace-pre-wrap">{item.description}</p>}
+                  </div>
+                ))}
+              </div>
+            )
+          ))}
         </div>
 
         <div>

@@ -13,6 +13,9 @@ interface Project { id: string; name: string; description: string; link: string;
 interface Certification { id: string; name: string; issuer: string; date: string; }
 interface Reference { id: string; name: string; title: string; company: string; contact: string; }
 
+interface CustomSectionItem { id: string; title: string; subtitle: string; date: string; description: string; }
+interface CustomSection { id: string; title: string; items: CustomSectionItem[]; }
+
 interface ResumeData {
   personalInfo: PersonalInfo;
   summary: string;
@@ -22,6 +25,7 @@ interface ResumeData {
   projects: Project[];
   certifications: Certification[];
   references: Reference[];
+  customSections?: CustomSection[];
 }
 
 export async function POST(request: Request) {
@@ -32,8 +36,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 });
     }
 
-    const { personalInfo, summary, experience, education, skills, projects, certifications, references } = data;
-
+    const { personalInfo, summary, experience, education, skills, projects, certifications, references, customSections } = data as ResumeData;
     const children = [];
 
     // Header
@@ -147,6 +150,27 @@ export async function POST(request: Request) {
             new TextRun({ text: ` - ${ref.contact}`, italics: true }),
           ]
         }));
+      });
+    }
+
+    // Custom Sections
+    if (customSections && customSections.length > 0) {
+      customSections.forEach(section => {
+        children.push(new Paragraph({ text: section.title, heading: HeadingLevel.HEADING_1 }));
+        if (section.items && section.items.length > 0) {
+          section.items.forEach(item => {
+            children.push(new Paragraph({
+              children: [
+                new TextRun({ text: item.title, bold: true }),
+                item.subtitle ? new TextRun({ text: `, ${item.subtitle}`, italics: true }) : new TextRun(''),
+                item.date ? new TextRun({ text: ` | ${item.date}` }) : new TextRun(''),
+              ]
+            }));
+            if (item.description) {
+              children.push(new Paragraph({ text: item.description }));
+            }
+          });
+        }
       });
     }
 

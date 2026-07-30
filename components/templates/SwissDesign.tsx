@@ -108,10 +108,31 @@ export default function SwissDesign({ data }: { data: ResumeData }) {
 
           {data.summary && (
             <div className="mt-12 p-8 bg-gray-50">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-4">05. Profile</h2>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-4">Profile</h2>
               <p className="text-sm leading-relaxed">{data.summary}</p>
             </div>
           )}
+
+          {data.customSections && data.customSections.length > 0 && data.customSections.map((section, idx) => (
+            section.items.length > 0 && (
+              <div key={section.id} className="mt-12">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8">{section.title}</h2>
+                <div className="space-y-10">
+                  {section.items.map((item) => (
+                    <div key={item.id} className="relative pl-8 border-l-2 border-gray-200">
+                      <div className="absolute -left-[9px] top-0 w-4 h-4 bg-white border-2 rounded-full" style={{ borderColor: c }} />
+                      <div className="flex justify-between items-baseline mb-3">
+                        <h3 className="text-xl font-bold uppercase">{item.title}</h3>
+                        {item.date && <span className="text-xs font-bold bg-gray-100 px-3 py-1">{item.date}</span>}
+                      </div>
+                      {item.subtitle && <p className="text-sm font-bold text-gray-600 mb-4 uppercase tracking-wider">{item.subtitle}</p>}
+                      {item.description && <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          ))}
         </div>
       </div>
     </div>

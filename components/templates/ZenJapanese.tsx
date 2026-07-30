@@ -73,6 +73,27 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
           </div>
         )}
       </div>
+
+      {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
+        section.items.length > 0 && (
+          <div key={section.id} className="mt-8 border-t border-[#D4C8B8] pt-8">
+            <h2 className="text-[8px] font-light text-[#8A7A6A] uppercase tracking-[0.4em] mb-4">{section.title}</h2>
+            <div className="space-y-6">
+              {section.items.map(item => (
+                <div key={item.id} className="pl-6 border-l border-[#D4C8B8]">
+                  <div className="flex justify-between items-baseline mb-2">
+                    <h3 className="text-lg font-light text-[#2C2A24]">{item.title}</h3>
+                    {item.date && <span className="text-[9px] font-light text-[#8A7A6A] tracking-wider">{item.date}</span>}
+                  </div>
+                  {item.subtitle && <p className="text-xs text-[#6A5A4A] mb-2 font-light">{item.subtitle}</p>}
+                  {item.description && <p className="text-xs text-[#4A3A2A] font-light leading-[1.8] whitespace-pre-wrap">{item.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      ))}
+
     </div>
   );
 }

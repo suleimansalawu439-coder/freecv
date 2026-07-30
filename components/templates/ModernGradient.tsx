@@ -106,6 +106,29 @@ export default function ModernGradient({ data }: { data: ResumeData }) {
             ))}
           </div>
 
+          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
+            section.items.length > 0 && (
+              <div key={section.id}>
+                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
+                    ✨
+                  </span>
+                  {section.title}
+                </h2>
+                {section.items.map(item => (
+                  <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-4">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <p className="font-bold text-gray-900">{item.title}</p>
+                      {item.date && <p className="text-xs font-medium" style={{ color: c }}>{item.date}</p>}
+                    </div>
+                    {item.subtitle && <p className="text-sm text-gray-600 mb-2">{item.subtitle}</p>}
+                    {item.description && <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.description}</p>}
+                  </div>
+                ))}
+              </div>
+            )
+          ))}
+
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
               <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
