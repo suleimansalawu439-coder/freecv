@@ -47,7 +47,7 @@ export default function RecruiterPortal() {
       let reqQuery = supabase.from('candidates').select('*').limit(20);
       if (query) {
         // basic text search
-        reqQuery = reqQuery.ilike('resume_data->personalInfo->jobTitle', \`%\${query}%\`);
+        reqQuery = reqQuery.ilike('resume_data->personalInfo->jobTitle', `%${query}%`);
       }
       const { data } = await reqQuery;
       if (data) setCandidates(data);
@@ -182,7 +182,7 @@ export default function RecruiterPortal() {
                           <td className="px-6 py-4 text-sm text-gray-600">{c.country || 'Unknown'}</td>
                           <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.opted_in_at).toLocaleDateString()}</td>
                           <td className="px-6 py-4 text-right">
-                            <a href={\`mailto:\${c.email}\`} className="text-sm font-semibold text-blue-600 hover:text-blue-800">Contact</a>
+                            <a href={`mailto:${c.email}`} className="text-sm font-semibold text-blue-600 hover:text-blue-800">Contact</a>
                           </td>
                         </tr>
                       ))

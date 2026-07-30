@@ -40,12 +40,12 @@ export async function GET(req: Request) {
         if (!candidate.resume_data) continue;
 
         // Use AI Grader to determine match score
-        const prompt = \`
-          Job Description: \${job.title} at \${job.recruiters.company_name}
-          \${job.description}
+        const prompt = `
+          Job Description: ${job.title} at ${job.recruiters.company_name}
+          ${job.description}
 
           Candidate Resume:
-          \${JSON.stringify(candidate.resume_data)}
+          ${JSON.stringify(candidate.resume_data)}
 
           Score this candidate's match for this job from 0 to 100.
           Return ONLY a JSON object: {"score": number}

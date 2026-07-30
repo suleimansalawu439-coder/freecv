@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { Redis } from '@upstash/redis';
-import crypto from 'crypto';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 
 const redis = new Redis({

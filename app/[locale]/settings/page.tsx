@@ -50,7 +50,7 @@ export default function SettingsPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': \`Bearer \${session?.access_token}\`
+          'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
           email: user.email,
@@ -125,9 +125,9 @@ export default function SettingsPage() {
                   </div>
                   <button 
                     onClick={() => handleToggle('consent_recruiter_share', !profile?.candidate_profiles?.[0]?.consent_recruiter_share)}
-                    className={\`w-11 h-6 rounded-full transition-colors relative \${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'bg-blue-600' : 'bg-gray-300'}\`}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={\`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform \${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'translate-x-5' : 'translate-x-0'}\`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
 
@@ -138,9 +138,9 @@ export default function SettingsPage() {
                   </div>
                   <button 
                     onClick={() => handleToggle('consent_email_jobs', !profile?.candidate_profiles?.[0]?.consent_email_jobs)}
-                    className={\`w-11 h-6 rounded-full transition-colors relative \${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'bg-blue-600' : 'bg-gray-300'}\`}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={\`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform \${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'translate-x-5' : 'translate-x-0'}\`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
                 
@@ -151,9 +151,9 @@ export default function SettingsPage() {
                   </div>
                   <button 
                     onClick={() => handleToggle('consent_analytics', !profile?.candidate_profiles?.[0]?.consent_analytics)}
-                    className={\`w-11 h-6 rounded-full transition-colors relative \${profile?.candidate_profiles?.[0]?.consent_analytics ? 'bg-blue-600' : 'bg-gray-300'}\`}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_analytics ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={\`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform \${profile?.candidate_profiles?.[0]?.consent_analytics ? 'translate-x-5' : 'translate-x-0'}\`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_analytics ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
               </div>

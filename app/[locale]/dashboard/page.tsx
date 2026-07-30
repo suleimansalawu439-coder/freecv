@@ -74,7 +74,7 @@ export default function UserDashboard() {
   const handleDuplicate = async (resume: any) => {
     try {
       const payload = {
-        title: \`\${resume.title} (Copy)\`,
+        title: `${resume.title} (Copy)`,
         resume_data: resume.resume_data
       };
       const res = await fetch('/api/user/resumes', {
@@ -94,7 +94,7 @@ export default function UserDashboard() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this resume?')) return;
     try {
-      const res = await fetch(\`/api/user/resumes/\${id}\`, {
+      const res = await fetch(`/api/user/resumes/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {
