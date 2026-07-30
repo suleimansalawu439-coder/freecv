@@ -45,7 +45,7 @@ export default function NewsletterCapture({ source = 'blog' }: { source?: string
         <Mail size={32} className="text-blue-400 mb-6" />
         <h3 className="text-3xl font-black uppercase tracking-tight mb-3">Get the Edge.</h3>
         <p className="text-gray-400 mb-8 max-w-lg font-medium leading-relaxed">
-          Join 10,000+ professionals getting exclusive resume templates, career hacks, and hidden job market strategies delivered weekly.
+          Join ambitious professionals getting exclusive resume templates, career hacks, and hidden job market strategies delivered weekly.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md">

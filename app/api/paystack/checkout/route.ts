@@ -45,6 +45,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Recruiter profile not found' }, { status: 404 });
     }
 
+    const { data: settings } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'billing')
+      .single();
+
+    const billingSettings = settings?.value || { amount: 990000, currency: 'NGN' };
+
     // Call Paystack API
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -54,9 +62,8 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         email: user.email,
-        plan: process.env.PAYSTACK_PLAN_CODE,
-        // The amount is overridden by the plan, but it's required for initialization sometimes
-        amount: 9900, 
+        amount: billingSettings.amount,
+        currency: billingSettings.currency,
         callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/recruiter`,
         metadata: {
           recruiter_id: recruiter.id,

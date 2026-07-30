@@ -37,6 +37,9 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
+  const [billingSettings, setBillingSettings] = useState({ amount: 990000, currency: 'NGN' });
+  const [isSavingBilling, setIsSavingBilling] = useState(false);
+
 
   const isWithinTimeframe = (dateString: string, tf: string) => {
     if (tf === 'all') return true;
@@ -57,6 +60,12 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
   };
 
   useEffect(() => {
+    fetch('/api/admin/settings').then(res => res.json()).then(data => {
+      if (data.billing) {
+        setBillingSettings(data.billing);
+      }
+    }).catch(console.error);
+    
     if (!analytics) return;
 
     // Filter analytics based on timeframe
@@ -646,6 +655,52 @@ export default function AdminDashboard({ candidates, analytics, siteSettings, fe
                       </div>
                     </div>
                   ))}
+                </div>
+                
+                {/* Billing Settings */}
+                <div className={cn("border rounded-xl p-6 shadow-sm space-y-4 transition-colors", isDarkMode ? "bg-[#0A0A0A] border-gray-800" : "bg-white border-gray-200")}>
+                  <h3 className={cn("text-base font-semibold border-b pb-4 mb-4", isDarkMode ? "border-gray-800 text-white" : "border-gray-100 text-gray-900")}>Billing Settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Currency</label>
+                      <input 
+                        type="text" 
+                        value={billingSettings.currency} 
+                        onChange={e => setBillingSettings({ ...billingSettings, currency: e.target.value })}
+                        className={cn("w-full border rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500", isDarkMode ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200")} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Amount (in smallest unit, e.g. kobo/cents)</label>
+                      <input 
+                        type="number" 
+                        value={billingSettings.amount} 
+                        onChange={e => setBillingSettings({ ...billingSettings, amount: parseInt(e.target.value) || 0 })}
+                        className={cn("w-full border rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500", isDarkMode ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200")} 
+                      />
+                      <p className="text-xs mt-1 text-gray-500">For example, 990000 = 9,900.00</p>
+                    </div>
+                    <button 
+                      onClick={async () => {
+                        setIsSavingBilling(true);
+                        try {
+                          await fetch('/api/admin/settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ key: 'billing', value: billingSettings })
+                          });
+                          alert('Billing settings saved successfully!');
+                        } catch (err) {
+                          alert('Failed to save billing settings');
+                        }
+                        setIsSavingBilling(false);
+                      }}
+                      disabled={isSavingBilling}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      {isSavingBilling ? 'Saving...' : 'Save Billing Settings'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

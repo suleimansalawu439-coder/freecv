@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "../globals.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
@@ -14,22 +14,17 @@ export const metadata: Metadata = {
   },
 };
 
-import {NextIntlClientProvider} from 'next-intl';
-import {getMessages} from 'next-intl/server';
-
-export default async function RootLayout(props: {
+export default function RootLayout({
+  children,
+}: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }) {
-  const params = await props.params;
-  const messages = await getMessages({ locale: params.locale });
-
   return (
     <html
-      lang={params.locale}
+      lang="en"
       className="h-full antialiased font-sans"
     >
-      <body className="min-h-full flex flex-col"><NextIntlClientProvider messages={messages}>{props.children}</NextIntlClientProvider></body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

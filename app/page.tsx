@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
@@ -106,8 +106,7 @@ const Card = ({ children, className }: any) => (
 
 // --- Main Page ---
 
-export default function CvyonApp() {
-  const t = useTranslations('Index');
+export default function FreeCVApp() {
   const [isHydrated, setIsHydrated] = useState(false);
   const onboardingAppliedRef = useRef(false);
   const previewViewportRef = useRef<HTMLElement | null>(null);
@@ -622,10 +621,10 @@ export default function CvyonApp() {
   const SelectedTemplate = templates[data.templateId] || templates.Executive;
 
   return (
-    <main className={cn("flex h-screen w-full overflow-hidden font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", isDarkMode ? 'bg-gray-950 text-gray-100' : 'bg-[#FAFAFA] text-gray-900')}>
+    <main className={cn("flex flex-col lg:flex-row min-h-screen w-full font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", isDarkMode ? 'bg-gray-950 text-gray-100' : 'bg-[#FAFAFA] text-gray-900')}>
       
       {/* EDITOR PANEL */}
-      <section className={cn("w-full lg:w-[45%] h-full overflow-y-auto border-r print:hidden px-6 py-8 lg:px-10 lg:py-12 custom-scrollbar flex-shrink-0 relative", isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
+      <section className={cn("w-full lg:w-[45%] border-r print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative", isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
         <div className="max-w-xl mx-auto pb-24 lg:pb-0">
           
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
@@ -1215,7 +1214,7 @@ export default function CvyonApp() {
         ref={previewViewportRef}
         id="preview-panel"
         className={cn(
-        "flex-1 h-full overflow-y-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
+        "flex-1 lg:sticky lg:top-0 lg:h-screen overflow-y-auto bg-[#E5E7EB] p-0 lg:p-12 print:p-0 print:bg-white flex lg:justify-center items-start custom-scrollbar print-safe-container",
         isPreviewOpen && !mobileZoom ? "overflow-x-hidden justify-center" : "overflow-x-auto",
         isPreviewOpen ? "fixed inset-0 z-50 flex-col" : "hidden lg:flex"
       )}>

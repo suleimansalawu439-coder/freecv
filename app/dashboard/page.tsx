@@ -6,7 +6,6 @@ import { useResumeStore } from '@/store/useResumeStore';
 import { useRouter } from 'next/navigation';
 import { Plus, FileText, Copy, Trash2, Edit2, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
 
 export default function UserDashboard() {
   const router = useRouter();
