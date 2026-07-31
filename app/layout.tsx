@@ -24,6 +24,8 @@ export const metadata: Metadata = {
 import { ConsentManager } from "@/components/ConsentManager";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
+import { AffiliateTracker } from "@/components/AffiliateTracker";
+import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -39,6 +41,9 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <ConsentManager />
+          <Suspense fallback={null}>
+            <AffiliateTracker />
+          </Suspense>
           <Toaster position="top-right" />
         </AuthProvider>
       </body>

@@ -42,6 +42,21 @@ export default async function AdminPage() {
     .select('*')
     .order('created_at', { ascending: false });
 
+  const { data: affiliates } = await supabaseAdmin
+    .from('affiliates')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const { data: affiliateClicks } = await supabaseAdmin
+    .from('affiliate_clicks')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const { data: affiliateConversions } = await supabaseAdmin
+    .from('affiliate_conversions')
+    .select('*')
+    .order('created_at', { ascending: false });
+
   return (
     <AdminDashboard 
       candidates={candidates || []} 
@@ -52,6 +67,9 @@ export default async function AdminPage() {
       recruiters={recruiters || []}
       blogPosts={blogPosts || []}
       tickets={tickets || []}
+      affiliates={affiliates || []}
+      affiliateClicks={affiliateClicks || []}
+      affiliateConversions={affiliateConversions || []}
     />
   );
 }

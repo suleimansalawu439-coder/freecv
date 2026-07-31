@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar, Building2, HelpCircle } from 'lucide-react';
+import { Users, BarChart, Settings, LogOut, Monitor, Smartphone, Tablet, Search, Moon, Sun, FileJson, FileSpreadsheet, FileText, LayoutDashboard, Calendar, Building2, HelpCircle, Share2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import DOMPurify from 'isomorphic-dompurify';
 import BlogManager from './BlogManager';
 import SupportManager from './SupportManager';
 import RecruiterManager from './RecruiterManager';
+import AffiliateManager from './AffiliateManager';
 import toast from 'react-hot-toast';
 
 function cn(...inputs: ClassValue[]) {
@@ -43,8 +44,8 @@ const COUNTRY_FLAGS: Record<string, string> = {
 };
 function getFlag(country: string): string { return COUNTRY_FLAGS[country] || '🌍'; }
 
-export default function AdminDashboard({ candidates, analytics, aiLogs, siteSettings, featureFlags, recruiters, blogPosts, tickets }: any) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'recruiters' | 'blog' | 'support' | 'settings'>('dashboard');
+export default function AdminDashboard({ candidates, analytics, aiLogs, siteSettings, featureFlags, recruiters, blogPosts, tickets, affiliates, affiliateClicks, affiliateConversions }: any) {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'talent_pool' | 'recruiters' | 'blog' | 'support' | 'settings' | 'affiliates'>('dashboard');
   const [timeframe, setTimeframe] = useState<'24h'|'7d'|'14d'|'30d'|'6m'|'1y'|'all'>('30d');
   const [stats, setStats] = useState<StatsData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -254,6 +255,7 @@ export default function AdminDashboard({ candidates, analytics, aiLogs, siteSett
     { key: 'analytics', label: 'Analytics', icon: BarChart },
     { key: 'talent_pool', label: 'Talent Pool', icon: Users },
     { key: 'recruiters', label: 'Recruiters', icon: Building2 },
+    { key: 'affiliates', label: 'Affiliates', icon: Share2 },
     { key: 'blog', label: 'Blog CMS', icon: FileText },
     { key: 'support', label: 'Helpdesk', icon: HelpCircle },
     { key: 'settings', label: 'Settings', icon: Settings }
@@ -853,6 +855,15 @@ export default function AdminDashboard({ candidates, analytics, aiLogs, siteSett
 
             {activeTab === 'support' && (
               <SupportManager tickets={tickets} isDarkMode={isDarkMode} />
+            )}
+            
+            {activeTab === 'affiliates' && (
+              <AffiliateManager 
+                affiliates={affiliates} 
+                affiliateClicks={affiliateClicks} 
+                affiliateConversions={affiliateConversions} 
+                isDarkMode={isDarkMode} 
+              />
             )}
 
             {activeTab === 'settings' && (
