@@ -103,10 +103,7 @@ export default function LandingGallery() {
               <div className="p-2" style={{ border: "1px solid var(--gold)" }}>
                 <div className="overflow-hidden bg-white" style={{ width: 248, height: 321 }}>
                   <div className="origin-top-left" style={{ width: 816, transform: "scale(0.304)", ["--theme-color" as any]: "#E2B45C" }}>
-                    {(() => {
-                      const Elegant = (templates as any).Elegant;
-                      return <Elegant data={SAMPLE} />;
-                    })()}
+                    <img src="/thumbnails/Elegant.png" alt="Elegant Template" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>

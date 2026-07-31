@@ -153,10 +153,7 @@ export default function LandingRiso() {
                 <div className="absolute -left-2 -top-3 z-20 h-9 w-16 rotate-[-18deg] rounded-[3px] border-2 border-[#141312]/40 bg-[#c9c9c9]" />
                 <div className="h-full w-full overflow-hidden">
                   <div className="origin-top-left" style={{ width: 816, transform: "scale(0.284)", ["--theme-color" as any]: "#FF4326" }}>
-                    {(() => {
-                      const SwissDesign = (templates as any).SwissDesign;
-                      return <SwissDesign data={SAMPLE} />;
-                    })()}
+                    <img src="/thumbnails/SwissDesign.png" alt="SwissDesign Template" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>
