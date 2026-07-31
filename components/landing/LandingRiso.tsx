@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Sparkles, Check, Star, MoveRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
+import { templates as htmlTemplates } from "@/components/html_templates";
 import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "next/font/google";
 
 const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
@@ -52,12 +53,16 @@ function Reveal({ children, delay = 0, className = "" }: any) {
   }, []);
   return <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
+
+// LIVE template miniature (renders the real template component, scaled — not an image)
 function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: number }) {
+  const Tmpl = (htmlTemplates as any)[k] || (htmlTemplates as any).Executive;
   return (
     <div className="relative overflow-hidden bg-white" style={{ width: 192, height: 250 }}>
       <div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}>
-        <img src={`/thumbnails/${k}.webp`} alt={`${k} Template`} className="w-full h-full object-cover" />
+        <Tmpl data={SAMPLE} themeColor={color} />
       </div>
+      <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/5" />
     </div>
   );
 }
@@ -69,13 +74,10 @@ import { useSearchParams } from "next/navigation";
 
 export default function LandingRiso() {
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
-  
-  // Trackers
+
   const searchParams = useSearchParams();
   useEffect(() => {
-    trackEvent('landing_started', undefined, {
-      source: searchParams.get('source') || 'direct'
-    });
+    trackEvent('landing_started', undefined, { source: searchParams.get('source') || 'direct' });
   }, [searchParams]);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -83,6 +85,9 @@ export default function LandingRiso() {
     const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
     setTilt({ rx: +(-py * 7).toFixed(2), ry: +(px * 9).toFixed(2) });
   };
+
+  const HeroTmpl = (htmlTemplates as any).SwissDesign || (htmlTemplates as any).Executive;
+
   return (
     <div className={cn("cv-riso relative min-h-screen overflow-x-hidden text-[#141312]", body.className, display.className, head.className, mono.className)}
       style={{ background: "#E8E7E1", ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
@@ -147,14 +152,14 @@ export default function LandingRiso() {
             </div>
           </div>
 
-          {/* HERO OBJECT */}
+          {/* HERO OBJECT — live template render */}
           <div className="relative lg:col-span-5" onMouseMove={onMove} onMouseLeave={() => setTilt({ rx: 0, ry: 0 })} style={{ perspective: 1100 }}>
             <div className="relative mx-auto w-fit" style={{ transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`, transition: "transform .25s ease-out" }}>
               <div className="relative border-[3px] border-[#141312] bg-white hs" style={{ width: 232, height: 302 }}>
                 <div className="absolute -left-2 -top-3 z-20 h-9 w-16 rotate-[-18deg] rounded-[3px] border-2 border-[#141312]/40 bg-[#c9c9c9]" />
                 <div className="h-full w-full overflow-hidden">
                   <div className="origin-top-left" style={{ width: 816, transform: "scale(0.284)", ["--theme-color" as any]: "#FF4326" }}>
-                    <img src="/thumbnails/SwissDesign.webp" alt="SwissDesign Template" className="w-full h-full object-cover" />
+                    <HeroTmpl data={SAMPLE} themeColor="#FF4326" />
                   </div>
                 </div>
               </div>
@@ -220,7 +225,7 @@ export default function LandingRiso() {
           </Reveal>
         </section>
 
-        {/* PLATES / TEMPLATES */}
+        {/* PLATES / TEMPLATES — live miniatures */}
         <section id="plates" className="scroll-mt-24 border-b-[3px] border-[#141312] py-16 lg:py-24">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div><div className="fm mb-3 text-[11px] font-bold uppercase tracking-[0.25em] text-[#FF4326]">the specimens</div><h2 className="fd text-4xl leading-[0.95] tracking-tight sm:text-6xl">Eighteen plates.<br />Pick yours.</h2></div>
@@ -230,7 +235,7 @@ export default function LandingRiso() {
             {GALLERY.map(([k, n], i) => (
               <Reveal key={k} delay={i * 60} className="shrink-0">
                 <div className="group border-[3px] border-[#141312] bg-white hs transition-all hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none">
-                  <div className="relative border-b-[3px] border-[#141312] bg-[#E8E7E1] p-3"><span className="fm absolute right-3 top-3 text-[10px] font-bold">{String(i + 1).padStart(2, "0")}</span><Mini k={k} color="#FF4326" /></div>
+                  <div className="relative border-b-[3px] border-[#141312] bg-[#E8E7E1] p-3"><span className="fm absolute right-3 top-3 z-10 text-[10px] font-bold">{String(i + 1).padStart(2, "0")}</span><Mini k={k} color="#FF4326" /></div>
                   <div className="flex items-center justify-between px-4 py-3 fm text-[10px] font-bold uppercase tracking-[0.16em]"><span>{n}</span><ArrowUpRight size={14} className="text-[#FF4326] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" /></div>
                 </div>
               </Reveal>
