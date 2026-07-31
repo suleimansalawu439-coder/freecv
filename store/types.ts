@@ -91,7 +91,7 @@ export interface ResumeData {
     analytics: boolean;
   };
   customSections: CustomSection[];
-  atsRecommendations?: unknown;
+  atsRecommendations?: any;
 }
 
 export interface ResumeSlice {
@@ -145,7 +145,7 @@ export interface UISlice {
   toggleProjects: () => void;
   toggleCertifications: () => void;
   toggleReferences: () => void;
-  setAtsRecommendations: (recs: unknown) => void;
+  setAtsRecommendations: (recs: any) => void;
 }
 
 export interface SyncSlice {
