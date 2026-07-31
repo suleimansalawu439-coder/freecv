@@ -1,120 +1,336 @@
 import React from 'react';
-import { ResumeData } from '@/store/useResumeStore';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { ResumeData } from '@/lib/store';
 
-export default function SwissGrid({ data }: { data: ResumeData }) {
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 36,
+    backgroundColor: '#f4f4f4',
+    color: '#1a1a1a',
+    fontFamily: 'Helvetica',
+  },
+  topBorder: {
+    height: 12,
+    marginTop: -36,
+    marginHorizontal: -36,
+    marginBottom: 24,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  name: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    letterSpacing: -1,
+    marginBottom: 4,
+    color: '#1a1a1a',
+  },
+  jobTitle: {
+    fontSize: 14,
+    fontWeight: 'medium',
+    color: '#6b7280',
+  },
+  mainGrid: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  leftCol: {
+    width: '33%',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  rightCol: {
+    width: '67%',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  section: {
+    marginBottom: 4,
+  },
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#000000',
+    paddingBottom: 2,
+  },
+  contactList: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  contactItem: {
+    fontSize: 9,
+    fontWeight: 'medium',
+    color: '#1a1a1a',
+  },
+  eduList: {
+    flexDirection: 'column',
+    gap: 10,
+  },
+  eduItem: {
+    flexDirection: 'column',
+  },
+  eduDegree: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  eduSchool: {
+    fontSize: 9,
+    color: '#4b5563',
+  },
+  eduYear: {
+    fontSize: 8,
+    color: '#9ca3af',
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  skillBadge: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  summaryText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    fontWeight: 'medium',
+    color: '#1a1a1a',
+  },
+  expList: {
+    flexDirection: 'column',
+    gap: 14,
+  },
+  expItem: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  expDateCol: {
+    width: '25%',
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    paddingTop: 1,
+  },
+  expContentCol: {
+    width: '75%',
+  },
+  expRole: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  expCompany: {
+    fontSize: 9,
+    fontWeight: 'medium',
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  expDesc: {
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: '#374151',
+  },
+  refGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  refCard: {
+    width: '48%',
+    borderLeftWidth: 2,
+    paddingLeft: 8,
+  },
+  refName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  refTitle: {
+    fontSize: 8,
+    color: '#4b5563',
+    fontWeight: 'medium',
+    marginBottom: 2,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  customSectionItem: {
+    marginBottom: 8,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  customTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  customSubtitle: {
+    fontSize: 9,
+    fontStyle: 'italic',
+    color: '#4b5563',
+  },
+  customDate: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  customDesc: {
+    fontSize: 8.5,
+    lineHeight: 1.4,
+    color: '#374151',
+    marginTop: 2,
+  },
+});
+
+export default function SwissGrid({ data }: TemplateProps) {
+  const themeColor = data.themeColor || '#000000';
+
   return (
-    <div className="font-sans p-16 bg-[#f4f4f4] text-[#1a1a1a] min-h-[1056px] w-full max-w-[816px] mx-auto border-t-[20px] border-[var(--theme-color)]">
-      <div className="grid grid-cols-12 gap-6 h-full">
-        <header className="col-span-12 mb-12">
-          <h1 className="text-7xl font-bold tracking-tighter leading-none mb-2">{data.personalInfo.fullName}</h1>
-          <p className="text-2xl font-medium text-gray-500">{data.personalInfo.jobTitle}</p>
-        </header>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={[styles.topBorder, { backgroundColor: themeColor }]} />
 
-        <div className="col-span-4 space-y-12 pr-6">
-          <section>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Contact</h2>
-            <ul className="space-y-2 text-sm font-medium">
-              <li>{data.personalInfo.email}</li>
-              <li>{data.personalInfo.phone}</li>
-              <li>{data.personalInfo.location}</li>
-            </ul>
-          </section>
+        <View style={styles.header}>
+          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+        </View>
 
-          {data.education.length > 0 && (
-            <section>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Education</h2>
-              <div className="space-y-4">
-                {data.education.map(edu => (
-                  <div key={edu.id}>
-                    <div className="font-bold text-sm">{edu.degree}</div>
-                    <div className="text-sm text-gray-600">{edu.school}</div>
-                    <div className="text-xs text-gray-400 font-bold mt-1">{edu.graduationYear}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+        <View style={styles.mainGrid}>
+          {/* Left Column */}
+          <View style={styles.leftCol}>
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColor }]}>Contact</Text>
+              <View style={styles.contactList}>
+                {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
+                {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
+                {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
+              </View>
+            </View>
 
-          {data.skills.length > 0 && (
-            <section>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Expertise</h2>
-              <div className="flex flex-wrap gap-2">
-                {data.skills.map(skill => (
-                  <span key={skill.id} className="text-xs font-bold bg-white border border-gray-300 px-2 py-1">{skill.name}</span>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        <div className="col-span-8 space-y-12">
-          {data.summary && (
-            <section>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Profile</h2>
-              <p className="text-lg leading-relaxed font-medium">{data.summary}</p>
-            </section>
-          )}
-
-          {data.experience.length > 0 && (
-            <section>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Experience</h2>
-              <div className="space-y-8">
-                {data.experience.map(exp => (
-                  <div key={exp.id} className="grid grid-cols-4 gap-4">
-                    <div className="col-span-1 text-xs font-bold text-gray-500 pt-1">{exp.startDate}<br/>{exp.endDate}</div>
-                    <div className="col-span-3">
-                      <h3 className="font-bold text-xl leading-tight mb-1">{exp.role}</h3>
-                      <div className="text-sm font-medium text-gray-500 mb-3">{exp.company}</div>
-                      <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line">{exp.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <section className="mt-8 break-inside-avoid">
-            <h2 className="text-xl font-bold uppercase tracking-widest mb-4 opacity-80" style={{ color: 'var(--theme-color)' }}>References</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {data.references.map(ref => (
-                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
-                  <h3 className="font-bold text-lg">{ref.name}</h3>
-                  <div className="text-sm opacity-80 font-medium mb-1">{ref.title} @ {ref.company}</div>
-                  <div className="text-sm opacity-70 flex flex-col gap-1">
-                    {ref.contact && <span>{ref.contact}</span>}
-                    
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}\n
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mb-6">
-                <h2 className="text-xl font-bold uppercase tracking-widest mb-4 opacity-80">{section.title}</h2>
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item.id} className="mb-2">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <p className="text-sm font-bold">{item.title}</p>
-                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
-                        </div>
-                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
-                      </div>
-                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
-                    </div>
+            {data.education && data.education.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
+                <View style={styles.eduList}>
+                  {data.education.map((edu) => (
+                    <View key={edu.id} style={styles.eduItem}>
+                      <Text style={styles.eduDegree}>{edu.degree}</Text>
+                      <Text style={styles.eduSchool}>{edu.school}</Text>
+                      {edu.graduationYear && <Text style={styles.eduYear}>{edu.graduationYear}</Text>}
+                    </View>
                   ))}
-                </div>
-              </div>
-            )
-          ))}
+                </View>
+              </View>
+            )}
 
-  
-</div>
-    </div>
+            {data.skills && data.skills.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Expertise</Text>
+                <View style={styles.skillsContainer}>
+                  {data.skills.map((skill) => (
+                    <Text key={skill.id} style={styles.skillBadge}>
+                      {skill.name}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Right Column */}
+          <View style={styles.rightCol}>
+            {data.summary && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Profile</Text>
+                <Text style={styles.summaryText}>{data.summary}</Text>
+              </View>
+            )}
+
+            {data.experience && data.experience.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
+                <View style={styles.expList}>
+                  {data.experience.map((exp) => (
+                    <View key={exp.id} style={styles.expItem}>
+                      <View style={styles.expDateCol}>
+                        <Text>{exp.startDate}</Text>
+                        <Text>{exp.endDate}</Text>
+                      </View>
+                      <View style={styles.expContentCol}>
+                        <Text style={styles.expRole}>{exp.role}</Text>
+                        <Text style={styles.expCompany}>{exp.company}</Text>
+                        {exp.description && <Text style={styles.expDesc}>{exp.description}</Text>}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.showReferences && data.references && data.references.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
+                <View style={styles.refGrid}>
+                  {data.references.map((ref) => (
+                    <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
+                      <Text style={styles.refName}>{ref.name}</Text>
+                      <Text style={styles.refTitle}>
+                        {ref.title} {ref.company ? `@ ${ref.company}` : ''}
+                      </Text>
+                      {ref.contact && <Text style={styles.refContact}>{ref.contact}</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.customSections &&
+              data.customSections.map(
+                (section) =>
+                  section.items &&
+                  section.items.length > 0 && (
+                    <View key={section.id} style={styles.section}>
+                      <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
+                      <View style={{ gap: 8 }}>
+                        {section.items.map((item) => (
+                          <View key={item.id} style={styles.customSectionItem}>
+                            <View style={styles.customHeader}>
+                              <View>
+                                <Text style={styles.customTitle}>{item.title}</Text>
+                                {item.subtitle && <Text style={styles.customSubtitle}>{item.subtitle}</Text>}
+                              </View>
+                              {item.date && <Text style={styles.customDate}>{item.date}</Text>}
+                            </View>
+                            {item.description && <Text style={styles.customDesc}>{item.description}</Text>}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )
+              )}
+          </View>
+        </View>
+      </Page>
+    </Document>
   );
 }

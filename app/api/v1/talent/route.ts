@@ -8,10 +8,16 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
 });
 
-// Create a new ratelimiter, that allows 100 requests per 1 minute
-const ratelimit = new Ratelimit({
+// Dynamic Rate Limiters
+const ratelimitPro = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(100, '1 m'),
+  limiter: Ratelimit.slidingWindow(50, '1 m'),
+  analytics: true,
+});
+
+const ratelimitBasic = new Ratelimit({
+  redis: redis,
+  limiter: Ratelimit.slidingWindow(10, '1 m'),
   analytics: true,
 });
 
@@ -24,9 +30,10 @@ export async function GET(req: Request) {
   const token = authHeader.split(' ')[1];
 
   // 1. Look up the API key in the database
+  // Note: Added 'tier' to subscriptions assuming we'll have it or can fallback
   const { data: recruiter, error: authError } = await supabaseAdmin
     .from('recruiters')
-    .select('id, api_calls_count, subscriptions(status)')
+    .select('id, api_calls_count, subscriptions(status, tier)')
     .eq('api_key', token)
     .single();
 
@@ -40,18 +47,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Active subscription required to access the B2B API.' }, { status: 403 });
   }
 
-  // 3. Rate Limiting via Upstash
+  const tier = activeSub.tier?.toLowerCase() === 'pro' ? 'pro' : 'basic';
+
+  // 3. Dynamic Rate Limiting via Upstash
   if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    const { success, limit, reset, remaining } = await ratelimit.limit(recruiter.id);
+    const limiter = tier === 'pro' ? ratelimitPro : ratelimitBasic;
+    const { success, limit, reset, remaining } = await limiter.limit(recruiter.id);
+    
     if (!success) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Try again later.' },
+        { error: 'Rate limit exceeded for your subscription tier. Try again later or upgrade.' },
         { 
           status: 429,
           headers: {
             'X-RateLimit-Limit': limit.toString(),
             'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': reset.toString()
+            'X-RateLimit-Reset': reset.toString(),
+            'X-Subscription-Tier': tier
           }
         }
       );
@@ -64,7 +76,7 @@ export async function GET(req: Request) {
     const queryStr = url.searchParams.get('query');
     const country = url.searchParams.get('country');
     const limit = parseInt(url.searchParams.get('limit') || '20');
-    const maxLimit = Math.min(limit, 100);
+    const maxLimit = Math.min(limit, tier === 'pro' ? 100 : 20); // enforce limit based on tier
 
     let query = supabaseAdmin
       .from('candidate_profiles')
@@ -87,7 +99,7 @@ export async function GET(req: Request) {
 
     // 5. Increment API Call Count asynchronously (don't block the response)
     supabaseAdmin.rpc('increment_api_calls', { row_id: recruiter.id }).catch((e: any) => {
-      // fallback if RPC doesn't exist, just use update
+      // fallback if RPC doesn't exist
       supabaseAdmin
         .from('recruiters')
         .update({ api_calls_count: (recruiter.api_calls_count || 0) + 1 })
@@ -98,12 +110,13 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       meta: {
-        total_returned: data.length,
-        timestamp: new Date().toISOString()
+        results: data.length,
+        tier,
       },
-      data: data
+      data
     });
-  } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  } catch (error: any) {
+    console.error('API error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

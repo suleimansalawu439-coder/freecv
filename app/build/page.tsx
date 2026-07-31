@@ -52,6 +52,12 @@ import { ImportResume } from '@/components/builder/ImportResume';
 import { CoverLetterTab } from '@/components/builder/CoverLetterTab';
 import { AuthModal } from '@/components/builder/AuthModal';
 
+import dynamic from 'next/dynamic';
+import { JobsModal } from '@/components/builder/JobsModal';
+const PDFPreview = dynamic(() => import('@/components/builder/PDFPreview'), { ssr: false });
+const PDFDownloadButton = dynamic(() => import('@/components/builder/PDFDownloadButton'), { ssr: false });
+
+
 // --- Utility ---
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -145,6 +151,7 @@ export default function FreeCVApp() {
   const [polishingExpId, setPolishingExpId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
 
   // Dark Mode
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -1259,9 +1266,13 @@ export default function FreeCVApp() {
             <button onClick={() => setMobileZoom(!mobileZoom)} className="flex-1 bg-gray-100 text-black py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 transition-colors active:bg-gray-200">
               {mobileZoom ? <ZoomOut size={16} /> : <ZoomIn size={16} />} Zoom
             </button>
-            <button onClick={() => setIsDownloadModalOpen(true)} className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:scale-95 transition-transform">
-              <Download size={16} /> Download
-            </button>
+            <PDFDownloadButton 
+     TemplateComponent={SelectedTemplate} 
+     data={data} 
+     themeColor={data.theme?.color || '#2563eb'}
+     onDownloadComplete={() => setIsJobsModalOpen(true)}
+     className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:scale-95 transition-transform" 
+   />
           </div>
         )}
 
@@ -1283,7 +1294,7 @@ export default function FreeCVApp() {
               '--theme-color': data.theme?.color || '#2563eb'
             } as React.CSSProperties}
           >
-            <SelectedTemplate data={data} />
+            <PDFPreview TemplateComponent={SelectedTemplate} data={data} themeColor={data.theme?.color || '#2563eb'} />
           </div>
         </div>
 
@@ -1320,12 +1331,7 @@ export default function FreeCVApp() {
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '300px 400px' }}
                   >
                     <div className="aspect-[8.5/11] bg-[#e5e7eb] w-full relative overflow-hidden flex justify-center pointer-events-none">
-                      <div 
-                        className="origin-top transform scale-[0.16] sm:scale-[0.20] md:scale-[0.22] lg:scale-[0.25] xl:scale-[0.22] 2xl:scale-[0.25] w-[816px] bg-white absolute top-0 shadow-xl"
-                        style={{ '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
-                      >
-                        <Tmpl data={data} />
-                      </div>
+                      <div className="flex items-center justify-center w-full h-full text-gray-400 font-bold uppercase tracking-widest text-xs">Preview Not Available</div>
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                     </div>
                     {isActive && (
@@ -1445,6 +1451,8 @@ export default function FreeCVApp() {
       )}
 
       {/* AI REWRITER MODAL */}
+      <JobsModal isOpen={isJobsModalOpen} onClose={() => setIsJobsModalOpen(false)} />
+
       {isRewriterOpen && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
           <div className="min-h-screen px-4 flex items-center justify-center py-10">

@@ -1,150 +1,429 @@
 import React from 'react';
-import { ResumeData } from '@/store/useResumeStore';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { ResumeData } from '@/lib/store';
 
-export default function ModernGradient({ data }: { data: ResumeData }) {
-  const c = data.theme.color || '#4f46e5';
-  
-  // Create a gradient based on the selected color
-  // In a real app we'd compute this, but here we just use the selected color and a slightly lighter version for the gradient effect
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 30,
+    fontFamily: 'Helvetica',
+    fontSize: 10,
+    color: '#374151',
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    marginRight: 16,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  avatarFallback: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarFallbackText: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  jobTitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  summaryCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+  },
+  summaryText: {
+    fontSize: 9.5,
+    lineHeight: 1.4,
+    color: '#374151',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  sectionIconText: {
+    color: '#ffffff',
+    fontSize: 10,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  experienceSection: {
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  role: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  company: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  dateBadge: {
+    fontSize: 8,
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    fontWeight: 'bold',
+  },
+  bulletList: {
+    marginTop: 4,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 10,
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 8.5,
+    color: '#4b5563',
+    lineHeight: 1.3,
+  },
+  twoColumnLayout: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  column: {
+    flex: 1,
+  },
+  skillCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+  },
+  skillName: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  skillTrack: {
+    height: 5,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  skillBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  eduDegree: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  eduSchool: {
+    fontSize: 8.5,
+    color: '#4b5563',
+  },
+  eduDate: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 2,
+  },
+  itemTitle: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  itemSubtitle: {
+    fontSize: 8.5,
+    color: '#4b5563',
+    marginBottom: 4,
+  },
+  itemDescription: {
+    fontSize: 8.5,
+    color: '#374151',
+    lineHeight: 1.3,
+  },
+  contactCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+  },
+  contactRow: {
+    fontSize: 8.5,
+    marginBottom: 4,
+  },
+  contactLabel: {
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  contactValue: {
+    color: '#4b5563',
+  },
+});
+
+export default function ModernGradient({ data }: TemplateProps) {
+  const c = data.theme?.color || '#4f46e5';
+
+  const initials = data.personalInfo.fullName
+    ? data.personalInfo.fullName.split(' ').map((n) => n[0]).join('')
+    : '';
+
   return (
-    <div className="w-[8.5in] min-h-[11in] bg-white p-[0.75in] font-sans mx-auto shadow-xl print:shadow-none print:border-none border border-gray-200">
-      <div className="rounded-3xl p-10 text-white mb-10 shadow-xl" style={{ background: `linear-gradient(135deg, ${c}, ${c}CC)` }}>
-        <div className="flex items-center gap-6">
-          {data.personalInfo.profilePicture ? (
-            <img src={data.personalInfo.profilePicture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-white/30 shadow-lg" />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl font-bold">
-              {data.personalInfo.fullName.split(' ').map(n => n[0]).join('')}
-            </div>
-          )}
-          <div>
-            <h1 className="text-4xl font-bold mb-2">{data.personalInfo.fullName}</h1>
-            <p className="text-lg text-white/90">{data.personalInfo.jobTitle}</p>
-          </div>
-        </div>
-      </div>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: c }]}>
+          <View style={styles.avatarContainer}>
+            {data.personalInfo.profilePicture ? (
+              <Image src={data.personalInfo.profilePicture} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarFallbackText}>{initials}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+            <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          </View>
+        </View>
 
-      {data.summary && (
-        <div className="bg-gray-50 rounded-2xl p-6 mb-10 shadow-sm border-l-4" style={{ borderColor: c }}>
-          <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
-        </div>
-      )}
+        {/* Summary */}
+        {data.summary ? (
+          <View style={[styles.summaryCard, { borderLeftColor: c }]}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        ) : null}
 
-      <div className="grid grid-cols-2 gap-8 mb-10">
-        <div className="col-span-2">
-          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
-              💼
-            </span>
-            Work Experience
-          </h2>
-          <div className="space-y-6">
+        {/* Experience Section (Full Width) */}
+        {data.experience && data.experience.length > 0 && (
+          <View style={styles.experienceSection}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                <Text style={styles.sectionIconText}>💼</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Work Experience</Text>
+            </View>
+
             {data.experience.map((exp) => (
-              <div key={exp.id} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-bold text-gray-900">{exp.role}</h3>
-                    <p className="text-sm font-medium" style={{ color: c }}>{exp.company}</p>
-                  </div>
-                  <span className="text-xs bg-gray-100 px-3 py-1 rounded-full font-medium" style={{ color: c }}>
+              <View key={exp.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View>
+                    <Text style={styles.role}>{exp.role}</Text>
+                    <Text style={[styles.company, { color: c }]}>{exp.company}</Text>
+                  </View>
+                  <Text style={[styles.dateBadge, { color: c }]}>
                     {exp.startDate} - {exp.endDate}
-                  </span>
-                </div>
-                <ul className="space-y-2">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, j) => (
-                    <li key={j} className="text-sm text-gray-600 flex gap-3">
-                      <span className="mt-1" style={{ color: c }}>•</span>
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                  </Text>
+                </View>
+                <View style={styles.bulletList}>
+                  {exp.description
+                    .split('\n')
+                    .filter((l) => l.trim())
+                    .map((line, j) => (
+                      <View key={j} style={styles.bulletRow}>
+                        <Text style={[styles.bulletDot, { color: c }]}>•</Text>
+                        <Text style={styles.bulletText}>{line.trim()}</Text>
+                      </View>
+                    ))}
+                </View>
+              </View>
             ))}
-          </div>
-        </div>
-      </div>
+          </View>
+        )}
 
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
-            <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
-              🛠
-            </span>
-            Skills
-          </h2>
-          <div className="space-y-3">
-            {data.skills.map((s, i) => (
-              <div key={s.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-gray-900">{s.name}</span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full opacity-80"
-                    style={{ width: `${Math.max(50, 80 + (i % 3) * 7)}%`, backgroundColor: c }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
-                🎓
-              </span>
-              Education
-            </h2>
-            {data.education.map(edu => (
-              <div key={edu.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-4">
-                <p className="font-bold text-gray-900 mb-1">{edu.degree}</p>
-                <p className="text-sm text-gray-600">{edu.school}</p>
-                <p className="text-xs font-medium mt-2" style={{ color: c }}>{edu.graduationYear}</p>
-              </div>
-            ))}
-          </div>
-
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id}>
-                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
-                    ✨
-                  </span>
-                  {section.title}
-                </h2>
-                {section.items.map(item => (
-                  <div key={item.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-4">
-                    <div className="flex justify-between items-baseline mb-1">
-                      <p className="font-bold text-gray-900">{item.title}</p>
-                      {item.date && <p className="text-xs font-medium" style={{ color: c }}>{item.date}</p>}
-                    </div>
-                    {item.subtitle && <p className="text-sm text-gray-600 mb-2">{item.subtitle}</p>}
-                    {item.description && <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.description}</p>}
-                  </div>
+        {/* Two-Column Grid: Left (Skills) & Right (Education, Custom, Contact) */}
+        <View style={styles.twoColumnLayout}>
+          {/* Left Column */}
+          <View style={styles.column}>
+            {data.skills && data.skills.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                    <Text style={styles.sectionIconText}>🛠</Text>
+                  </View>
+                  <Text style={styles.sectionTitle}>Skills</Text>
+                </View>
+                {data.skills.map((s, i) => (
+                  <View key={s.id} style={styles.skillCard}>
+                    <Text style={styles.skillName}>{s.name}</Text>
+                    <View style={styles.skillTrack}>
+                      <View
+                        style={[
+                          styles.skillBar,
+                          {
+                            width: `${Math.max(50, 80 + (i % 3) * 7)}%`,
+                            backgroundColor: c,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
                 ))}
-              </div>
-            )
-          ))}
+              </View>
+            )}
+          </View>
 
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ backgroundColor: c }}>
-                📬
-              </span>
-              Contact
-            </h2>
-            <div className="bg-gray-50 rounded-2xl p-5 space-y-3">
-              {data.personalInfo.email && <p className="text-sm"><span className="font-bold text-gray-700">Email:</span> <span className="text-gray-600">{data.personalInfo.email}</span></p>}
-              {data.personalInfo.phone && <p className="text-sm"><span className="font-bold text-gray-700">Phone:</span> <span className="text-gray-600">{data.personalInfo.phone}</span></p>}
-              {data.personalInfo.location && <p className="text-sm"><span className="font-bold text-gray-700">Location:</span> <span className="text-gray-600">{data.personalInfo.location}</span></p>}
-              {data.personalInfo.website && <p className="text-sm"><span className="font-bold text-gray-700">Website:</span> <span className="text-gray-600">{data.personalInfo.website}</span></p>}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          {/* Right Column */}
+          <View style={styles.column}>
+            {/* Education */}
+            {data.education && data.education.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                    <Text style={styles.sectionIconText}>🎓</Text>
+                  </View>
+                  <Text style={styles.sectionTitle}>Education</Text>
+                </View>
+                {data.education.map((edu) => (
+                  <View key={edu.id} style={styles.card}>
+                    <Text style={styles.eduDegree}>{edu.degree}</Text>
+                    <Text style={styles.eduSchool}>{edu.school}</Text>
+                    <Text style={[styles.eduDate, { color: c }]}>{edu.graduationYear}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Custom Sections */}
+            {data.customSections &&
+              data.customSections.map(
+                (section) =>
+                  section.items &&
+                  section.items.length > 0 && (
+                    <View key={section.id} style={{ marginBottom: 16 }}>
+                      <View style={styles.sectionHeader}>
+                        <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                          <Text style={styles.sectionIconText}>✨</Text>
+                        </View>
+                        <Text style={styles.sectionTitle}>{section.title}</Text>
+                      </View>
+                      {section.items.map((item) => (
+                        <View key={item.id} style={styles.card}>
+                          <View style={styles.itemHeader}>
+                            <Text style={styles.itemTitle}>{item.title}</Text>
+                            {item.date && (
+                              <Text style={[styles.eduDate, { color: c }]}>{item.date}</Text>
+                            )}
+                          </View>
+                          {item.subtitle && (
+                            <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                          )}
+                          {item.description && (
+                            <Text style={styles.itemDescription}>{item.description}</Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )
+              )}
+
+            {/* Contact */}
+            <View>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                  <Text style={styles.sectionIconText}>📬</Text>
+                </View>
+                <Text style={styles.sectionTitle}>Contact</Text>
+              </View>
+              <View style={styles.contactCard}>
+                {data.personalInfo.email && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Email: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.email}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.phone && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Phone: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.phone}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.location && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Location: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.location}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.website && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Website: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.website}</Text>
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
   );
 }

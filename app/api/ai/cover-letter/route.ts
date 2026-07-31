@@ -1,50 +1,61 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rate-limit';
 import { generateContentWithRetry } from '@/lib/ai-retry';
+import { trackEvent } from '@/lib/analytics';
+import { Redis } from '@upstash/redis';
 
-export const runtime = 'edge';
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
 
 export async function POST(req: Request) {
-  const rateLimitResponse = await checkRateLimit(req);
-  if (rateLimitResponse) return rateLimitResponse;
-
   try {
-    const { resumeData, jobDescription, tone } = await req.json();
-
-    if (!resumeData || !jobDescription) {
-      return NextResponse.json({ error: 'Missing resume data or job description.' }, { status: 400 });
-    }
-
-    const prompt = `
-Candidate Resume Summary & Experience:
-${resumeData.summary}
-${resumeData.experience.map((e: any) => `- ${e.role} at ${e.company} (${e.startDate} - ${e.endDate})\n  ${e.description}`).join('\n')}
-
-Target Job Description:
-${jobDescription}
-
-Tone: ${tone || 'Professional'}
-
-Rules:
-1. Do NOT include placeholder bracketed text like [Date] or [Hiring Manager Name] or [Your Address]. Assume standard email format where the body is the main content.
-2. Structure it in 3-4 paragraphs: Hook/Intro, Body (matching skills to the JD), and Call to Action/Outro.
-3. Keep it concise, engaging, and highly specific to the provided experience.
-4. Output ONLY the raw text of the cover letter. No markdown formatting, no conversational filler.
-    `;
+    // 1. Rate Limiting (Strict 5 per hour per IP)
+    const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
+    const rateLimitKey = `ratelimit:coverletter:${ip}`;
+    const requests = await redis.incr(rateLimitKey);
     
-    const systemInstruction = "You are an expert career coach and executive resume writer. Write a highly-tailored, professional, and compelling cover letter for the candidate based on their resume data and the target job description.";
-
-    const result = await generateContentWithRetry(prompt, systemInstruction, 1500, false, [], 'cover_letter');
-
-    if (!result) {
-      throw new Error("No response from AI");
+    if (requests === 1) {
+      await redis.expire(rateLimitKey, 3600);
+    }
+    
+    if (requests > 5) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again in an hour.' },
+        { status: 429 }
+      );
     }
 
-    return NextResponse.json({ text: result });
+    // 2. Parse Request
+    const { jobDescription, resumeText, tone = 'professional' } = await req.json();
+
+    if (!jobDescription || !resumeText) {
+      return NextResponse.json(
+        { error: 'Job description and resume text are required' },
+        { status: 400 }
+      );
+    }
+
+    // 3. AI Prompt
+    const systemPrompt = `You are an elite executive career coach and expert copywriter.
+Write a highly compelling, tailored cover letter based on the provided Resume and Job Description.
+The tone should be ${tone}.
+Return a JSON object with a single field 'coverLetter' containing the full string. Use \\n for paragraphs.
+Do NOT include generic placeholders like [Company Name] if it's in the text.`;
+
+    const userPrompt = `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME:\n${resumeText}`;
+
+    // 4. Generate
+    const result = await generateContentWithRetry(userPrompt, systemPrompt, 1500, true, [], 'cover_letter');
+
+    // 5. Analytics
+    trackEvent('cover_letter_generated', tone);
+
+    return NextResponse.json({ coverLetter: result.coverLetter || result.text || result });
   } catch (error: any) {
-    console.error('Cover Letter API Error:', error);
+    console.error('Cover Letter AI Error:', error);
     return NextResponse.json(
-      { error: error.message || 'An error occurred generating the cover letter.' },
+      { error: 'Failed to generate cover letter. Please try again.' },
       { status: 500 }
     );
   }

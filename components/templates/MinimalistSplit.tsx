@@ -1,125 +1,372 @@
 import React from 'react';
-import { ResumeData } from '@/store/useResumeStore';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/lib/store';
+
+const PRIMARY_COLOR = '#2563EB';
+const SIDEBAR_BG = '#1E293B';
+
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+  },
+  sidebar: {
+    width: '35%',
+    backgroundColor: SIDEBAR_BG,
+    padding: 24,
+    color: '#FFFFFF',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  sidebarMain: {
+    flexDirection: 'column',
+  },
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    lineHeight: 1.1,
+  },
+  jobTitle: {
+    fontSize: 10,
+    color: '#E2E8F0',
+    marginBottom: 20,
+  },
+  contactGroup: {
+    marginBottom: 20,
+    gap: 6,
+  },
+  contactItem: {
+    fontSize: 8.5,
+    color: '#E2E8F0',
+  },
+  sidebarSectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  skillsList: {
+    flexDirection: 'column',
+    gap: 6,
+  },
+  skillCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  skillText: {
+    fontSize: 8.5,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    width: '65%',
+    padding: 24,
+    flexDirection: 'column',
+  },
+  section: {
+    marginBottom: 18,
+  },
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  summaryText: {
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: '#374151',
+  },
+  experienceItem: {
+    marginBottom: 12,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 2,
+  },
+  roleTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  dateText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+  },
+  companyName: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: PRIMARY_COLOR,
+    marginBottom: 4,
+  },
+  bulletList: {
+    marginTop: 4,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 10,
+    fontSize: 8,
+    color: '#4B5563',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 8.5,
+    lineHeight: 1.4,
+    color: '#4B5563',
+  },
+  educationItem: {
+    marginBottom: 8,
+  },
+  degreeText: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  schoolText: {
+    fontSize: 8.5,
+    color: '#4B5563',
+  },
+  gradYearText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
+  refGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  refCard: {
+    width: '48%',
+    borderLeftWidth: 2,
+    borderLeftColor: PRIMARY_COLOR,
+    paddingLeft: 8,
+    marginBottom: 8,
+  },
+  refName: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  refTitle: {
+    fontSize: 8,
+    color: '#4B5563',
+    marginBottom: 2,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#6B7280',
+  },
+  customItem: {
+    marginBottom: 8,
+  },
+  customTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  customSubtitle: {
+    fontSize: 8.5,
+    fontStyle: 'italic',
+    color: '#4B5563',
+  },
+  customDescription: {
+    fontSize: 8.5,
+    color: '#4B5563',
+    marginTop: 2,
+    lineHeight: 1.4,
+  },
+});
 
 export default function MinimalistSplit({ data }: { data: ResumeData }) {
+  const initial = data.personalInfo.fullName?.charAt(0) || '';
+
   return (
-    <div className="font-sans flex bg-white text-gray-900 min-h-[1056px] w-full max-w-[816px] mx-auto shadow-sm">
-      <div className="w-[35%] p-10 flex flex-col justify-between" style={{ backgroundColor: 'var(--theme-color)' }}>
-        <div className="text-white space-y-10">
-          <div>
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-6">
-              <span className="text-2xl font-black">{data.personalInfo.fullName?.charAt(0)}</span>
-            </div>
-            <h1 className="text-3xl font-black tracking-tight leading-tight mb-2">{data.personalInfo.fullName}</h1>
-            <p className="text-sm font-medium opacity-90">{data.personalInfo.jobTitle}</p>
-          </div>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Left Sidebar */}
+        <View style={styles.sidebar}>
+          <View style={styles.sidebarMain}>
+            <View>
+              {initial ? (
+                <View style={styles.avatarContainer}>
+                  <Text style={styles.avatarText}>{initial}</Text>
+                </View>
+              ) : null}
+              {data.personalInfo.fullName ? (
+                <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+              ) : null}
+              {data.personalInfo.jobTitle ? (
+                <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+              ) : null}
+            </View>
 
-          <div className="space-y-3 text-sm opacity-90 font-medium">
-            {data.personalInfo.email && <div>{data.personalInfo.email}</div>}
-            {data.personalInfo.phone && <div>{data.personalInfo.phone}</div>}
-            {data.personalInfo.location && <div>{data.personalInfo.location}</div>}
-            {data.personalInfo.website && <div>{data.personalInfo.website}</div>}
-          </div>
+            <View style={styles.contactGroup}>
+              {data.personalInfo.email ? (
+                <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
+              ) : null}
+              {data.personalInfo.phone ? (
+                <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>
+              ) : null}
+              {data.personalInfo.location ? (
+                <Text style={styles.contactItem}>{data.personalInfo.location}</Text>
+              ) : null}
+              {data.personalInfo.website ? (
+                <Link style={styles.contactItem} src={data.personalInfo.website}>
+                  {data.personalInfo.website}
+                </Link>
+              ) : null}
+            </View>
 
-          {data.skills.length > 0 && (
-            <div>
-              <h2 className="text-xs font-black uppercase tracking-widest mb-4 opacity-70">Skills</h2>
-              <div className="flex flex-col gap-2 text-sm font-bold">
-                {data.skills.map(skill => (
-                  <div key={skill.id} className="bg-white/10 px-3 py-2 rounded-lg">{skill.name}</div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="w-[65%] p-10 space-y-10">
-        {data.summary && (
-          <section>
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Profile</h2>
-            <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
-          </section>
-        )}
-
-        {data.experience.length > 0 && (
-          <section>
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Experience</h2>
-            <div className="space-y-8">
-              {data.experience.map(exp => (
-                <div key={exp.id}>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <h3 className="font-bold text-gray-900">{exp.role}</h3>
-                    <span className="text-xs font-bold text-gray-400">{exp.startDate} - {exp.endDate}</span>
-                  </div>
-                  <div className="text-sm font-medium" style={{ color: 'var(--theme-color)' }}>{exp.company}</div>
-                  <ul className="mt-3 list-disc list-outside ml-4 space-y-1 text-sm text-gray-600">
-                    {exp.description.split('\n').filter(Boolean).map((line, i) => (
-                      <li key={i}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {data.education.length > 0 && (
-          <section>
-            <h2 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-6">Education</h2>
-            <div className="space-y-4">
-              {data.education.map(edu => (
-                <div key={edu.id}>
-                  <h3 className="font-bold text-gray-900 text-sm">{edu.degree}</h3>
-                  <div className="text-sm text-gray-600">{edu.school}</div>
-                  <div className="text-xs font-bold text-gray-400 mt-1">{edu.graduationYear}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <section className="mt-8 break-inside-avoid">
-            <h2 className="text-xl font-bold uppercase tracking-widest mb-4 opacity-80" style={{ color: 'var(--theme-color)' }}>References</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {data.references.map(ref => (
-                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
-                  <h3 className="font-bold text-lg">{ref.name}</h3>
-                  <div className="text-sm opacity-80 font-medium mb-1">{ref.title} @ {ref.company}</div>
-                  <div className="text-sm opacity-70 flex flex-col gap-1">
-                    {ref.contact && <span>{ref.contact}</span>}
-                    
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}\n
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mb-6">
-                <h2 className="text-xl font-bold uppercase tracking-widest mb-4 opacity-80">{section.title}</h2>
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item.id} className="mb-2">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <p className="text-sm font-bold">{item.title}</p>
-                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
-                        </div>
-                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
-                      </div>
-                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
-                    </div>
+            {data.skills && data.skills.length > 0 && (
+              <View>
+                <Text style={styles.sidebarSectionTitle}>Skills</Text>
+                <View style={styles.skillsList}>
+                  {data.skills.map((skill) => (
+                    <View key={skill.id} style={styles.skillCard}>
+                      <Text style={styles.skillText}>{skill.name}</Text>
+                    </View>
                   ))}
-                </div>
-              </div>
-            )
-          ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
 
-  
-</div>
-    </div>
+        {/* Right Main Content */}
+        <View style={styles.mainContent}>
+          {data.summary ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Profile</Text>
+              <Text style={styles.summaryText}>{data.summary}</Text>
+            </View>
+          ) : null}
+
+          {data.experience && data.experience.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Experience</Text>
+              {data.experience.map((exp) => (
+                <View key={exp.id} style={styles.experienceItem}>
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={styles.roleTitle}>{exp.role}</Text>
+                    <Text style={styles.dateText}>
+                      {exp.startDate} - {exp.endDate}
+                    </Text>
+                  </View>
+                  <Text style={styles.companyName}>{exp.company}</Text>
+                  {exp.description ? (
+                    <View style={styles.bulletList}>
+                      {exp.description
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, i) => (
+                          <View key={i} style={styles.bulletRow}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{line}</Text>
+                          </View>
+                        ))}
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {data.education && data.education.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Education</Text>
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.educationItem}>
+                  <Text style={styles.degreeText}>{edu.degree}</Text>
+                  <Text style={styles.schoolText}>{edu.school}</Text>
+                  {edu.graduationYear ? (
+                    <Text style={styles.gradYearText}>{edu.graduationYear}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {data.showReferences && data.references && data.references.length > 0 && (
+            <View style={styles.section} wrap={false}>
+              <Text style={styles.sectionTitle}>References</Text>
+              <View style={styles.refGrid}>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={styles.refCard}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refTitle}>
+                      {ref.title} @ {ref.company}
+                    </Text>
+                    {ref.contact ? (
+                      <Text style={styles.refContact}>{ref.contact}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {data.customSections &&
+            data.customSections.length > 0 &&
+            data.customSections.map((section) =>
+              section.items && section.items.length > 0 ? (
+                <View key={section.id} style={styles.section}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  {section.items.map((item) => (
+                    <View key={item.id} style={styles.customItem}>
+                      <View style={styles.itemHeaderRow}>
+                        <View>
+                          <Text style={styles.customTitle}>{item.title}</Text>
+                          {item.subtitle ? (
+                            <Text style={styles.customSubtitle}>{item.subtitle}</Text>
+                          ) : null}
+                        </View>
+                        {item.date ? (
+                          <Text style={styles.dateText}>{item.date}</Text>
+                        ) : null}
+                      </View>
+                      {item.description ? (
+                        <Text style={styles.customDescription}>{item.description}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ) : null
+            )}
+        </View>
+      </Page>
+    </Document>
   );
 }

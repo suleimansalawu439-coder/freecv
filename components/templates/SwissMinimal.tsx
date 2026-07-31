@@ -1,124 +1,388 @@
 import React from 'react';
-import { ResumeData } from '@/store/useResumeStore';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/lib/store';
 
-export default function SwissMinimal({ data }: { data: ResumeData }) {
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 54,
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+    color: '#111827',
+  },
+  header: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 24,
+    marginBottom: 24,
+  },
+  fullName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+    color: '#111827',
+    lineHeight: 1.0,
+  },
+  jobTitle: {
+    fontSize: 10,
+    fontWeight: 'medium',
+    color: '#9CA3AF',
+    letterSpacing: 0.5,
+    marginTop: 6,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 10,
+  },
+  contactItem: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: '#9CA3AF',
+  },
+  summary: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: '#4B5563',
+    borderLeftWidth: 2,
+    borderLeftColor: '#E5E7EB',
+    paddingLeft: 16,
+    marginBottom: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    color: '#D1D5DB',
+    marginBottom: 14,
+  },
+  experienceItem: {
+    marginBottom: 16,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  role: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  date: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#9CA3AF',
+  },
+  company: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#9CA3AF',
+    marginBottom: 6,
+  },
+  bulletList: {
+    marginTop: 2,
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 8,
+    fontSize: 9,
+    color: '#D1D5DB',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 9,
+    color: '#4B5563',
+    lineHeight: 1.4,
+  },
+  gridTwoCol: {
+    flexDirection: 'row',
+    gap: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 24,
+  },
+  col: {
+    flex: 1,
+  },
+  eduItem: {
+    marginBottom: 10,
+  },
+  eduDegree: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  eduSub: {
+    fontSize: 8,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  skillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  skillTag: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#6B7280',
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  dividerSection: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 24,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  card: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 10,
+    borderRadius: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  cardTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  cardLink: {
+    fontSize: 7.5,
+    color: '#9CA3AF',
+  },
+  cardDesc: {
+    fontSize: 8.5,
+    color: '#4B5563',
+    lineHeight: 1.3,
+  },
+  refCard: {
+    width: '48%',
+    marginBottom: 8,
+  },
+  refName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  refTitle: {
+    fontSize: 8.5,
+    color: '#6B7280',
+    marginTop: 1,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
+  customItem: {
+    marginBottom: 10,
+  },
+  customSubtitle: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    color: '#4B5563',
+  },
+  customDesc: {
+    fontSize: 9.5,
+    color: '#4B5563',
+    marginTop: 2,
+    lineHeight: 1.4,
+  },
+});
+
+export default function SwissMinimal({ data }: TemplateProps) {
   return (
-    <div className="bg-white text-gray-900 font-sans w-[8.5in] min-h-[11in] shadow-lg print:shadow-none p-[0.75in] flex flex-col mx-auto print:border-none border border-gray-200">
-      <div className="border-b border-gray-200 pb-8 mb-8">
-        <h1 className="text-[42px] font-black tracking-tight leading-[0.9] uppercase">{data.personalInfo.fullName}</h1>
-        <p className="text-sm font-medium text-gray-400 tracking-wide mt-2">{data.personalInfo.jobTitle}</p>
-        <div className="flex flex-wrap gap-4 text-[9px] font-bold uppercase tracking-[0.15em] text-gray-400 mt-3">
-          {data.personalInfo.email && <span>{data.personalInfo.email}</span>}
-          {data.personalInfo.phone && <span>{data.personalInfo.phone}</span>}
-          {data.personalInfo.location && <span>{data.personalInfo.location}</span>}
-          {data.personalInfo.website && <span>{data.personalInfo.website}</span>}
-        </div>
-      </div>
-      
-      {data.summary && <p className="text-[13px] leading-relaxed text-gray-600 border-l-2 border-gray-200 pl-5 mb-8">{data.summary}</p>}
-      
-      {data.experience.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-5">Experience</h2>
-          <div className="space-y-6">
-            {data.experience.map(exp => (
-              <div key={exp.id}>
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-sm font-bold">{exp.role}</h3>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">{exp.startDate} – {exp.endDate}</span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">{exp.company}</p>
-                <ul className="space-y-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
-                    <li key={i} className="text-[12px] text-gray-600 leading-relaxed flex gap-2">
-                      <span className="w-1 h-1 rounded-full bg-gray-300 mt-1.5 shrink-0" />{l}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
+          {data.personalInfo.jobTitle ? (
+            <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          ) : null}
+          <View style={styles.contactRow}>
+            {data.personalInfo.email ? (
+              <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
+            ) : null}
+            {data.personalInfo.phone ? (
+              <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>
+            ) : null}
+            {data.personalInfo.location ? (
+              <Text style={styles.contactItem}>{data.personalInfo.location}</Text>
+            ) : null}
+            {data.personalInfo.website ? (
+              <Text style={styles.contactItem}>{data.personalInfo.website}</Text>
+            ) : null}
+          </View>
+        </View>
+
+        {data.summary ? (
+          <Text style={styles.summary}>{data.summary}</Text>
+        ) : null}
+
+        {data.experience && data.experience.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Experience</Text>
+            {data.experience.map((exp) => (
+              <View key={exp.id} style={styles.experienceItem}>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.role}>{exp.role}</Text>
+                  <Text style={styles.date}>
+                    {exp.startDate} – {exp.endDate}
+                  </Text>
+                </View>
+                <Text style={styles.company}>{exp.company}</Text>
+                {exp.description ? (
+                  <View style={styles.bulletList}>
+                    {exp.description
+                      .split('\n')
+                      .filter((l) => l.trim())
+                      .map((line, i) => (
+                        <View key={i} style={styles.bulletItem}>
+                          <Text style={styles.bulletDot}>•</Text>
+                          <Text style={styles.bulletText}>{line}</Text>
+                        </View>
+                      ))}
+                  </View>
+                ) : null}
+              </View>
             ))}
-          </div>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-2 gap-12 border-t border-gray-200 pt-8">
-        {data.education.length > 0 && (
-          <div>
-            <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-4">Education</h2>
-            {data.education.map(edu => (
-              <div key={edu.id} className="mb-3">
-                <p className="text-sm font-bold">{edu.degree}</p>
-                <p className="text-[10px] text-gray-400">{edu.school}, {edu.graduationYear}</p>
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {data.skills.length > 0 && (
-          <div>
-            <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-4">Skills</h2>
-            <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-              {data.skills.map(s => (
-                <span key={s.id} className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{s.name}</span>
+          </View>
+        ) : null}
+
+        <View style={styles.gridTwoCol}>
+          {data.education && data.education.length > 0 ? (
+            <View style={styles.col}>
+              <Text style={styles.sectionHeader}>Education</Text>
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.eduItem}>
+                  <Text style={styles.eduDegree}>{edu.degree}</Text>
+                  <Text style={styles.eduSub}>
+                    {edu.school}, {edu.graduationYear}
+                  </Text>
+                </View>
               ))}
-            </div>
-          </div>
-        )}
-      </div>
+            </View>
+          ) : null}
 
-      {data.showProjects && data.projects && data.projects.length > 0 && (
-        <div className="mt-8 border-t border-gray-200 pt-8">
-          <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-5">Projects</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {data.projects.map(proj => (
-              <div key={proj.id} className="border border-gray-200 p-3 rounded">
-                <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-sm font-bold">{proj.name}</h3>
-                  {proj.link && <span className="text-[9px] text-gray-400">{proj.link}</span>}
-                </div>
-                <p className="text-xs text-gray-600">{proj.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      {data.showReferences && data.references && data.references.length > 0 && (
-        <div className="mt-8 border-t border-gray-200 pt-8">
-          <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-5">References</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {data.references.map(ref => (
-              <div key={ref.id} className="mb-2">
-                <p className="text-sm font-bold">{ref.name}</p>
-                <p className="text-xs text-gray-500">{ref.title} @ {ref.company}</p>
-                <p className="text-xs text-gray-400">{ref.contact}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}\n
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mt-8 border-t border-gray-200 pt-8">
-                <h2 className="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-300 mb-5">{section.title}</h2>
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item.id} className="mb-2">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <p className="text-sm font-bold">{item.title}</p>
-                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
-                        </div>
-                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
-                      </div>
-                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {data.skills && data.skills.length > 0 ? (
+            <View style={styles.col}>
+              <Text style={styles.sectionHeader}>Skills</Text>
+              <View style={styles.skillsWrap}>
+                {data.skills.map((s) => (
+                  <Text key={s.id} style={styles.skillTag}>
+                    {s.name}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
+        </View>
+
+        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          <View style={styles.dividerSection}>
+            <Text style={styles.sectionHeader}>Projects</Text>
+            <View style={styles.cardsGrid}>
+              {data.projects.map((proj) => (
+                <View key={proj.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{proj.name}</Text>
+                    {proj.link ? (
+                      <Text style={styles.cardLink}>{proj.link}</Text>
+                    ) : null}
+                  </View>
+                  {proj.description ? (
+                    <Text style={styles.cardDesc}>{proj.description}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {data.showReferences && data.references && data.references.length > 0 ? (
+          <View style={styles.dividerSection}>
+            <Text style={styles.sectionHeader}>References</Text>
+            <View style={styles.cardsGrid}>
+              {data.references.map((ref) => (
+                <View key={ref.id} style={styles.refCard}>
+                  <Text style={styles.refName}>{ref.name}</Text>
+                  <Text style={styles.refTitle}>
+                    {ref.title} @ {ref.company}
+                  </Text>
+                  <Text style={styles.refContact}>{ref.contact}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {data.customSections && data.customSections.length > 0
+          ? data.customSections.map((section) =>
+              section.items && section.items.length > 0 ? (
+                <View key={section.id} style={styles.dividerSection}>
+                  <Text style={styles.sectionHeader}>{section.title}</Text>
+                  <View>
+                    {section.items.map((item) => (
+                      <View key={item.id} style={styles.customItem}>
+                        <View style={styles.rowBetween}>
+                          <View>
+                            <Text style={styles.role}>{item.title}</Text>
+                            {item.subtitle ? (
+                              <Text style={styles.customSubtitle}>
+                                {item.subtitle}
+                              </Text>
+                            ) : null}
+                          </View>
+                          {item.date ? (
+                            <Text style={styles.date}>{item.date}</Text>
+                          ) : null}
+                        </View>
+                        {item.description ? (
+                          <Text style={styles.customDesc}>
+                            {item.description}
+                          </Text>
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null
             )
-          ))}
-
-    </div>
+          : null}
+      </Page>
+    </Document>
   );
 }
