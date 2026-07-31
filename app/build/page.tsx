@@ -850,7 +850,7 @@ export default function FreeCVApp() {
                 </div>
                 <button
                   onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}
-                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.consents.recruiterShare ? 'bg-blue-600' : (bg-gray-300))}
+                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.consents.recruiterShare ? 'bg-blue-600' : 'bg-gray-300')}
                 >
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-7' : 'translate-x-1')} />
                 </button>
