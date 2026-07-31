@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Extract IP for tracking
-    const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     
     // Extract country/location if not provided by client
     const geoLoc = location || req.headers.get("x-vercel-ip-country") || "Unknown";
