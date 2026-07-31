@@ -8,9 +8,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
     description: "Create a beautiful, ATS-friendly resume without hidden fees. Instant PDF download, no sign up required.",
-    url: "https://cvyon.example.com",
+    url: "https://cvyon.com",
     siteName: "Cvyon",
     type: "website",
+    images: [{ url: "https://cvyon.com/og-image.png", width: 1200, height: 630, alt: "Cvyon — free AI résumé builder" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cvyon | Premium, ATS-Friendly Resume Builder",
+    description: "Create a beautiful, ATS-friendly resume without hidden fees.",
+    images: ["https://cvyon.com/og-image.png"],
   },
 };
 

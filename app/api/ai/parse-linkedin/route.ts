@@ -8,7 +8,6 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const pdf = require('pdf-parse');
     const formData = await req.formData();
     const file = formData.get('file') as File;
     
@@ -16,26 +15,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Extract text from PDF
-    const pdfData = await pdf(buffer);
-    const textContent = pdfData.text;
-
-    if (!textContent || textContent.length < 50) {
-      return NextResponse.json({ error: 'Failed to extract text from PDF or PDF is empty.' }, { status: 400 });
-    }
+    const base64Data = Buffer.from(arrayBuffer).toString('base64');
 
     const prompt = `
-      You are an expert resume parser. I am providing you with the raw text extracted from a LinkedIn Profile PDF.
+      You are an expert resume parser. I am providing you with a LinkedIn Profile PDF.
       Your job is to extract the person's professional details and format them into a strict JSON object that matches our application's state.
-
-      Here is the raw text from the LinkedIn PDF:
-      ---
-      ${textContent.substring(0, 30000)}
-      ---
 
       Return ONLY a valid JSON object with the following structure (do not include markdown block formatting, just raw JSON).
       
@@ -78,7 +63,15 @@ export async function POST(req: NextRequest) {
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.6-flash',
-      contents: prompt,
+      contents: [
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: 'application/pdf'
+          }
+        },
+        prompt
+      ],
     });
 
     let rawJson = response.text || "{}";

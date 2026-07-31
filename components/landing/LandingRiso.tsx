@@ -63,8 +63,20 @@ function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: n
 
 const TICKER = ["NO PAYWALL", "NO WATERMARK", "NO SIGN‑UP TO DOWNLOAD", "RECRUITERS FUND IT — NOT YOU", "18 TEMPLATES", "AI ATS GRADER /100", "PDF + DOCX"];
 
+import { trackEvent } from "@/lib/analytics";
+import { useSearchParams } from "next/navigation";
+
 export default function LandingRiso() {
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
+  
+  // Trackers
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    trackEvent('landing_started', undefined, {
+      source: searchParams.get('source') || 'direct'
+    });
+  }, [searchParams]);
+
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5, py = (e.clientY - r.top) / r.height - 0.5;
@@ -98,14 +110,14 @@ export default function LandingRiso() {
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b-[3px] border-[#141312] bg-[#E8E7E1]/95 backdrop-blur-0">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 lg:px-8">
-          <Link href="/landing-a" className="flex items-baseline gap-2">
+          <Link href="/" className="flex items-baseline gap-2">
             <span className="fd text-2xl leading-none tracking-tight">CVYON</span>
             <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 sm:inline">® free forever</span>
           </Link>
           <nav className="hidden items-center gap-7 fm text-[11px] font-bold uppercase tracking-[0.18em] md:flex">
             <a href="#funding" className="ul">Funding</a><a href="#grader" className="ul">Grader</a><a href="#plates" className="ul">Templates</a><a href="#start" className="ul">Start</a>
           </nav>
-          <Link href="/" className="group flex items-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-4 py-2.5 fm text-[11px] font-bold uppercase tracking-[0.18em] text-[#E8E7E1] hs transition-all hover:bg-[#FF4326] hover:border-[#FF4326]">
+          <Link href="/build" className="group flex items-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-4 py-2.5 fm text-[11px] font-bold uppercase tracking-[0.18em] text-[#E8E7E1] hs transition-all hover:bg-[#FF4326] hover:border-[#FF4326]">
             Build free <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
@@ -126,7 +138,7 @@ export default function LandingRiso() {
               A free AI builder that scores you against any job description — the exact thing others charge $30 a month for. No paywall. No watermark. No account to download.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/" className="group flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Build my résumé <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+              <Link href="/build" className="group flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Build my résumé <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
               <a href="#grader" className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">See the grader</a>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 fm text-[10px] font-bold uppercase tracking-[0.16em]">
@@ -206,7 +218,7 @@ export default function LandingRiso() {
                 <li key={t} className="flex gap-4 border-t-2 border-[#141312]/15 pt-4"><span className="mt-1 grid h-6 w-6 shrink-0 place-items-center border-2 border-[#141312] bg-[#141312] text-[#E8E7E1]"><Check size={14} /></span><div><div className="fh text-lg font-extrabold">{t}</div><div className="text-sm text-[#141312]/60">{d}</div></div></li>
               ))}
             </ul>
-            <Link href="/" className="mt-8 inline-flex w-fit items-center gap-2 border-[3px] border-[#141312] bg-[#2233FF] px-6 py-3.5 fh text-sm font-extrabold uppercase tracking-wider text-white hs-c transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Try the grader <ArrowUpRight size={16} /></Link>
+            <Link href="/ats-grader" className="mt-8 inline-flex w-fit items-center gap-2 border-[3px] border-[#141312] bg-[#2233FF] px-6 py-3.5 fh text-sm font-extrabold uppercase tracking-wider text-white hs-c transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Try the grader <ArrowUpRight size={16} /></Link>
           </Reveal>
         </section>
 
@@ -261,7 +273,7 @@ export default function LandingRiso() {
             <div className="fm mb-5 text-[11px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]">last page</div>
             <h2 className="fd max-w-2xl text-5xl leading-[0.92] tracking-tight sm:text-7xl">Stop paying to be seen.</h2>
             <p className="mt-5 max-w-md text-[#E8E7E1]/65">Build, grade, and download a résumé that gets past the bots — free, in minutes.</p>
-            <Link href="/" className="group mt-9 inline-flex items-center gap-2 border-[3px] border-[#E8E7E1] bg-[#FF4326] px-8 py-4 fh text-sm font-extrabold uppercase tracking-wider text-white hs-v transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Start building free <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
+            <Link href="/build" className="group mt-9 inline-flex items-center gap-2 border-[3px] border-[#E8E7E1] bg-[#FF4326] px-8 py-4 fh text-sm font-extrabold uppercase tracking-wider text-white hs-v transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Start building free <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
           </div>
         </section>
       </main>
@@ -271,7 +283,7 @@ export default function LandingRiso() {
         <div className="mx-auto max-w-[1240px]">
           <div className="grid grid-cols-2 gap-8 border-b-2 border-[#141312] pb-10 md:grid-cols-4">
             {[["Product", ["Builder", "Templates", "ATS Grader", "Cover Letter"]], ["Company", ["Career Blog", "Recruiter Portal", "Why free"]], ["Legal", ["Privacy & GDPR", "Manage Data", "Terms"]], ["Connect", ["X / Twitter", "LinkedIn", "GitHub"]]].map(([h, items]) => (
-              <div key={h as string}><div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h}</div><ul className="space-y-2 text-sm">{(items as string[]).map((it) => (<li key={it}><a href="/" className="ul">{it}</a></li>))}</ul></div>
+              <div key={h as string}><div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h}</div><ul className="space-y-2 text-sm">{(items as string[]).map((it) => (<li key={it}><a href="/build" className="ul">{it}</a></li>))}</ul></div>
             ))}
           </div>
           <div className="flex flex-col items-start justify-between gap-4 pt-6 sm:flex-row sm:items-center">
@@ -284,7 +296,7 @@ export default function LandingRiso() {
 
       {/* MOBILE STICKY CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t-[3px] border-[#141312] bg-[#E8E7E1] p-3 md:hidden">
-        <Link href="/" className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] py-3.5 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1]">Build free <ArrowRight size={16} /></Link>
+        <Link href="/build" className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] py-3.5 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1]">Build free <ArrowRight size={16} /></Link>
       </div>
     </div>
   );
