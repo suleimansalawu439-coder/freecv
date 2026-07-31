@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 let lines = fs.readFileSync('app/page.tsx', 'utf8').split('\n');
 
 for (let i = 0; i < lines.length; i++) {

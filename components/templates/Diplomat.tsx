@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link, Image } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -229,6 +229,7 @@ export default function Diplomat({ data }: TemplateProps) {
         {/* Header */}
         <View style={[styles.header, { borderBottomColor: lightBorder }]}>
           {data.personalInfo.profilePicture && (
+            // eslint-disable-next-line jsx-a11y/alt-text
             <Image
               src={data.personalInfo.profilePicture}
               style={[styles.profilePic, { borderColor: c, borderWidth: 3 }]}

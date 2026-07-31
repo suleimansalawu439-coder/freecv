@@ -6,10 +6,9 @@ import { PDFViewer } from '@react-pdf/renderer';
 interface PDFPreviewProps {
   TemplateComponent: any;
   data: any;
-  themeColor: string;
 }
 
-export default function PDFPreview({ TemplateComponent, data, themeColor }: PDFPreviewProps) {
+export default function PDFPreview({ TemplateComponent, data }: PDFPreviewProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -20,7 +19,7 @@ export default function PDFPreview({ TemplateComponent, data, themeColor }: PDFP
 
   return (
     <PDFViewer style={{ width: '100%', height: '100%', border: 'none' }} showToolbar={false}>
-      <TemplateComponent data={data} themeColor={themeColor} />
+      <TemplateComponent data={data} />
     </PDFViewer>
   );
 }

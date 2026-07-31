@@ -48,7 +48,7 @@ export default async function PublicResumePage(props: Props) {
   }
 
   // Increment view count asynchronously
-  supabaseAdmin.rpc('increment_resume_views', { resume_handle: params.handle }).then().catch(() => {});
+  supabaseAdmin.rpc('increment_resume_views', { resume_handle: params.handle }).then(() => {});
 
   const resumeData = record.data;
 

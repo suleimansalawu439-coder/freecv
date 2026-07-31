@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
 });
 
 export default function SwissGrid({ data }: TemplateProps) {
-  const themeColor = data.themeColor || '#000000';
+  const themeColor = data.theme?.color || '#2563eb';
 
   return (
     <Document>

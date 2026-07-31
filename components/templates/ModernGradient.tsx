@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -243,6 +243,7 @@ export default function ModernGradient({ data }: TemplateProps) {
         <View style={[styles.header, { backgroundColor: c }]}>
           <View style={styles.avatarContainer}>
             {data.personalInfo.profilePicture ? (
+              // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={data.personalInfo.profilePicture} style={styles.avatar} />
             ) : (
               <View style={styles.avatarFallback}>

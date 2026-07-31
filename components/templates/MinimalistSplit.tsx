@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 const PRIMARY_COLOR = '#2563EB';
 const SIDEBAR_BG = '#1E293B';

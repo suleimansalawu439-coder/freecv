@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -9,7 +9,7 @@ interface TemplateProps {
 const DEFAULT_THEME_COLOR = '#2563eb';
 
 export default function Marketing({ data }: TemplateProps) {
-  const themeColor = data.themeColor || DEFAULT_THEME_COLOR;
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
 
   const dynamicStyles = {
     headerBorder: {

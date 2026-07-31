@@ -1321,7 +1321,7 @@ export default function FreeCVApp() {
               '--theme-color': data.theme?.color || '#2563eb'
             } as React.CSSProperties}
           >
-            <PDFPreview TemplateComponent={SelectedTemplate} data={data} themeColor={data.theme?.color || '#2563eb'} />
+            <PDFPreview TemplateComponent={SelectedTemplate} data={data} />
           </div>
         </div>
 

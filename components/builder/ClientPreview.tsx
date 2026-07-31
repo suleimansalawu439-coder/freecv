@@ -24,7 +24,7 @@ export default function ClientPreview() {
     // Generate PDF blob
     const generatePDF = async () => {
       try {
-        const blob = await pdf(<SelectedTemplate data={data} themeColor={data.theme?.color || '#2563eb'} />).toBlob();
+        const blob = await pdf(<SelectedTemplate data={data} />).toBlob();
         setUrl(URL.createObjectURL(blob));
       } catch (e: any) {
         console.error('PDF generation error:', e.message);

@@ -106,7 +106,7 @@ export async function POST(req: Request) {
 
     const parts = inlineData ? [inlineData, scoringPrompt] : [scoringPrompt];
 
-    let result;
+    let result: any;
     try {
       // In generateContentWithRetry, we might need to handle multipart arrays if it only accepts string,
       // but wait, generateContentWithRetry signature in my code expects `prompt: string` and `files?: any[]`.

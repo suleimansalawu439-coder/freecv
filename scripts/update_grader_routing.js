@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const graderPath = path.join(__dirname, 'app/ats-grader/ClientAtsGrader.tsx');
 let content = fs.readFileSync(graderPath, 'utf8');

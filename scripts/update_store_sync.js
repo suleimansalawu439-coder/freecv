@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const storePath = path.join(__dirname, 'store/useResumeStore.ts');
 let content = fs.readFileSync(storePath, 'utf8');

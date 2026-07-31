@@ -40,13 +40,13 @@ export async function POST(req: Request) {
     const systemPrompt = `You are an elite executive career coach and expert copywriter.
 Write a highly compelling, tailored cover letter based on the provided Resume and Job Description.
 The tone should be ${tone}.
-Return a JSON object with a single field 'coverLetter' containing the full string. Use \\n for paragraphs.
+Return a JSON object with a single field 'coverLetter' containing the full string. Use \n for paragraphs.
 Do NOT include generic placeholders like [Company Name] if it's in the text.`;
 
     const userPrompt = `JOB DESCRIPTION:\n${jobDescription}\n\nRESUME:\n${resumeText}`;
 
     // 4. Generate
-    const result = await generateContentWithRetry(userPrompt, systemPrompt, 1500, true, [], 'cover_letter');
+    let result: any = await generateContentWithRetry(userPrompt, systemPrompt, 1500, true, [], 'cover_letter');
 
     // 5. Analytics
     trackEvent('cover_letter_generated', tone);

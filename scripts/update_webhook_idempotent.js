@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const pagePath = path.join(__dirname, 'app/api/paystack/webhook/route.ts');
 let content = fs.readFileSync(pagePath, 'utf8');

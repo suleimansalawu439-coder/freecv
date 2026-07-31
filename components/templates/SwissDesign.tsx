@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -220,6 +220,7 @@ export default function SwissDesign({ data }: TemplateProps) {
               </View>
             </View>
             {data.personalInfo.profilePicture && (
+              // eslint-disable-next-line jsx-a11y/alt-text
               <Image src={data.personalInfo.profilePicture} style={styles.profileImage} />
             )}
           </View>

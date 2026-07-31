@@ -13,6 +13,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session) {
           syncToCloud();
         }
+      } else if (event === 'SIGNED_OUT') {
+        fetch('/api/admin/logout', { method: 'POST' }).catch(console.error);
       }
     });
 

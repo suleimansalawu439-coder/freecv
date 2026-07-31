@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 const styles = StyleSheet.create({
   page: {
@@ -193,6 +193,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           {data.personalInfo.profilePicture && (
+            // eslint-disable-next-line jsx-a11y/alt-text
             <Image
               src={data.personalInfo.profilePicture}
               style={[styles.profilePicture, { borderColor: c, borderWidth: 2 }]}

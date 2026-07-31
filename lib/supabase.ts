@@ -39,24 +39,26 @@ const mockClient = (table: string) => {
     }
   };
 
-  const chainable: any = {
+  const chainable: Record<string, unknown> = {
     eq: () => chainable,
     order: () => chainable,
     limit: () => chainable,
     single: () => ({
-      then: (resolve: any) => resolve({ data: getMockData()[0] || null, error: null })
+      then: (resolve: (val: { data: Record<string, unknown> | null, error: null }) => void) => resolve({ data: getMockData()[0] || null, error: null })
     }),
-    then: (resolve: any) => resolve({ data: getMockData(), error: null })
+    then: (resolve: (val: { data: Record<string, unknown>[], error: null }) => void) => resolve({ data: getMockData(), error: null }),
+    catch: (resolve: (err: unknown) => void) => resolve(null)
   };
 
   return {
-    insert: async (data: any) => {
+    insert: async (data: Record<string, unknown>) => {
       console.warn(`[Supabase Mock] Insert into ${table}:`, data);
       return { data: null, error: null };
     },
     select: () => chainable,
     update: () => chainable,
-    delete: () => chainable
+    delete: () => chainable,
+    rpc: async () => ({ data: null, error: null })
   };
 };
 
@@ -71,7 +73,7 @@ export const supabase = supabaseUrl && supabaseAnonKey
         signInWithOAuth: async () => ({ data: null, error: null }),
         signOut: async () => ({ error: null })
       }
-    } as any;
+    } as unknown as ReturnType<typeof createClient>;
 
 // Server-side admin client to bypass RLS
 export const supabaseAdmin = supabaseUrl && supabaseServiceKey
@@ -81,4 +83,4 @@ export const supabaseAdmin = supabaseUrl && supabaseServiceKey
         persistSession: false
       }
     })
-  : { from: mockClient } as any;
+  : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as ReturnType<typeof createClient>;

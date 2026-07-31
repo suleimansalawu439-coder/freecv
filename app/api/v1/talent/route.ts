@@ -98,13 +98,14 @@ export async function GET(req: Request) {
     }
 
     // 5. Increment API Call Count asynchronously (don't block the response)
-    supabaseAdmin.rpc('increment_api_calls', { row_id: recruiter.id }).catch((e: any) => {
-      // fallback if RPC doesn't exist
-      supabaseAdmin
-        .from('recruiters')
-        .update({ api_calls_count: (recruiter.api_calls_count || 0) + 1 })
-        .eq('id', recruiter.id)
-        .then();
+    supabaseAdmin.rpc('increment_api_calls', { row_id: recruiter.id }).then(({ error }: any) => {
+      if (error) {
+        supabaseAdmin
+          .from('recruiters')
+          .update({ api_calls_count: (recruiter.api_calls_count || 0) + 1 })
+          .eq('id', recruiter.id)
+          .then();
+      }
     });
 
     return NextResponse.json({

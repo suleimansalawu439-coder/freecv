@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const modalPath = path.join(__dirname, 'components/builder/JobsModal.tsx');
 let content = fs.readFileSync(modalPath, 'utf8');

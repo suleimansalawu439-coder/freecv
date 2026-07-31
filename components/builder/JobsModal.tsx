@@ -21,7 +21,7 @@ export function JobsModal({ isOpen, onClose }: JobsModalProps) {
       setLoading(true);
       const userSkills = data.skills.map(s => s.name).join(', ') || 'Software Engineer';
       const userTitle = data.personalInfo.jobTitle || 'Professional';
-      const userLocation = data.personalInfo.address || 'Remote';
+      const userLocation = data.personalInfo.location || 'Remote';
       
       // Actual API call to Affiliate Job Board
       fetch('/api/affiliate/jobs', {

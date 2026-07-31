@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
-import { ResumeData } from '@/lib/store';
+import { ResumeData } from '@/store/useResumeStore';
 
 interface TemplateProps {
   data: ResumeData;
@@ -332,7 +332,7 @@ export default function TechPro({ data }: TemplateProps) {
                   <View key={cert.id} style={styles.certItem}>
                     <Text style={styles.certName}>{cert.name}</Text>
                     <Text style={styles.certDetails}>
-                      {cert.issuer} // {cert.date}
+                      {cert.issuer} {'//'} {cert.date}
                     </Text>
                   </View>
                 ))}
@@ -347,7 +347,7 @@ export default function TechPro({ data }: TemplateProps) {
                   <View key={ref.id} style={styles.refItem}>
                     <Text style={styles.refName}>{ref.name}</Text>
                     <Text style={styles.refDetails}>
-                      {ref.title} at {ref.company} // {ref.contact}
+                      {ref.title} at {ref.company} {'//'} {ref.contact}
                     </Text>
                   </View>
                 ))}

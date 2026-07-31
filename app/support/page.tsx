@@ -45,7 +45,7 @@ export default function SupportPage() {
         event: 'UPDATE', 
         schema: 'public', 
         table: 'support_tickets' 
-      }, (payload) => {
+      }, (payload: any) => {
         // If it's one of our tickets, update the state
         if (savedIds.includes(payload.new.id)) {
           setTickets(prev => prev.map(t => t.id === payload.new.id ? payload.new : t));

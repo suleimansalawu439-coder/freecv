@@ -5,14 +5,26 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-export async function generateContentWithRetry(
+export interface MediaPart {
+  inlineData?: {
+    data: string;
+    mimeType: string;
+  };
+  fileData?: {
+    fileUri: string;
+    mimeType: string;
+  };
+  text?: string;
+}
+
+export async function generateContentWithRetry<T = unknown>(
   prompt: string, 
   systemInstruction: string = '', 
   maxTokens: number = 2000, 
   forceJson: boolean = true,
-  mediaParts: any[] = [],
+  mediaParts: MediaPart[] = [],
   endpointName: string = 'unknown'
-): Promise<any> {
+): Promise<T | string> {
   // 1. Check Circuit Breaker
   try {
     const { data: flag } = await supabaseAdmin
@@ -34,12 +46,12 @@ export async function generateContentWithRetry(
 
   while (attempt < maxRetries) {
     try {
-      const parts: any[] = [{ text: systemInstruction + '\n\n' + prompt }];
+      const parts: MediaPart[] = [{ text: systemInstruction + '\n\n' + prompt }];
       if (mediaParts.length > 0) parts.push(...mediaParts);
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',
-        contents: [{ role: 'user', parts }],
+        contents: [{ role: 'user', parts: parts as any }], // GenAI SDK internal type mismatch
         config: { 
           temperature: 0.1 + (attempt * 0.1),
           maxOutputTokens: maxTokens,
@@ -96,19 +108,20 @@ export async function generateContentWithRetry(
                .replace(/\\f/g, "\\f");
                
         // Remove trailing commas
-        text = text.replace(/,\\s*([}\\]])/g, '$1');
+        text = text.replace(/,\s*([}\]])/g, '$1');
 
-        return JSON.parse(text);
+        return JSON.parse(text) as T;
       }
 
       return text;
-    } catch (error: any) {
-      if (error.message.includes('AI generation is temporarily disabled')) {
+    } catch (error: unknown) {
+      const errMessage = error instanceof Error ? error.message : String(error);
+      if (errMessage.includes('AI generation is temporarily disabled')) {
         throw error;
       }
       
       attempt++;
-      console.warn(`AI Generation Attempt ${attempt} failed:`, error.message || error);
+      console.warn(`AI Generation Attempt ${attempt} failed:`, errMessage);
       
       if (attempt >= maxRetries) {
         throw new Error(forceJson ? 'Failed to generate valid JSON after 3 attempts' : 'AI generation failed after 3 attempts');
@@ -121,4 +134,6 @@ export async function generateContentWithRetry(
       }
     }
   }
+  
+  throw new Error('Unexpected end of generation loop');
 }

@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const { GoogleGenAI } = require('@google/genai');
+import fs from 'fs';
+import path from 'path';
+import { GoogleGenAI } from '@google/genai';
 const envData = fs.readFileSync(path.join(__dirname, '.env.local'), 'utf-8');
 const apiKeyLine = envData.split('\n').find(line => line.startsWith('GEMINI_API_KEY='));
 const GEMINI_API_KEY = apiKeyLine ? apiKeyLine.split('=')[1].trim() : '';
