@@ -91,7 +91,7 @@ const Textarea = ({ label, ...props }: any) => (
 const SectionHeader = ({ icon: Icon, title, description, onRemove }: any) => (
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6">
     <div className="flex items-center gap-4">
-      <div className="p-2.5 bg-[#141312] rounded-none text-[#E8E7E1] border-[3px] border-[#141312] hs-v shadow-black/10 w-fit shrink-0">
+      <div className="p-2.5 bg-[#141312] border-[3px] border-[#141312] rounded-none text-[#E8E7E1] border-[3px] border-[#141312] hs-v shadow-black/10 w-fit shrink-0">
         <Icon size={20} />
       </div>
       <div>
@@ -139,6 +139,40 @@ const HTMLThumbnail = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
   );
 };
 
+
+const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      // 816px is 8.5in at 96dpi
+      const newScale = Math.min(1.5, entries[0].contentRect.width / 816);
+      setScale(newScale);
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar">
+      <div 
+        className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c"
+        style={{ 
+          width: '816px', 
+          height: '1056px', 
+          transform: `scale(${scale})`, 
+          transformOrigin: 'top center',
+          marginBottom: `-${1056 * (1 - scale)}px`
+        }}
+      >
+        <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
+      </div>
+    </div>
+  );
+};
+
 // --- Main Page ---
 
 export default function FreeCVApp() {
@@ -181,11 +215,25 @@ export default function FreeCVApp() {
   const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
 
   // Dark Mode
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
+  
   // ATS Grader
   const [atsJobDesc, setAtsJobDesc] = useState('');
   const [atsResult, setAtsResult] = useState<any>(null);
+
+  // ATS Grader Auto-Open
+  useEffect(() => {
+    if (data.atsRecommendations) {
+      setIsATSOpen(true);
+      setAtsResult({
+        score: 0,
+        strengths: [],
+        weaknesses: [],
+        missingKeywords: data.atsRecommendations.missingKeywords || [],
+        tips: data.atsRecommendations.tips || []
+      });
+      useResumeStore.getState().setAtsRecommendations(null);
+    }
+  }, [data.atsRecommendations]);
   const [isATSLoading, setIsATSLoading] = useState(false);
 
   // AI Rewriter
@@ -344,9 +392,7 @@ export default function FreeCVApp() {
     setIsHydrated(true); 
     trackEvent('milestone_started');
     // Load dark mode preference
-    const savedDark = localStorage.getItem('cvyon-dark-mode');
-    if (savedDark === 'true') setIsDarkMode(true);
-  }, []);
+      }, []);
 
   useEffect(() => {
     if (!isHydrated || onboardingAppliedRef.current) return;
@@ -439,15 +485,6 @@ export default function FreeCVApp() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Toggle dark mode
-  const toggleDarkMode = useCallback(() => {
-    setIsDarkMode(prev => {
-      const next = !prev;
-      localStorage.setItem('cvyon-dark-mode', String(next));
-      return next;
-    });
   }, []);
 
   // ATS Grader handler
@@ -676,26 +713,23 @@ export default function FreeCVApp() {
   const SelectedTemplate = templates[data.templateId] || templates.Executive;
 
   return (
-    <main className={cn("flex flex-col lg:flex-row min-h-screen w-full font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", isDarkMode ? 'bg-gray-950 text-gray-100' : 'bg-[#FAFAFA] text-gray-900')}>
+    <main className={cn("flex flex-col lg:flex-row min-h-screen w-full font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", 'bg-[#E8E7E1] text-[#141312] cv-riso')}>
       
       {/* EDITOR PANEL */}
-      <section className={cn("w-full lg:w-[45%] border-r print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative", isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200')}>
+      <section className={cn("w-full lg:w-[45%] border-r print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative", 'bg-white border-r-[3px] border-[#141312]')}>
         <div className="max-w-xl mx-auto pb-24 lg:pb-0">
           
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
               <h1 className="text-2xl font-black tracking-tighter uppercase fd">Cvyon</h1>
-              <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mt-1", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Premium & Forever Free</p>
+              <p className={cn("text-[10px] font-bold uppercase tracking-[0.2em] mt-1", 'text-gray-400')}>Premium & Forever Free</p>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={() => useResumeStore.temporal.getState().undo()} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500')} title="Undo (Ctrl+Z)">
+              <button onClick={() => useResumeStore.temporal.getState().undo()} className={cn("p-2 rounded-lg transition-colors", 'hover:bg-gray-100 text-gray-500')} title="Undo (Ctrl+Z)">
                 <Undo2 size={16} />
               </button>
-              <button onClick={() => useResumeStore.temporal.getState().redo()} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500')} title="Redo (Ctrl+Y)">
+              <button onClick={() => useResumeStore.temporal.getState().redo()} className={cn("p-2 rounded-lg transition-colors", 'hover:bg-gray-100 text-gray-500')} title="Redo (Ctrl+Y)">
                 <Redo2 size={16} />
-              </button>
-              <button onClick={toggleDarkMode} className={cn("p-2 rounded-lg transition-colors", isDarkMode ? 'hover:bg-gray-800 text-yellow-400' : 'hover:bg-gray-100 text-gray-500')} title="Toggle Dark Mode">
-                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
               </button>
               <button 
                 onClick={handleDownload}
@@ -727,10 +761,10 @@ export default function FreeCVApp() {
 
           {/* AI Tools Bar */}
           <div className="flex flex-wrap gap-2 mb-8">
-            <button onClick={() => setIsATSOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", isDarkMode ? 'bg-emerald-950 text-emerald-300 border-emerald-800 hover:bg-emerald-900' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100')}>
+            <button onClick={() => setIsATSOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100')}>
               <BarChart3 size={14} /> ATS Grader
             </button>
-            <button onClick={() => setIsRewriterOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", isDarkMode ? 'bg-purple-950 text-purple-300 border-purple-800 hover:bg-purple-900' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100')}>
+            <button onClick={() => setIsRewriterOpen(true)} className={cn("flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border", 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100')}>
               <RefreshCw size={14} /> AI Rewriter
             </button>
           </div>
@@ -809,14 +843,14 @@ export default function FreeCVApp() {
               <Input label="Phone" value={data.personalInfo.phone} onChange={(e:any) => updatePersonalInfo({ phone: e.target.value })} />
               <Input label="Location" value={data.personalInfo.location} onChange={(e:any) => updatePersonalInfo({ location: e.target.value })} />
               <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e:any) => updatePersonalInfo({ website: e.target.value })} />
-              <div className={cn("col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 rounded-xl border", isDarkMode ? 'bg-blue-900/10 border-blue-900' : 'bg-blue-50 border-blue-100')}>
+              <div className={cn("col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 rounded-xl border", 'bg-blue-50 border-blue-100')}>
                 <div>
-                  <h4 className={cn("font-bold text-sm", isDarkMode ? 'text-blue-400' : 'text-blue-900')}>Make profile public</h4>
-                  <p className={cn("text-xs", isDarkMode ? 'text-blue-500' : 'text-blue-700')}>Allow recruiters to find your resume on Cvyon.</p>
+                  <h4 className={cn("font-bold text-sm", 'text-blue-900')}>Make profile public</h4>
+                  <p className={cn("text-xs", 'text-blue-700')}>Allow recruiters to find your resume on Cvyon.</p>
                 </div>
                 <button
                   onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}
-                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.consents.recruiterShare ? 'bg-blue-600' : (isDarkMode ? 'bg-gray-700' : 'bg-gray-300'))}
+                  className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0", data.consents.recruiterShare ? 'bg-blue-600' : (bg-gray-300))}
                 >
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-7' : 'translate-x-1')} />
                 </button>
@@ -836,13 +870,13 @@ export default function FreeCVApp() {
                       }
                     }}
                   />
-                  <div className={cn("w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all", isDarkMode ? 'border-gray-700 hover:border-blue-500 bg-gray-800/50' : 'border-gray-300 hover:border-blue-500 bg-gray-50')}>
+                  <div className={cn("w-24 h-24 rounded-full border-2 border-dashed flex flex-col items-center justify-center overflow-hidden transition-all", 'border-gray-300 hover:border-blue-500 bg-gray-50')}>
                     {data.personalInfo.profilePicture ? (
                       <img src={data.personalInfo.profilePicture} alt="Profile" className="w-full h-full object-cover" />
                     ) : (
                       <>
-                        <Upload size={24} className={isDarkMode ? 'text-gray-500 mb-1' : 'text-gray-400 mb-1'} />
-                        <span className={cn("text-[10px] font-bold uppercase tracking-wider text-center px-2", isDarkMode ? 'text-gray-500' : 'text-gray-400')}>Add Photo</span>
+                        <Upload size={24} className='text-gray-400 mb-1' />
+                        <span className={cn("text-[10px] font-bold uppercase tracking-wider text-center px-2", 'text-gray-400')}>Add Photo</span>
                       </>
                     )}
                   </div>
@@ -1055,7 +1089,7 @@ export default function FreeCVApp() {
             <button
               onClick={handleSuggestSkills}
               disabled={isLoadingSkills || !data.personalInfo.jobTitle}
-              className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all border disabled:opacity-40", isDarkMode ? 'bg-amber-950 text-amber-300 border-amber-800 hover:bg-amber-900' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100')}
+              className={cn("flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all border disabled:opacity-40", 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100')}
             >
               {isLoadingSkills ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
               {isLoadingSkills ? 'Finding skills...' : 'Suggest Skills with AI'}
@@ -1069,7 +1103,7 @@ export default function FreeCVApp() {
                       addSkill(skill);
                       setSuggestedSkills(prev => prev.filter(s => s !== skill));
                     }}
-                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border", isDarkMode ? 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-black')}
+                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border", 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-black')}
                   >
                     <Plus size={12} /> {skill}
                   </button>
@@ -1214,8 +1248,8 @@ export default function FreeCVApp() {
                                 <button onClick={() => removeCustomSectionItem(section.id, item.id)} className="text-gray-400 hover:text-red-500 transition-colors p-2 mt-6"><Trash2 size={16} /></button>
                               </div>
                               <div className="mt-3">
-                                <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Description</label>
-                                <textarea value={item.description} onChange={(e) => updateCustomSectionItem(section.id, item.id, { description: e.target.value })} className={cn("w-full rounded-xl border p-3 min-h-[80px] focus:ring-2 focus:ring-black focus:outline-none transition-all resize-y text-sm", isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200')} placeholder="Describe this item..." />
+                                <label className={cn("block text-xs font-bold uppercase tracking-widest mb-2", 'text-gray-500')}>Description</label>
+                                <textarea value={item.description} onChange={(e) => updateCustomSectionItem(section.id, item.id, { description: e.target.value })} className={cn("w-full rounded-xl border p-3 min-h-[80px] focus:ring-2 focus:ring-black focus:outline-none transition-all resize-y text-sm", 'bg-gray-50 border-gray-200')} placeholder="Describe this item..." />
                               </div>
                             </div>
                           </div>
@@ -1248,7 +1282,7 @@ export default function FreeCVApp() {
           </div>
 
           {/* Main Footer Links */}
-          <footer className={cn("mt-12 pt-6 border-t flex flex-wrap gap-4 text-xs font-medium justify-center pb-8", isDarkMode ? "border-gray-800 text-gray-400" : "border-gray-200 text-gray-500")}>
+          <footer className={cn("mt-12 pt-6 border-t flex flex-wrap gap-4 text-xs font-medium justify-center pb-8", 'border-gray-200 text-gray-500')}>
             <Link href="/blog" className="hover:text-blue-500 transition-colors">Career Blog</Link>
             <span>&bull;</span>
             <Link href="/recruiter" className="hover:text-blue-500 transition-colors">Recruiter Portal</Link>
@@ -1321,7 +1355,7 @@ export default function FreeCVApp() {
               '--theme-color': data.theme?.color || '#2563eb'
             } as React.CSSProperties}
           >
-            <PDFPreview TemplateComponent={SelectedTemplate} data={data} />
+            <HTMLPreview Tmpl={htmlTemplates[data.templateId as keyof typeof htmlTemplates]} data={data} />
           </div>
         </div>
 
@@ -1380,19 +1414,19 @@ export default function FreeCVApp() {
       {isATSOpen && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
           <div className="min-h-screen px-4 flex items-center justify-center py-10">
-            <div className={cn("rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl flex flex-col relative", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+            <div className={cn("rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl flex flex-col relative", 'bg-white text-gray-900')}>
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><BarChart3 className="text-emerald-500" /> ATS Resume Grader</h2>
-                <p className={cn("text-sm mt-1", isDarkMode ? 'text-gray-400' : 'text-gray-500')}>Paste the job description below to see how well your resume matches.</p>
+                <p className={cn("text-sm mt-1", 'text-gray-500')}>Paste the job description below to see how well your resume matches.</p>
               </div>
-              <button onClick={() => setIsATSOpen(false)} className={cn("p-2 rounded-full transition-colors", isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}>
+              <button onClick={() => setIsATSOpen(false)} className={cn("p-2 rounded-full transition-colors", 'bg-gray-100 hover:bg-gray-200')}>
                 <X size={20} />
               </button>
             </div>
             
             <textarea
-              className={cn("w-full border rounded-xl p-4 text-sm min-h-[150px] mb-4 focus:ring-2 focus:ring-emerald-500 outline-none resize-none transition-all", isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200')}
+              className={cn("w-full border rounded-xl p-4 text-sm min-h-[150px] mb-4 focus:ring-2 focus:ring-emerald-500 outline-none resize-none transition-all", 'bg-gray-50 border-gray-200')}
               placeholder="Paste the target job description here..."
               value={atsJobDesc}
               onChange={(e) => setAtsJobDesc(e.target.value)}
@@ -1418,20 +1452,20 @@ export default function FreeCVApp() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold">Match Score</h3>
-                    <p className={cn("text-sm", isDarkMode ? 'text-gray-400' : 'text-gray-600')}>
+                    <p className={cn("text-sm", 'text-gray-600')}>
                       {atsResult.score >= 80 ? 'Excellent match! You are highly qualified.' : atsResult.score >= 60 ? 'Good match. Consider adding some missing keywords.' : 'Low match. Significant tailoring recommended.'}
                     </p>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-emerald-950/30 border-emerald-900' : 'bg-emerald-50 border-emerald-100')}>
+                  <div className={cn("p-4 rounded-xl border", 'bg-emerald-50 border-emerald-100')}>
                     <h4 className="font-bold text-emerald-600 mb-2 flex items-center gap-2"><Plus size={16} /> Strengths</h4>
                     <ul className="list-disc list-inside text-sm space-y-1">
                       {atsResult.strengths?.map((s:string, i:number) => <li key={i}>{s}</li>)}
                     </ul>
                   </div>
-                  <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-amber-950/30 border-amber-900' : 'bg-amber-50 border-amber-100')}>
+                  <div className={cn("p-4 rounded-xl border", 'bg-amber-50 border-amber-100')}>
                     <h4 className="font-bold text-amber-600 mb-2 flex items-center gap-2"><RefreshCw size={16} /> Missing Keywords</h4>
                     <ul className="list-disc list-inside text-sm space-y-1">
                       {atsResult.missingKeywords?.map((k:string, i:number) => <li key={i}>{k}</li>)}
@@ -1439,7 +1473,7 @@ export default function FreeCVApp() {
                   </div>
                 </div>
 
-                <div className={cn("p-4 rounded-xl border", isDarkMode ? 'bg-blue-950/30 border-blue-900' : 'bg-blue-50 border-blue-100')}>
+                <div className={cn("p-4 rounded-xl border", 'bg-blue-50 border-blue-100')}>
                   <h4 className="font-bold text-blue-600 mb-2 flex items-center gap-2"><Sparkles size={16} /> Actionable Tips</h4>
                   <ul className="list-disc list-inside text-sm space-y-1">
                     {atsResult.tips?.map((t:string, i:number) => <li key={i}>{t}</li>)}
@@ -1480,15 +1514,15 @@ export default function FreeCVApp() {
       {isRewriterOpen && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
           <div className="min-h-screen px-4 flex items-center justify-center py-10">
-            <div className={cn("rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl transition-all relative", isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900')}>
+            <div className={cn("rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl transition-all relative", 'bg-white text-gray-900')}>
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black leading-tight flex items-center gap-2"><RefreshCw className="text-purple-500" /> AI Rewriter</h2>
-              <button onClick={() => setIsRewriterOpen(false)} className={cn("p-2 rounded-full transition-colors", isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200')}>
+              <button onClick={() => setIsRewriterOpen(false)} className={cn("p-2 rounded-full transition-colors", 'bg-gray-100 hover:bg-gray-200')}>
                 <X size={20} />
               </button>
             </div>
             
-            <p className={cn("text-sm mb-6", isDarkMode ? 'text-gray-400' : 'text-gray-600')}>
+            <p className={cn("text-sm mb-6", 'text-gray-600')}>
               Instantly rewrite your Summary and Experience sections to match a specific tone or career level.
             </p>
             
@@ -1498,7 +1532,7 @@ export default function FreeCVApp() {
                 <select
                   value={rewriteTone}
                   onChange={(e) => setRewriteTone(e.target.value)}
-                  className={cn("w-full appearance-none rounded-xl px-4 py-3 pr-10 text-sm font-bold border transition-all focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer", isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200')}
+                  className={cn("w-full appearance-none rounded-xl px-4 py-3 pr-10 text-sm font-bold border transition-all focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer", 'bg-gray-50 border-gray-200')}
                 >
                   <option value="Executive">Executive & Strategic</option>
                   <option value="Creative">Creative & Dynamic</option>

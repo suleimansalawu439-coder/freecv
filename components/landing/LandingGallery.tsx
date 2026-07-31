@@ -73,7 +73,7 @@ export default function LandingGallery() {
         <div className="mx-auto flex max-w-[1180px] items-center justify-between px-5 py-5 lg:px-8">
           <Link href="/landing-b" className="fd text-2xl italic tracking-tight">Cvyon</Link>
           <nav className="hidden items-center gap-9 text-[12px] font-medium uppercase tracking-[0.22em] text-[var(--muted)] md:flex">
-            <a href="#funding" className="ul hover:text-[#F2ECE1]">Funding</a><a href="#grader" className="ul hover:text-[#F2ECE1]">Grader</a><a href="#collection" className="ul hover:text-[#F2ECE1]">Collection</a><a href="#begin" className="ul hover:text-[#F2ECE1]">Begin</a>
+            <a href="#grader" className="ul hover:text-[#F2ECE1]">Grader</a><a href="#collection" className="ul hover:text-[#F2ECE1]">Collection</a><a href="#begin" className="ul hover:text-[#F2ECE1]">Begin</a>
           </nav>
           <Link href="/" className="group flex items-center gap-2 border border-[var(--gold)] px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--gold)] transition-colors hover:bg-[var(--gold)] hover:text-[#15111C]">Begin — free <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" /></Link>
         </div>

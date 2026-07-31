@@ -15,6 +15,19 @@ export function JobsModal({ isOpen, onClose }: JobsModalProps) {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const handleJobClick = (job: any) => {
+    trackEvent('affiliate_job_clicked', job.company);
+    fetch('/api/jobs/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_url: job.link,
+        cpc_value: job.cpc || 0,
+        location: data.personalInfo.location || 'Unknown'
+      })
+    }).catch(err => console.error("Job track error:", err));
+  };
+
   useEffect(() => {
     if (isOpen) {
       // Simulate fetching matching jobs based on Geo and Skills
@@ -76,7 +89,7 @@ export function JobsModal({ isOpen, onClose }: JobsModalProps) {
                 href={job.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackEvent('affiliate_job_clicked', job.company)}
+                onClick={() => handleJobClick(job)}
                 className="block group bg-white border-[3px] border-[#141312] p-5 hover:bg-[#F3F4F6] transition-colors relative"
               >
                 {job.isPromoted && (

@@ -116,7 +116,7 @@ export default function LandingRiso() {
             <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 sm:inline">® free forever</span>
           </Link>
           <nav className="hidden items-center gap-7 fm text-[11px] font-bold uppercase tracking-[0.18em] md:flex">
-            <a href="#funding" className="ul">Funding</a><a href="#grader" className="ul">Grader</a><a href="#plates" className="ul">Templates</a><a href="#start" className="ul">Start</a>
+            <a href="#grader" className="ul">Grader</a><a href="#plates" className="ul">Templates</a><a href="#start" className="ul">Start</a>
           </nav>
           <Link href="/build" className="group flex items-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-4 py-2.5 fm text-[11px] font-bold uppercase tracking-[0.18em] text-[#E8E7E1] hs transition-all hover:bg-[#FF4326] hover:border-[#FF4326]">
             Build free <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
