@@ -99,11 +99,10 @@ function Reveal({ children, delay = 0, className = "" }: any) {
   }, []);
   return <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
-function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: number }) {
-  const Tmpl = (templates as any)[k];
+function Mini({ k, color, scale = 0.22, w = 178, h = 231 }: { k: string; color: string; scale?: number; w?: number; h?: number }) {
   return (
-    <div className="relative overflow-hidden bg-white" style={{ width: 192, height: 250 }}>
-      <div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><Tmpl data={SAMPLE} /></div>
+    <div className="relative overflow-hidden rounded-[2px] bg-white ring-1 ring-[#080B0F]/5" style={{ width: w, height: h }}>
+      <div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><img src={`/thumbnails/${k}.webp`} alt={`${k} Template`} className="w-full h-full object-cover" /></div>
     </div>
   );
 }

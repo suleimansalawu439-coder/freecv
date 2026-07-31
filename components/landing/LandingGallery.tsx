@@ -48,9 +48,8 @@ function Reveal({ children, delay = 0, className = "" }: any) {
   }, []);
   return <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
-function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: number }) {
-  const Tmpl = (templates as any)[k];
-  return (<div className="relative overflow-hidden bg-white" style={{ width: 200, height: 259 }}><div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><Tmpl data={SAMPLE} /></div></div>);
+function Mini({ k, color, scale = 0.245 }: { k: string; color: string; scale?: number }) {
+  return (<div className="relative overflow-hidden bg-white" style={{ width: 200, height: 259 }}><div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><img src={`/thumbnails/${k}.webp`} alt={`${k} Template`} className="w-full h-full object-cover" /></div></div>);
 }
 
 export default function LandingGallery() {
@@ -103,7 +102,7 @@ export default function LandingGallery() {
               <div className="p-2" style={{ border: "1px solid var(--gold)" }}>
                 <div className="overflow-hidden bg-white" style={{ width: 248, height: 321 }}>
                   <div className="origin-top-left" style={{ width: 816, transform: "scale(0.304)", ["--theme-color" as any]: "#E2B45C" }}>
-                    <img src="/thumbnails/Elegant.png" alt="Elegant Template" className="w-full h-full object-cover" />
+                    <img src="/thumbnails/Elegant.webp" alt="Elegant Template" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>

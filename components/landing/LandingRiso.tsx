@@ -53,10 +53,11 @@ function Reveal({ children, delay = 0, className = "" }: any) {
   return <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
 function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: number }) {
-  const Tmpl = (templates as any)[k];
   return (
     <div className="relative overflow-hidden bg-white" style={{ width: 192, height: 250 }}>
-      <div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><Tmpl data={SAMPLE} /></div>
+      <div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}>
+        <img src={`/thumbnails/${k}.webp`} alt={`${k} Template`} className="w-full h-full object-cover" />
+      </div>
     </div>
   );
 }
@@ -153,7 +154,7 @@ export default function LandingRiso() {
                 <div className="absolute -left-2 -top-3 z-20 h-9 w-16 rotate-[-18deg] rounded-[3px] border-2 border-[#141312]/40 bg-[#c9c9c9]" />
                 <div className="h-full w-full overflow-hidden">
                   <div className="origin-top-left" style={{ width: 816, transform: "scale(0.284)", ["--theme-color" as any]: "#FF4326" }}>
-                    <img src="/thumbnails/SwissDesign.png" alt="SwissDesign Template" className="w-full h-full object-cover" />
+                    <img src="/thumbnails/SwissDesign.webp" alt="SwissDesign Template" className="w-full h-full object-cover" />
                   </div>
                 </div>
               </div>

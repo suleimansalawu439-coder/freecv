@@ -75,9 +75,8 @@ function Reveal({ children, delay = 0, className = "" }: any) {
   }, []);
   return <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
-function Mini({ k, color, scale = 0.235, w = 196, h = 254 }: { k: string; color: string; scale?: number; w?: number; h?: number }) {
-  const Tmpl = (templates as any)[k];
-  return (<div className="relative overflow-hidden bg-white" style={{ width: w, height: h }}><div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><Tmpl data={SAMPLE} /></div></div>);
+function Mini({ k, color, scale = 0.235, w = 192, h = 250 }: { k: string; color: string; scale?: number; w?: number; h?: number }) {
+  return (<div className="relative overflow-hidden bg-white" style={{ width: w, height: h }}><div className="absolute top-0 left-0 origin-top-left" style={{ width: 816, transform: `scale(${scale})`, ["--theme-color" as any]: color }}><img src={`/thumbnails/${k}.webp`} alt={`${k} Template`} className="w-full h-full object-cover" /></div></div>);
 }
 function Crop({ className = "" }: { className?: string }) {
   return (<span className={cn("pointer-events-none absolute h-3 w-3", className)}><span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-[#101418]/40" /><span className="absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-[#101418]/40" /></span>);
