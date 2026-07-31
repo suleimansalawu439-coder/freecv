@@ -1,4 +1,5 @@
-import LandingF, { FAQS } from "@/components/landing/LandingF";
+import LandingF from "@/components/landing/LandingF";
+import { FAQS } from "@/components/landing/LandingF_FAQS";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
