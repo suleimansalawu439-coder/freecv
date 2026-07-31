@@ -650,6 +650,7 @@ export default function FreeCVApp() {
       a.click();
       URL.revokeObjectURL(url);
       trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('docx'));
+      setIsJobsModalOpen(true);
     } catch (err: any) {
       toast.error('DOCX export failed: ' + err.message);
     }
@@ -706,6 +707,7 @@ export default function FreeCVApp() {
     }
 
     triggerPrint();
+    setIsJobsModalOpen(true);
   };
 
   if (!isHydrated) return null;
