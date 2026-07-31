@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useResumeStore } from "@/store/useResumeStore";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Sparkles, Loader2, Target, Lightbulb, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -23,6 +25,8 @@ interface AtsResult {
 }
 
 export default function ClientAtsGrader() {
+  const router = useRouter();
+  const setAtsRecommendations = useResumeStore(state => state.setAtsRecommendations);
   const [file, setFile] = useState<File | null>(null);
   const [jd, setJd] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -61,13 +65,24 @@ export default function ClientAtsGrader() {
       toast.error("Only PDF and DOCX files are supported.");
       return;
     }
-    if (f.size > 5 * 1024 * 1024) {
-      toast.error("File is too large. Maximum size is 5MB.");
+    if (f.size > 4 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 4MB.");
       return;
     }
     setFile(f);
   };
 
+  
+  const handleFixResume = () => {
+    if (result) {
+      setAtsRecommendations({
+        missingKeywords: result.missingKeywords,
+        tips: result.tips
+      });
+      router.push('/build');
+    }
+  };
+  
   const handleGrade = async () => {
     if (!file) {
       toast.error("Please upload your resume.");
@@ -287,9 +302,7 @@ export default function ClientAtsGrader() {
                 </div>
                 
                 <div className="pt-8 mt-8 border-t-[3px] border-[#E8E7E1]/20 text-center">
-                  <Link href="/build" className="inline-block bg-[#E8E7E1] text-[#141312] px-6 py-3 fh font-black text-sm uppercase tracking-wider border-[3px] border-[#E8E7E1] hover:bg-[#FFE14D] hover:border-[#FFE14D] transition-colors">
-                    Fix my resume in Builder
-                  </Link>
+                  <button onClick={handleFixResume} className="inline-block bg-[#E8E7E1] text-[#141312] px-6 py-3 fh font-black text-sm uppercase tracking-wider border-[3px] border-[#E8E7E1] hover:bg-[#FFE14D] hover:border-[#FFE14D] transition-colors">Fix my resume in Builder</button>
                 </div>
               </div>
             )}

@@ -63,7 +63,15 @@ const mockClient = (table: string) => {
 // Client for public inserts
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : { from: mockClient } as any;
+  : { 
+      from: mockClient,
+      auth: {
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        getUser: async () => ({ data: { user: null }, error: null }),
+        signInWithOAuth: async () => ({ data: null, error: null }),
+        signOut: async () => ({ error: null })
+      }
+    } as any;
 
 // Server-side admin client to bypass RLS
 export const supabaseAdmin = supabaseUrl && supabaseServiceKey

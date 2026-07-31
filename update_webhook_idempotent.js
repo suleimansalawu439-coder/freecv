@@ -1,42 +1,10 @@
-import { NextResponse } from 'next/server';
-import crypto from 'crypto';
-import { supabaseAdmin } from '@/lib/supabase';
-import { generateInvoicePdfBuffer } from '@/lib/invoice-generator';
+const fs = require('fs');
+const path = require('path');
 
-// Webhooks require nodejs for the crypto library
-export const runtime = 'nodejs';
+const pagePath = path.join(__dirname, 'app/api/paystack/webhook/route.ts');
+let content = fs.readFileSync(pagePath, 'utf8');
 
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
-    const signature = req.headers.get('x-paystack-signature');
-
-    if (!signature) {
-      return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
-    }
-
-    const secret = process.env.PAYSTACK_SECRET_KEY as string;
-    const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
-
-    if (hash !== signature) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-    }
-
-    const event = JSON.parse(rawBody);
-    console.log('Paystack Webhook received:', event.event);
-
-    switch (event.event) {
-      case 'subscription.create': {
-        const { subscription_code, customer, status, next_payment_date } = event.data;
-        // Metadata is attached to the initial transaction, maybe not directly to subscription payload
-        // But we can look up by email or use customer metadata if passed
-
-        // For simplicity, let's fetch the recruiter by email if it's in the payload
-        const { data: candidates } = await supabaseAdmin.from('recruiters').select('id, user_id').limit(1);
-        // Wait, realistically we need the recruiter ID. In the checkout session we passed metadata to the transaction.
-        break;
-      }
-      
+const chargeSuccessBlock = `
       case 'charge.success': {
         const { metadata, customer, plan, reference, amount, currency } = event.data;
         if (metadata && metadata.recruiter_id) {
@@ -90,7 +58,7 @@ export async function POST(req: Request) {
 
           // Generate Invoice PDF
           const invoiceData = {
-            customerName: customer.first_name ? `${customer.first_name} ${customer.last_name || ''}` : 'Recruiter',
+            customerName: customer.first_name ? \`\${customer.first_name} \${customer.last_name || ''}\` : 'Recruiter',
             customerEmail: customer.email,
             reference: reference,
             planName: plan?.name || 'Cvyon Pro Subscription',
@@ -112,11 +80,11 @@ export async function POST(req: Request) {
                 body: JSON.stringify({
                   sender: { name: 'Cvyon Billing', email: 'billing@cvyon.com' },
                   to: [{ email: customer.email }],
-                  subject: `Invoice for ${invoiceData.planName} (${reference})`,
-                  htmlContent: `<p>Hi there,</p><p>Thank you for your subscription. Please find your invoice attached.</p><p>The Cvyon Team</p>`,
+                  subject: \`Invoice for \${invoiceData.planName} (\${reference})\`,
+                  htmlContent: \`<p>Hi there,</p><p>Thank you for your subscription. Please find your invoice attached.</p><p>The Cvyon Team</p>\`,
                   attachment: [
                     {
-                      name: `Invoice-${reference}.pdf`,
+                      name: \`Invoice-\${reference}.pdf\`,
                       content: pdfBuffer.toString('base64')
                     }
                   ]
@@ -130,20 +98,8 @@ export async function POST(req: Request) {
         }
         break;
       }
+`;
 
-      case 'subscription.disable': {
-        const { subscription_code } = event.data;
-        await supabaseAdmin
-          .from('subscriptions')
-          .update({ status: 'canceled' })
-          .eq('paystack_subscription_code', subscription_code);
-        break;
-      }
-    }
-
-    return NextResponse.json({ received: true }, { status: 200 });
-  } catch (error: any) {
-    console.error('Paystack webhook error:', error);
-    return NextResponse.json({ error: 'Webhook Error' }, { status: 500 });
-  }
-}
+content = content.replace(/case 'charge\.success': \{[\s\S]*?break;\s*\}/, chargeSuccessBlock.trim());
+fs.writeFileSync(pagePath, content, 'utf8');
+console.log('Updated app/api/paystack/webhook/route.ts successfully.');

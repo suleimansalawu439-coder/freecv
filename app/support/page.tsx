@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Send, MessageSquare, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';

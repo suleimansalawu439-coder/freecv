@@ -32,7 +32,7 @@ export default withSentryConfig(
     // https://github.com/getsentry/sentry-webpack-plugin#options
     silent: true,
     org: "cvyon",
-    project: "freecv",
+    project: "javascript-nextjs",
   },
   {
     // For all available options, see:

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 import { ConsentManager } from "@/components/ConsentManager";
-
+import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
 
 export default function RootLayout({
@@ -36,9 +36,11 @@ export default function RootLayout({
       className="h-full antialiased font-sans"
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <ConsentManager />
-        <Toaster position="top-right" />
+        <AuthProvider>
+          {children}
+          <ConsentManager />
+          <Toaster position="top-right" />
+        </AuthProvider>
       </body>
     </html>
   );

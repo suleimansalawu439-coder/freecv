@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
-import { templates, TemplateKey } from '@/components/templates';
 import type { Metadata } from 'next';
+import { PublicResumeClient } from '@/components/public/PublicResumeClient';
 
 type Props = {
   params: Promise<{ handle: string }>
@@ -19,10 +19,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
   const name = data.data?.personalInfo?.fullName || 'Candidate';
   const role = data.data?.personalInfo?.jobTitle || 'Professional';
+  const skills = (data.data?.skills || []).map((s: any) => s.name).join(', ');
 
   return {
     title: `${name} - ${role} Resume | Cvyon`,
-    description: `View the professional resume of ${name}.`,
+    description: `View the professional resume of ${name}. Skills include: ${skills}`,
     openGraph: {
       title: `${name} - ${role}`,
       description: data.data?.summary?.substring(0, 160) || `View ${name}'s resume on Cvyon.`,
@@ -50,19 +51,15 @@ export default async function PublicResumePage(props: Props) {
   supabaseAdmin.rpc('increment_resume_views', { resume_handle: params.handle }).then().catch(() => {});
 
   const resumeData = record.data;
-  const templateId = (resumeData.templateId as TemplateKey) || 'Executive';
-  const SelectedTemplate = templates[templateId] || templates.Executive;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 selection:bg-black selection:text-white">
-      {/* Read-only view of the resume */}
-      <div className="w-[816px] max-w-full bg-white shadow-2xl overflow-hidden shrink-0">
-        <SelectedTemplate data={resumeData} />
+    <div className="min-h-screen bg-[#E8E7E1] flex flex-col items-center py-10 selection:bg-black selection:text-white">
+      <div className="w-full max-w-4xl mx-auto px-4 h-[1000px] shadow-2xl">
+        <PublicResumeClient data={resumeData} />
       </div>
 
-      {/* Discrete Built with Cvyon footer */}
-      <footer className="mt-12 text-center text-sm font-medium text-gray-500 pb-10">
-        Built free with <a href="/" className="font-bold text-black hover:underline">Cvyon</a>. Create yours in minutes.
+      <footer className="mt-12 text-center text-sm font-medium text-gray-500 pb-10 uppercase tracking-widest">
+        Built free with <a href="/" className="font-bold text-[#FF4326] hover:underline">Cvyon</a>. Create yours in minutes.
       </footer>
     </div>
   );

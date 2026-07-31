@@ -47,6 +47,7 @@ import { trackEvent } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 
 import { templates, TemplateKey } from '@/components/templates';
+import { templates as htmlTemplates } from '@/components/html_templates';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import { ImportResume } from '@/components/builder/ImportResume';
 import { CoverLetterTab } from '@/components/builder/CoverLetterTab';
@@ -111,6 +112,32 @@ const Card = ({ children, className }: any) => (
     {children}
   </div>
 );
+
+const HTMLThumbnail = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.25);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      setScale(entries[0].contentRect.width / 816);
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="aspect-[8.5/11] bg-white w-full relative overflow-hidden pointer-events-none">
+      <div 
+        className="absolute top-0 left-0 w-[816px] h-[1056px] origin-top-left bg-white" 
+        style={{ transform: `scale(${scale})` }}
+      >
+        <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
+      </div>
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+    </div>
+  );
+};
 
 // --- Main Page ---
 
@@ -1330,10 +1357,7 @@ export default function FreeCVApp() {
                     )}
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '300px 400px' }}
                   >
-                    <div className="aspect-[8.5/11] bg-[#e5e7eb] w-full relative overflow-hidden flex justify-center pointer-events-none">
-                      <div className="flex items-center justify-center w-full h-full text-gray-400 font-bold uppercase tracking-widest text-xs">Preview Not Available</div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-                    </div>
+                    <HTMLThumbnail Tmpl={htmlTemplates[key as keyof typeof htmlTemplates]} data={data} />
                     {isActive && (
                       <div className="absolute top-4 right-4 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hs px-3 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg z-10 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Active

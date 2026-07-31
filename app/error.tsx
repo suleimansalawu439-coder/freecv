@@ -11,7 +11,7 @@ export default function ErrorBoundary({
 }) {
   useEffect(() => {
     // Log the error securely without exposing stack traces to the client DOM
-    console.error("Securely logged client-side error:", error.digest || "Unknown Error");
+    console.error("Securely logged client-side error:", error);
   }, [error]);
 
   return (
