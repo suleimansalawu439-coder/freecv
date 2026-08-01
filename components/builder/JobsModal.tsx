@@ -1,119 +1,204 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { X, MapPin, Briefcase, ArrowUpRight, Loader2, Globe } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { X, MapPin, Briefcase, ArrowUpRight, Loader2, Globe2, Sparkles } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { useResumeStore } from "@/store/useResumeStore";
 import { trackEvent } from "@/lib/analytics";
 
-type Job = { id: string; title: string; company: string; location: string; salary?: string; match?: string; link: string; description?: string; remote?: boolean };
+function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
-function JobCard({ job }: { job: Job }) {
-  return (
-    <a href={job.link} target="_blank" rel="noopener noreferrer"
-       onClick={() => trackEvent('affiliate_job_click', job.id)}
-       className="group flex items-start justify-between gap-4 border-[3px] border-[#141312] bg-white p-5 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[5px_5px_0_#141312]">
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <Briefcase size={15} className="shrink-0 text-[#2233FF]" />
-          <h3 className="truncate text-base font-extrabold tracking-tight text-[#141312]">{job.title}</h3>
-          {job.remote && (
-            <span className="inline-flex items-center gap-1 border-2 border-[#2233FF] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-[#2233FF]">
-              <Globe size={10} /> Remote
-            </span>
-          )}
-        </div>
-        <div className="mt-1 text-sm font-semibold text-[#141312]/80">{job.company}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-bold uppercase tracking-wider text-[#141312]/55" style={{ fontFamily: 'var(--fm)' }}>
-          <span className="flex items-center gap-1"><MapPin size={12} /> {job.location || 'Remote'}</span>
-          {job.salary && <span>{job.salary}</span>}
-        </div>
-      </div>
-      <div className="flex shrink-0 flex-col items-end gap-2">
-        <span className="border-2 border-[#0E8A4B] px-2 py-1 text-[11px] font-black text-[#0E8A4B]" style={{ fontFamily: 'var(--fm)' }}>{job.match}</span>
-        <span className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-[#141312]/50 group-hover:text-[#FF4326]" style={{ fontFamily: 'var(--fm)' }}>View <ArrowUpRight size={13} /></span>
-      </div>
-    </a>
-  );
-}
+type Job = {
+  id: string | number;
+  title: string;
+  company: string;
+  location: string;
+  salary?: string;
+  link: string;
+  description?: string;
+  match?: number | string;
+};
+
+const normMatch = (m: number | string | undefined): number => {
+  if (typeof m === "number") return m;
+  if (typeof m === "string") return parseInt(m, 10) || 0;
+  return 0;
+};
 
 export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { data } = useResumeStore();
+  const data = useResumeStore((s) => s.data);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
+  const [country, setCountry] = useState<string>("your region");
+  const [empty, setEmpty] = useState(false);
+  const [errored, setErrored] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // escape-to-close + body scroll lock while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
-    setLoading(true);
-    setJobs([]);
-    const userSkills = data.skills.map(s => s.name).join(', ') || 'Software Engineer';
-    const userTitle = data.personalInfo.jobTitle || 'Professional';
-    const userLocation = data.personalInfo.location || '';
-    trackEvent('jobs_modal_viewed', 'affiliate_funnel');
-    fetch('/api/affiliate/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ skills: userSkills, jobTitle: userTitle, location: userLocation }),
+    setLoading(true); setEmpty(false); setErrored(false); setJobs([]);
+    const skills = (data.skills || []).map((s) => s.name).filter(Boolean);
+    const jobTitle = data.personalInfo.jobTitle || "";
+    trackEvent("jobs_modal_opened", data.templateId);
+
+    // NOTE: we send NO location. The server derives the candidate's country
+    // from the Vercel geo header and searches CareerJet by country — never by
+    // the user's town (which returned ghost jobs before).
+    fetch("/api/affiliate/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skills, jobTitle }),
     })
-      .then(res => res.json())
-      .then(res => { if (res.success && res.data) setJobs(res.data); })
-      .catch(err => console.error(err))
+      .then((r) => r.json())
+      .then((res) => {
+        setCountry(res?.searchCountry || "your region");
+        if (res?.success && Array.isArray(res.data) && res.data.length) setJobs(res.data);
+        else setEmpty(true);
+      })
+      .catch(() => setErrored(true))
       .finally(() => setLoading(false));
-  }, [isOpen, data]);
+  }, [isOpen, data.skills, data.personalInfo.jobTitle, data.templateId]);
+
+  const handleJobClick = (job: Job) => {
+    trackEvent("affiliate_job_clicked", job.company);
+    // server computes the geo-based CPC + country; we just record the click
+    fetch("/api/jobs/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        job_url: job.link,
+        job_title: job.title,
+        company: job.company,
+        location: job.location,
+      }),
+    }).catch(() => {});
+  };
 
   if (!isOpen) return null;
-  const local = jobs.filter(j => !j.remote);
-  const remote = jobs.filter(j => j.remote);
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center print:hidden" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-2xl overflow-y-auto border-[3px] border-[#141312] bg-[#E8E7E1] shadow-[8px_8px_0_#141312] sm:rounded-none rounded-t-3xl" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b-[3px] border-[#141312] bg-[#141312] px-6 py-4 text-[#E8E7E1]">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]" style={{ fontFamily: 'var(--fm)' }}>résumé downloaded ✓</div>
-            <h2 className="text-xl font-black tracking-tight" style={{ fontFamily: 'var(--fd)' }}>Jobs matched to your profile</h2>
-            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-[#E8E7E1]/55" style={{ fontFamily: 'var(--fm)' }}>
-              {local.length} near you · {remote.length} remote · via CareerJet
-            </p>
-          </div>
-          <button aria-label="Close" onClick={onClose} className="grid h-9 w-9 shrink-0 place-items-center border-2 border-[#E8E7E1] transition-colors hover:border-[#FF4326] hover:bg-[#FF4326]"><X size={18} /></button>
+    <div
+      className="fixed inset-0 z-[300] flex items-end justify-center bg-black/65 backdrop-blur-sm print:hidden sm:items-center"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Jobs matched to your profile"
+    >
+      <style>{`
+        @keyframes jm-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        @keyframes jm-bar{from{width:0}}
+        @keyframes jm-sheen{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+        .jm-card{animation:jm-rise .5s cubic-bezier(.2,.7,.2,1) both}
+        .jm-barfill{animation:jm-bar .9s cubic-bezier(.2,.7,.2,1) both}
+        .jm-sheen{animation:jm-sheen 2.6s ease-in-out infinite}
+        @media (prefers-reduced-motion:reduce){.jm-card,.jm-barfill,.jm-sheen{animation:none!important}}
+      `}</style>
+
+      <div
+        ref={cardRef}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden border-[3px] border-[#141312] bg-[#E8E7E1] shadow-[10px_10px_0_#141312] !rounded-t-3xl sm:!rounded-none"
+      >
+        {/* living top accent */}
+        <div className="relative h-[3px] w-full overflow-hidden bg-[#141312]">
+          <div className="jm-sheen absolute inset-y-0 left-0 w-1/3 bg-[#FF4326]" />
         </div>
 
-        <div className="space-y-6 p-6">
+        {/* header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-[3px] border-[#141312] bg-[#141312] px-6 py-4 text-[#E8E7E1]">
+          <div className="min-w-0">
+            <div className="fm flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]">
+              <Sparkles size={12} /> résumé downloaded ✓
+            </div>
+            <h2 className="fd mt-1 flex items-center gap-2 truncate text-xl tracking-tight sm:text-2xl">
+              <Globe2 size={18} className="shrink-0 text-[#FF4326]" />
+              {loading ? "Finding roles…" : empty || errored ? "No live roles right now" : `Roles in ${country}`}
+            </h2>
+          </div>
+          <button
+            aria-label="Close"
+            onClick={onClose}
+            className="grid h-9 w-9 shrink-0 place-items-center border-2 border-[#E8E7E1] transition-colors hover:border-[#FF4326] hover:bg-[#FF4326]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* body */}
+        <div className="max-h-[calc(90vh-92px)] space-y-4 overflow-y-auto p-5 sm:p-6">
           {loading && (
-            <div className="flex flex-col items-center gap-3 py-14 text-[#141312]/60">
-              <Loader2 size={28} className="animate-spin text-[#2233FF]" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ fontFamily: 'var(--fm)' }}>matching roles…</span>
+            <div className="flex flex-col items-center gap-3 py-16 text-[#141312]/60">
+              <Loader2 size={30} className="animate-spin text-[#2233FF]" />
+              <span className="fm text-[11px] font-bold uppercase tracking-[0.2em]">matching real roles in {country}…</span>
             </div>
           )}
 
-          {!loading && jobs.length === 0 && (
-            <div className="py-14 text-center">
-              <p className="text-lg font-extrabold" style={{ fontFamily: 'var(--fh)' }}>No matches right now.</p>
-              <p className="mt-1 text-sm text-[#141312]/60">Check back soon — new roles land daily.</p>
+          {!loading && (empty || errored) && (
+            <div className="border-[3px] border-dashed border-[#141312]/35 bg-white/40 py-16 text-center">
+              <Briefcase size={34} className="mx-auto mb-3 text-[#141312]/25" />
+              <p className="fh text-lg font-extrabold">No live roles in {country} right now.</p>
+              <p className="mx-auto mt-2 max-w-xs text-sm text-[#141312]/60">
+                New postings land daily. Broaden your title in the builder and check back soon.
+              </p>
             </div>
           )}
 
-          {!loading && local.length > 0 && (
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/55" style={{ fontFamily: 'var(--fm)' }}>
-                <MapPin size={12} /> In your location
-              </div>
-              <div className="space-y-3">{local.map(job => <JobCard key={job.id} job={job} />)}</div>
-            </div>
-          )}
+          {!loading && jobs.map((job, i) => {
+            const match = normMatch(job.match);
+            return (
+              <a
+                key={job.id}
+                href={job.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => handleJobClick(job)}
+                style={{ animationDelay: `${i * 70}ms` }}
+                className="jm-card group flex items-start justify-between gap-4 border-[3px] border-[#141312] bg-white p-5 shadow-[5px_5px_0_#141312] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <Briefcase size={15} className="shrink-0 text-[#2233FF]" />
+                    <h3 className="fh truncate text-base font-extrabold tracking-tight">{job.title}</h3>
+                  </div>
+                  <div className="mt-1 truncate text-sm font-semibold text-[#141312]/80">{job.company}</div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 fm text-[11px] uppercase tracking-wider text-[#141312]/55">
+                    <span className="flex items-center gap-1"><MapPin size={12} /> {job.location || country}</span>
+                    {job.salary ? <span>{job.salary}</span> : null}
+                  </div>
+                  {/* animated match bar */}
+                  {match > 0 && (
+                    <div className="mt-3 h-2 w-full border-2 border-[#141312] bg-[#E8E7E1]">
+                      <div className="jm-barfill h-full bg-[#0E8A4B]" style={{ width: `${match}%` }} />
+                    </div>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  {match > 0 && (
+                    <span className="border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold text-[#0E8A4B]">{match}%</span>
+                  )}
+                  <span className="flex items-center gap-1 fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/50 transition-colors group-hover:text-[#FF4326]">
+                    Apply <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
 
-          {!loading && remote.length > 0 && (
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#2233FF]" style={{ fontFamily: 'var(--fm)' }}>
-                <Globe size={12} /> Remote / work from anywhere
-              </div>
-              <div className="space-y-3">{remote.map(job => <JobCard key={job.id} job={job} />)}</div>
-            </div>
+          {!loading && !empty && !errored && jobs.length > 0 && (
+            <p className="pt-1 text-center fm text-[10px] uppercase tracking-[0.18em] text-[#141312]/40">
+              live roles via CareerJet · matched to your skills & {country}
+            </p>
           )}
-
-          <p className="pt-1 text-center text-[9px] font-bold uppercase tracking-[0.18em] text-[#141312]/40" style={{ fontFamily: 'var(--fm)' }}>
-            roles via CareerJet · matched from your skills & location
-          </p>
         </div>
       </div>
     </div>

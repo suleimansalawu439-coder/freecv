@@ -1,381 +1,462 @@
 "use client";
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+import { RisoNav, RisoFooter, RisoSectionLabel, RisoTicker } from "@/components/riso/RisoChrome";
+import {
+  Search, Mail, MapPin, Briefcase, GraduationCap, ArrowUpRight, Linkedin,
+  Loader2, Users, ShieldCheck, Check, Building2, X, Star, ArrowRight, Lock,
+} from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import DOMPurify from "isomorphic-dompurify";
+import toast from "react-hot-toast";
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
-import { Search, Lock, CreditCard, Check, Building2, Users, Code, Activity, Terminal, ExternalLink, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
-import toast from 'react-hot-toast';
+function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
-export default function RecruiterPortal() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const [recruiterProfile, setRecruiterProfile] = useState<any>(null);
-  const [subscription, setSubscription] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [activeTab, setActiveTab] = useState<'search' | 'api' | 'billing'>('search');
-  const [isRegeneratingKey, setIsRegeneratingKey] = useState(false);
-
+/* count-up KPI — animates when scrolled into view */
+function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+  const [n, setN] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const done = useRef(false);
   useEffect(() => {
-    const checkAuthAndSub = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setLoading(false);
-        return;
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting && !done.current) {
+        done.current = true;
+        if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(to); return; }
+        const s = performance.now();
+        const tick = (t: number) => { const p = Math.min(1, (t - s) / 1100); setN(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
       }
-      setUser(session.user);
+    }), { threshold: 0.5 });
+    io.observe(el); return () => io.disconnect();
+  }, [to]);
+  return <span ref={ref}>{n}{suffix}</span>;
+}
 
-      // Check recruiter status
-      const { data: recruiter } = await supabase
-        .from('recruiters')
-        .select('*, subscriptions(*)')
-        .eq('user_id', session.user.id)
-        .single();
-      
-      if (recruiter) {
-        setRecruiterProfile(recruiter);
-        if (recruiter.subscriptions && recruiter.subscriptions.length > 0) {
-          const activeSub = recruiter.subscriptions.find((s: any) => s.status === 'active');
-          setSubscription(activeSub);
-          if (activeSub) fetchCandidates();
-        }
-      }
-      setLoading(false);
-    };
-    checkAuthAndSub();
+function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add("in"); io.unobserve(el); } }), { threshold: 0.15 });
+    io.observe(el); return () => io.disconnect();
   }, []);
-
-  const fetchCandidates = async (query = '') => {
-    setIsSearching(true);
-    try {
-      let reqQuery = supabase
-        .from('candidate_profiles') // Must read from candidate_profiles to check consent
-        .select('*, candidates(*)')
-        .eq('consent_recruiter_share', true)
-        .limit(20);
-      
-      if (query) {
-        // basic text search
-        reqQuery = reqQuery.ilike('current_title', `%${query}%`);
-      }
-      const { data } = await reqQuery;
-      if (data) setCandidates(data);
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to load candidates");
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleCheckout = async () => {
-    if (!user) {
-      toast.error("Please sign in or create an account first.");
-      router.push("/recruiter/login");
-      return;
-    }
-    try {
-      const res = await fetch('/api/paystack/checkout', { method: 'POST' });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error(data.error || "Something went wrong.");
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to initialize checkout.");
-    }
-  };
-
-  const regenerateApiKey = async () => {
-    if (!confirm('Are you sure? Any existing applications using your current API key will break immediately.')) return;
-    
-    setIsRegeneratingKey(true);
-    try {
-      const res = await fetch('/api/recruiter/api-key', { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to regenerate key');
-      const data = await res.json();
-      setRecruiterProfile({ ...recruiterProfile, api_key: data.api_key });
-      toast.success("API Key Regenerated successfully.");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsRegeneratingKey(false);
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
-  };
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <Building2 className="text-blue-600" />
-          <span className="font-bold text-xl tracking-tight">Cvyon <span className="text-blue-600">Recruiter</span></span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Back to Builder</Link>
-          {user ? (
-            <div className="flex items-center gap-4">
-              <div className="text-sm font-medium bg-gray-100 px-3 py-1.5 rounded-lg">{user.email}</div>
-              <button 
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  setUser(null);
-                  router.push('/recruiter');
-                }}
-                className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/recruiter/login" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Log In</Link>
-              <Link href="/recruiter/signup" className="text-sm font-medium bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">Sign Up</Link>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-grow p-6 md:p-12 max-w-7xl mx-auto w-full space-y-8">
-        
-        {!subscription ? (
-          <div className="bg-white rounded-3xl border border-gray-200 p-8 md:p-16 max-w-3xl mx-auto text-center shadow-xl shadow-gray-200/50">
-            <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Lock size={40} />
-            </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">Unlock the Talent Pool</h1>
-            <p className="text-lg text-gray-600 mb-10 max-w-xl mx-auto">Get unlimited access to thousands of highly-structured, passive candidates. Instantly search, filter, and connect with top talent via our Dashboard and API.</p>
-            
-            <div className="bg-gray-50 rounded-2xl p-6 mb-10 max-w-md mx-auto border border-gray-100 text-left">
-              <h3 className="font-bold text-gray-900 text-xl mb-4">Pro Recruiter Tier</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black">$99</span>
-                <span className="text-gray-500 font-medium">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-3 text-gray-700"><Check size={20} className="text-green-500" /> Unlimited Candidate Searches</li>
-                <li className="flex items-center gap-3 text-gray-700"><Check size={20} className="text-green-500" /> Direct Email Access</li>
-                <li className="flex items-center gap-3 text-gray-700"><Check size={20} className="text-green-500" /> B2B API Access Key</li>
-                <li className="flex items-center gap-3 text-gray-700"><Check size={20} className="text-green-500" /> Automated AI Job Matching</li>
-              </ul>
-              <button 
-                onClick={handleCheckout}
-                className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-all active:scale-[0.98] shadow-lg shadow-blue-500/30"
-              >
-                <CreditCard size={20} /> Subscribe Now
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-8">
-              <button 
-                onClick={() => setActiveTab('search')}
-                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'search' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <div className="flex items-center gap-2"><Search size={16} /> Talent Search</div>
-                {activeTab === 'search' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
-              </button>
-              <button 
-                onClick={() => setActiveTab('api')}
-                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'api' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <div className="flex items-center gap-2"><Code size={16} /> API & Integrations</div>
-                {activeTab === 'api' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
-              </button>
-              <button 
-                onClick={() => setActiveTab('billing')}
-                className={`pb-4 font-semibold text-sm transition-colors relative ${activeTab === 'billing' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
-              >
-                <div className="flex items-center gap-2"><CreditCard size={16} /> Billing & Subscription</div>
-                {activeTab === 'billing' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full"></div>}
-              </button>
-            </div>
-
-            {activeTab === 'search' && (
-              <div className="space-y-6 animate-in fade-in">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Talent Search</h1>
-                    <p className="text-gray-500 mt-1">Search the database of opted-in candidates.</p>
-                  </div>
-                  <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                      type="text"
-                      placeholder="Search by job title or keyword..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && fetchCandidates(searchTerm)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Candidate</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Target Role</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Location</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm">Opted In</th>
-                          <th className="px-6 py-4 font-semibold text-gray-600 text-sm text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {candidates.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                              {isSearching ? 'Searching...' : 'No candidates found. Try a different search.'}
-                            </td>
-                          </tr>
-                        ) : (
-                          candidates.map((c) => (
-                            <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4">
-                                <div className="font-semibold text-gray-900">{c.name || 'Anonymous'}</div>
-                                <div className="text-sm text-gray-500">{c.email}</div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  {c.job_title || 'Generalist'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-sm text-gray-600">{c.country || 'Unknown'}</td>
-                              <td className="px-6 py-4 text-sm text-gray-500">{new Date(c.opted_in_at).toLocaleDateString()}</td>
-                              <td className="px-6 py-4 text-right">
-                                <a href={`mailto:${c.email}`} className="text-sm font-semibold text-blue-600 hover:text-blue-800">Contact</a>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'api' && (
-              <div className="space-y-6 animate-in fade-in max-w-4xl">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">API & Integrations</h1>
-                  <p className="text-gray-500 mt-1">Manage your B2B API keys and access the developer documentation.</p>
-                </div>
-                
-                <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-                  <div className="flex items-center gap-3 mb-6">
-                    <Terminal className="text-blue-600" size={24} />
-                    <h2 className="text-xl font-bold text-gray-900">Master API Key</h2>
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <p className="text-sm text-gray-600">
-                      Use this API key to authenticate requests to the Cvyon B2B API. Do not share this key publicly.
-                    </p>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Your Secret Key</label>
-                      <div className="flex gap-2">
-                        <input 
-                          type="password" 
-                          readOnly 
-                          value={recruiterProfile?.api_key || 'No key generated yet'}
-                          className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 font-mono text-sm outline-none"
-                        />
-                        <button 
-                          onClick={() => copyToClipboard(recruiterProfile?.api_key || '')}
-                          className="px-4 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-medium transition-colors"
-                        >
-                          Copy
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-                      <div>
-                        <div className="font-semibold text-gray-900">API Usage</div>
-                        <div className="text-sm text-gray-500">{recruiterProfile?.api_calls_count || 0} total requests made</div>
-                      </div>
-                      <button 
-                        onClick={regenerateApiKey}
-                        disabled={isRegeneratingKey}
-                        className="px-4 py-2 border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors flex items-center gap-2"
-                      >
-                        <RefreshCw size={16} className={isRegeneratingKey ? "animate-spin" : ""} />
-                        Regenerate Key
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-4">
-                  <Activity className="text-blue-600 mt-1 shrink-0" size={24} />
-                  <div>
-                    <h3 className="font-bold text-blue-900 mb-1">Developer Documentation</h3>
-                    <p className="text-blue-800/80 text-sm mb-4">Learn how to extract candidates programmatically, filter by skills, and integrate Cvyon into your ATS or custom workflows.</p>
-                    <Link href="/developers" className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-800 transition-colors">
-                      Read the Docs <ExternalLink size={16} />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'billing' && (
-              <div className="space-y-6 animate-in fade-in max-w-4xl">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Billing & Subscription</h1>
-                  <p className="text-gray-500 mt-1">Manage your active subscription and payment methods.</p>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">Pro Recruiter Tier</h3>
-                      <p className="text-sm text-gray-500">Billed monthly via Paystack</p>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold uppercase tracking-wider rounded-full">Active</span>
-                  </div>
-
-                  <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 space-y-4 mb-6">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Company</span>
-                      <span className="font-medium text-gray-900">{recruiterProfile?.company_name}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Customer Code</span>
-                      <span className="font-medium font-mono text-gray-900">{recruiterProfile?.paystack_customer_code}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-600">Subscription Ref</span>
-                      <span className="font-medium font-mono text-gray-900">{subscription?.paystack_subscription_code}</span>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-gray-500 text-center">To cancel your subscription or update your payment method, please contact support or use the link in your latest Paystack invoice email.</p>
-                </div>
-              </div>
-            )}
-
-          </div>
-        )}
-      </main>
+    <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>
+      <style>{`.cv-rv[data-reveal]{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}.cv-rv.in{opacity:1;transform:none}@media(prefers-reduced-motion:reduce){.cv-rv[data-reveal]{opacity:1;transform:none}}`}</style>
+      <div className="cv-rv" data-reveal style={{ transitionDelay: `${delay}ms` }}>{children}</div>
     </div>
   );
+}
+
+export default function RecruiterPortal() {
+  const [user, setUser] = useState<any>(null);
+  const [recruiter, setRecruiter] = useState<any>(null);
+  const [sub, setSub] = useState<any>(null);
+  const [billing, setBilling] = useState<any>(null);
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searching, setSearching] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
+  const [query, setQuery] = useState("");
+  const [country, setCountry] = useState("");
+  const [countries, setCountries] = useState<string[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+
+  // auth
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null));
+    const { data: l } = supabase.auth.onAuthStateChange((_e, s) => setUser(s?.user || null));
+    return () => l.subscription.unsubscribe();
+  }, []);
+
+  // secure candidate search (service-role, consent-filtered, sub-gated)
+  const load = async (q: string, ctry: string) => {
+    setSearching(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (ctry) params.set("country", ctry);
+      const res = await fetch(`/api/recruiter/search?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${session?.access_token || ""}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Search failed");
+      const list = json.candidates || [];
+      setCandidates(list);
+      if (!ctry) setCountries(Array.from(new Set(list.map((c: any) => c.country).filter(Boolean))).sort() as string[]);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load candidates");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // on auth: ensure row exists, read own recruiter+sub (RLS scopes to self), load if active
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch("/api/recruiter/ensure", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token || ""}`,
+          "x-company-name": user.user_metadata?.company_name || "",
+        },
+      }).catch(() => {});
+
+      const { data: rec } = await supabase
+        .from("recruiters").select("*, subscriptions(*)").eq("user_id", user.id).single();
+      setRecruiter(rec || null);
+      const active = (rec?.subscriptions || []).find((s: any) => s.status === "active");
+      setSub(active || null);
+
+      try {
+        const { data: bs } = await supabase.from("app_settings").select("value").eq("key", "billing").single();
+        setBilling(bs?.value || null);
+      } catch {}
+
+      if (active) await load("", "");
+      setLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // escape closes the detail drawer
+  useEffect(() => {
+    if (!selected) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [selected]);
+
+  const avgCompleteness = candidates.length
+    ? Math.round(candidates.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidates.length)
+    : 0;
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const res = await fetch("/api/paystack/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user?.email, company: recruiter?.company_name }),
+      });
+      const data = await res.json();
+      if (data.authorization_url) window.location.href = data.authorization_url;
+      else toast.error(data.error || "Checkout failed");
+    } catch { toast.error("Checkout failed"); }
+    finally { setCheckingOut(false); }
+  };
+
+  const priceLabel = billing ? `${billing.currency} ${(Number(billing.amount) / 100).toLocaleString()}/mo` : "$99/mo";
+
+  const shell = (ticker: boolean, children: React.ReactNode) => (
+    <div className="relative min-h-screen bg-[#E8E7E1] text-[#141312]">
+      <div className="riso-grain" />
+      {ticker && <RisoTicker />}
+      <RisoNav />
+      <main className="mx-auto max-w-[1240px] px-5 py-12 lg:px-8">{children}</main>
+      <RisoFooter />
+    </div>
+  );
+
+  /* ============================ LOADING ============================ */
+  if (loading) {
+    return shell(false, (
+      <div className="flex flex-col items-center gap-3 py-32 text-[#141312]/60">
+        <Loader2 size={30} className="animate-spin text-[#2233FF]" />
+        <span className="fm text-[11px] font-bold uppercase tracking-[0.2em]">loading…</span>
+      </div>
+    ));
+  }
+
+  /* ============================ SIGNED OUT ============================ */
+  if (!user) {
+    return shell(true, (
+      <>
+        <section className="relative grid grid-cols-1 gap-12 py-6 lg:grid-cols-12 lg:items-center">
+          <div className="dots absolute inset-0 -z-0 opacity-60" style={{ backgroundImage: "radial-gradient(#14131222 1.2px,transparent 1.2px)", backgroundSize: "22px 22px" }} />
+          <Reveal className="relative lg:col-span-7">
+            <RisoSectionLabel color="#FF4326">recruiter access · est. 2026</RisoSectionLabel>
+            <h1 className="fd text-[13vw] leading-[0.86] tracking-tight sm:text-6xl lg:text-[4.6rem]">
+              Source talent that <span className="relative inline-block"><span className="relative z-10">asked</span><span className="absolute inset-x-[-4px] bottom-1 z-0 h-[0.42em] bg-[#FFE14D]" /></span> to be found.
+            </h1>
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-[#141312]/70">
+              Every candidate in Cvyon's pool explicitly opted in to recruiter contact. Filter by role, skill and country, read a completeness score, and reach them directly — no scraping, no guesswork, no noise.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/recruiter/login" className="riso-btn">Sign in <ArrowUpRight size={16} /></Link>
+              <Link href="/recruiter/signup" className="riso-btn riso-btn-ghost">Create account</Link>
+            </div>
+          </Reveal>
+
+          {/* proof ledger — a vertical numbered list, not a card trio */}
+          <Reveal delay={120} className="relative lg:col-span-5">
+            <div className="riso-card p-7">
+              <div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.22em] text-[#141312]/50">what you actually get</div>
+              <ol>
+                {[
+                  ["Consent-verified pool", "Only candidates who ticked “recruiters may contact me.”"],
+                  ["Structured & scored", "Skills, experience, location and a 0–100 completeness score."],
+                  ["Direct contact", "Email candidates straight from the card — no middleman markup."],
+                  ["Search that scales", "Filter by title and country across the whole opt-in pool."],
+                ].map(([t, d], i) => (
+                  <li key={t} className={cn("flex gap-4 border-t-2 border-[#141312]/15 py-4", i === 3 && "border-b-2")}>
+                    <span className="fd text-2xl leading-none text-[#FF4326]">{String(i + 1).padStart(2, "0")}</span>
+                    <div><div className="fh font-extrabold">{t}</div><div className="mt-0.5 text-sm text-[#141312]/60">{d}</div></div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* honest stat strip */}
+        <Reveal delay={160}>
+          <div className="mt-12 grid grid-cols-2 border-[3px] border-[#141312] bg-white sm:grid-cols-4">
+            {[["0", "paywalls for candidates"], ["100%", "opt-in pool"], ["18", "résumé layouts"], ["GDPR", "consent-first"]].map(([v, l], i) => (
+              <div key={l} className={cn("p-6", i % 2 === 0 && "border-r-2 border-[#141312]", i < 2 && "border-b-2 border-[#141312] sm:border-b-0", i === 1 && "sm:border-r-2")}>
+                <div className="fd text-3xl tracking-tight text-[#141312]">{v}</div>
+                <div className="fm mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#141312]/55">{l}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </>
+    ));
+  }
+
+  /* ============================ NO ACTIVE SUB ============================ */
+  if (!sub) {
+    return shell(false, (
+      <div className="mx-auto max-w-xl py-6">
+        <RisoSectionLabel color="#0E8A4B">your account</RisoSectionLabel>
+        <h1 className="fd text-4xl tracking-tight sm:text-5xl">Unlock the talent pool.</h1>
+        <p className="mt-4 text-[#141312]/70">Signed in as <span className="font-bold">{user.email}</span>. Subscribe to search and contact opted-in candidates.</p>
+
+        <div className="riso-card mt-8 p-8">
+          <div className="flex items-baseline justify-between border-b-[3px] border-[#141312] pb-5">
+            <span className="fh text-xl font-extrabold">Recruiter Access</span>
+            <span className="fd text-3xl tracking-tight">{priceLabel}</span>
+          </div>
+          <ul className="mt-6 space-y-3">
+            {["Unlimited candidate search", "Filter by role, skill & country", "Completeness-scored profiles", "Direct email contact", "Full candidate detail view", "Cancel anytime"].map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm"><span className="grid h-5 w-5 place-items-center border-2 border-[#0E8A4B] text-[#0E8A4B]"><Check size={12} /></span> {f}</li>
+            ))}
+          </ul>
+          <button onClick={handleCheckout} disabled={checkingOut} className="riso-btn mt-8 w-full">
+            {checkingOut ? <Loader2 size={16} className="animate-spin" /> : "Subscribe with Paystack"} <ArrowRight size={16} />
+          </button>
+          <p className="fm mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-[#141312]/45">billed securely via Paystack · {priceLabel}</p>
+        </div>
+      </div>
+    ));
+  }
+
+  /* ============================ ACTIVE — SEARCH COCKPIT ============================ */
+  return shell(false, (
+    <>
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <RisoSectionLabel color="#2233FF">talent pool</RisoSectionLabel>
+          <h1 className="fd text-4xl tracking-tight sm:text-5xl">Find your next hire.</h1>
+        </div>
+        <div className="flex gap-3">
+          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={candidates.length} /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">matches</div></div>
+          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={avgCompleteness} suffix="%" /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">avg profile</div></div>
+          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl text-[#0E8A4B]">Active</div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">plan</div></div>
+        </div>
+      </div>
+
+      {/* search + filters */}
+      <div className="riso-card mt-8 flex flex-col gap-3 p-4 sm:flex-row">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#141312]/40" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && load(query, country)}
+            placeholder="Search by job title (e.g. Software Engineer)"
+            className="riso-input !pl-9"
+          />
+        </div>
+        <select value={country} onChange={(e) => setCountry(e.target.value)} className="riso-input sm:w-56">
+          <option value="">All countries</option>
+          {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <button onClick={() => load(query, country)} className="riso-btn">{searching ? "Searching…" : "Search"}</button>
+        {(query || country) && (
+          <button onClick={() => { setQuery(""); setCountry(""); load("", ""); }} className="riso-btn riso-btn-ghost !px-4">Clear</button>
+        )}
+      </div>
+
+      {/* results */}
+      {searching ? (
+        <div className="flex items-center justify-center gap-3 py-24 text-[#141312]/60">
+          <Loader2 size={24} className="animate-spin text-[#2233FF]" /> Searching the pool…
+        </div>
+      ) : candidates.length === 0 ? (
+        <div className="riso-card mt-8 py-20 text-center">
+          <Users size={40} className="mx-auto mb-3 text-[#141312]/30" />
+          <p className="fh text-lg font-extrabold">No candidates match yet.</p>
+          <p className="mt-1 text-sm text-[#141312]/60">Try a broader title or clear the country filter.</p>
+        </div>
+      ) : (
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          {candidates.map((c) => {
+            const email = c.candidates?.email;
+            const skills: string[] = Array.isArray(c.skills) ? c.skills.slice(0, 5) : [];
+            return (
+              <button
+                key={c.id}
+                onClick={() => setSelected(c)}
+                className="riso-card group flex flex-col p-6 text-left transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="fh truncate text-lg font-extrabold tracking-tight group-hover:text-[#FF4326]">{c.full_name || "Candidate"}</h3>
+                    <div className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#141312]/75">
+                      <Briefcase size={13} className="text-[#2233FF]" /> {c.current_title || "—"}
+                    </div>
+                  </div>
+                  <span className="shrink-0 border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold text-[#0E8A4B]">{c.completeness_score ?? 0}%</span>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 fm text-[11px] uppercase tracking-wider text-[#141312]/55">
+                  {c.country && <span className="flex items-center gap-1"><MapPin size={12} /> {c.country}</span>}
+                  {c.experience_years != null && <span>{c.experience_years} yrs exp</span>}
+                  {c.highest_education && <span className="flex items-center gap-1"><GraduationCap size={12} /> {c.highest_education}</span>}
+                </div>
+
+                {skills.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {skills.map((s: string) => <span key={s} className="riso-chip">{s}</span>)}
+                  </div>
+                )}
+
+                <div className="mt-5 flex items-center gap-3 border-t-2 border-[#141312]/10 pt-4">
+                  {email && (
+                    <span
+                      role="link"
+                      onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${email}`; }}
+                      className="riso-btn !px-4 !py-2.5 !text-xs"
+                    >
+                      <Mail size={14} /> Contact
+                    </span>
+                  )}
+                  {c.linkedin_url && (
+                    <span
+                      role="link"
+                      onClick={(e) => { e.stopPropagation(); window.open(c.linkedin_url, "_blank", "noopener"); }}
+                      className="riso-btn riso-btn-ghost !px-4 !py-2.5 !text-xs"
+                    >
+                      <Linkedin size={14} /> LinkedIn
+                    </span>
+                  )}
+                  <span className="fm ml-auto flex items-center gap-1 text-[10px] uppercase tracking-widest text-[#141312]/40 group-hover:text-[#FF4326]">
+                    View profile <ArrowUpRight size={12} />
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ===================== CANDIDATE DETAIL DRAWER ===================== */}
+      {selected && (() => {
+        const rd = selected.resume_data || selected.candidates?.resume_data || {};
+        const email = selected.candidates?.email;
+        const skills: string[] = Array.isArray(selected.skills) ? selected.skills : (rd.skills || []).map((s: any) => s.name).filter(Boolean);
+        return (
+          <div className="fixed inset-0 z-[200] flex justify-end bg-black/60 backdrop-blur-sm print:hidden" onClick={() => setSelected(null)}>
+            <style>{`@keyframes rd-in{from{transform:translateX(100%)}to{transform:none}}.rd-panel{animation:rd-in .32s cubic-bezier(.2,.7,.2,1) both}@media(prefers-reduced-motion:reduce){.rd-panel{animation:none}}`}</style>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="rd-panel relative flex h-full w-full max-w-xl flex-col overflow-hidden border-l-[3px] border-[#141312] bg-[#E8E7E1] !rounded-t-3xl sm:!rounded-none"
+            >
+              <div className="flex items-start justify-between gap-3 border-b-[3px] border-[#141312] bg-[#141312] px-6 py-5 text-[#E8E7E1]">
+                <div className="min-w-0">
+                  <div className="fm text-[10px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]">candidate profile</div>
+                  <h2 className="fd mt-1 truncate text-2xl tracking-tight">{selected.full_name || "Candidate"}</h2>
+                  <div className="mt-1 flex items-center gap-1.5 text-sm text-[#E8E7E1]/70"><Briefcase size={13} className="text-[#FF4326]" /> {selected.current_title || rd.personalInfo?.jobTitle || "—"}</div>
+                </div>
+                <button aria-label="Close" onClick={() => setSelected(null)} className="grid h-9 w-9 shrink-0 place-items-center border-2 border-[#E8E7E1] hover:border-[#FF4326] hover:bg-[#FF4326]"><X size={18} /></button>
+              </div>
+
+              <div className="flex-1 space-y-7 overflow-y-auto p-6">
+                <div className="flex flex-wrap gap-2">
+                  <span className="border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold text-[#0E8A4B]">{selected.completeness_score ?? 0}% complete</span>
+                  {selected.country && <span className="riso-chip"><MapPin size={11} /> {selected.country}</span>}
+                  {selected.experience_years != null && <span className="riso-chip">{selected.experience_years} yrs</span>}
+                  {selected.highest_education && <span className="riso-chip"><GraduationCap size={11} /> {selected.highest_education}</span>}
+                </div>
+
+                {email && (
+                  <div className="flex flex-wrap gap-3">
+                    <a href={`mailto:${email}`} className="riso-btn !py-2.5 !text-xs"><Mail size={14} /> {email}</a>
+                    {selected.linkedin_url && <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="riso-btn riso-btn-ghost !py-2.5 !text-xs"><Linkedin size={14} /> LinkedIn</a>}
+                  </div>
+                )}
+
+                {rd.summary && (
+                  <div>
+                    <RisoSectionLabel>summary</RisoSectionLabel>
+                    <p className="riso-card p-5 text-sm leading-relaxed text-[#141312]/80" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(rd.summary) }} />
+                  </div>
+                )}
+
+                {Array.isArray(rd.experience) && rd.experience.length > 0 && (
+                  <div>
+                    <RisoSectionLabel color="#2233FF">experience</RisoSectionLabel>
+                    <div className="space-y-4">
+                      {rd.experience.map((exp: any, i: number) => (
+                        <div key={exp.id || i} className="riso-card p-5">
+                          <div className="flex items-baseline justify-between gap-3">
+                            <h4 className="fh font-extrabold">{exp.role}</h4>
+                            <span className="shrink-0 fm text-[10px] uppercase tracking-widest text-[#141312]/50">{exp.startDate} — {exp.endDate}</span>
+                          </div>
+                          <div className="mt-0.5 text-sm font-semibold text-[#2233FF]">{exp.company}</div>
+                          {exp.description && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#141312]/70">{exp.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(rd.education) && rd.education.length > 0 && (
+                  <div>
+                    <RisoSectionLabel color="#FF4326">education</RisoSectionLabel>
+                    <div className="space-y-3">
+                      {rd.education.map((ed: any, i: number) => (
+                        <div key={ed.id || i} className="flex items-baseline justify-between gap-3 border-b-2 border-[#141312]/10 pb-3">
+                          <div><div className="fh font-bold">{ed.degree}</div><div className="text-sm text-[#141312]/60">{ed.school}</div></div>
+                          <span className="fm text-[11px] font-bold text-[#141312]/50">{ed.graduationYear}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {skills.length > 0 && (
+                  <div>
+                    <RisoSectionLabel>skills</RisoSectionLabel>
+                    <div className="flex flex-wrap gap-2">{skills.map((s: string) => <span key={s} className="riso-chip">{s}</span>)}</div>
+                  </div>
+                )}
+
+                {!rd.summary && !(rd.experience || []).length && !skills.length && (
+                  <div className="riso-card py-12 text-center text-sm italic text-[#141312]/50">This candidate only provided basic contact information.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </>
+  ));
 }
