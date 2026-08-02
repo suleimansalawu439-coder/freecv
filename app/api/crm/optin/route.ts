@@ -51,10 +51,48 @@ export async function POST(request: Request) {
     const fullName = data?.personalInfo?.fullName || '';
     const jobTitle = data?.personalInfo?.jobTitle || '';
     const consents = data?.consents || {};
-    const consent_recruiter_share = !!consents.recruiterShare;
-    const consent_email_jobs = !!consents.emailJobs;
-    const consent_analytics = !!consents.analytics;
+
+    const toBool = (v: any, fallback = false): boolean => {
+      if (v === undefined || v === null) return fallback;
+      if (typeof v === 'boolean') return v;
+      if (typeof v === 'string') return v === 'true' || v === '1' || v === 'yes';
+      if (typeof v === 'number') return v === 1;
+      return Boolean(v);
+    };
+
+    const consent_recruiter_share = toBool(
+      consents.recruiterShare ??
+      consents.consent_recruiter_share ??
+      consents.recruiter_share ??
+      consents.shareWithRecruiters ??
+      consents.recruiterConsent ??
+      data?.consent_recruiter_share ??
+      data?.recruiterShare,
+      false
+    );
+    const consent_email_jobs = toBool(
+      consents.emailJobs ??
+      consents.consent_email_jobs ??
+      consents.email_jobs ??
+      data?.consent_email_jobs ??
+      data?.emailJobs,
+      false
+    );
+    const consent_analytics = toBool(
+      consents.analytics ??
+      consents.consent_analytics ??
+      data?.consent_analytics ??
+      data?.analytics,
+      true
+    );
     const now = new Date().toISOString();
+
+    const resumeSkills = Array.isArray(data?.skills)
+      ? data.skills.map((s: any) => (typeof s === 'string' ? s : s?.name)).filter(Boolean)
+      : [];
+    const finalSkills = (Array.isArray(ex.skills) && ex.skills.length > 0) ? ex.skills : resumeSkills;
+    const expYears = Math.max(0, parseInt(String(ex.experience_years), 10) || 0);
+    const score = completeness(data);
 
     // ---- 1. source-of-truth candidate row (holds resume_data) ----
     const { data: cand, error: candErr } = await supabaseAdmin.from('candidates').upsert({
@@ -68,12 +106,12 @@ export async function POST(request: Request) {
       country,
       device_type,
       industry: ex.industry || '',
-      experience_years: Number(ex.experience_years) || 0,
+      experience_years: expYears,
       highest_education: ex.highest_education || '',
       salary_expectation: ex.salary_expectation || '',
       employment_status: ex.employment_status || 'Open to work',
       preferred_work: ex.preferred_work || 'Any',
-      skills: (data?.skills || []).map((s: any) => s.name).filter(Boolean),
+      skills: resumeSkills,
       linkedin: data?.personalInfo?.website?.includes('linkedin') ? data.personalInfo.website : '',
       github: data?.personalInfo?.website?.includes('github') ? data.personalInfo.website : '',
       portfolio: (data?.personalInfo?.website && !data.personalInfo.website.includes('linkedin') && !data.personalInfo.website.includes('github')) ? data.personalInfo.website : '',
@@ -96,17 +134,17 @@ export async function POST(request: Request) {
       industry: ex.industry || '',
       country,
       city: (data?.personalInfo?.location || '').split(',')[0].trim(),
-      experience_years: Number(ex.experience_years) || 0,
+      experience_years: expYears,
       employment_status: ex.employment_status || 'Open to work',
       preferred_work: ex.preferred_work || 'Any',
       highest_education: ex.highest_education || '',
-      skills: ex.skills,
-      skill_categories: ex.skill_categories,
+      skills: finalSkills,
+      skill_categories: Array.isArray(ex.skill_categories) ? ex.skill_categories : [],
       salary_expectation: ex.salary_expectation || '',
       linkedin_url: data?.personalInfo?.website?.includes('linkedin') ? data.personalInfo.website : '',
       github_url: data?.personalInfo?.website?.includes('github') ? data.personalInfo.website : '',
       portfolio_url: (data?.personalInfo?.website && !data.personalInfo.website.includes('linkedin') && !data.personalInfo.website.includes('github')) ? data.personalInfo.website : '',
-      completeness_score: completeness(data),
+      completeness_score: score,
       consent_recruiter_share,
       consent_email_jobs,
       consent_analytics,
@@ -115,7 +153,21 @@ export async function POST(request: Request) {
       resume_data: data,
       updated_at: now,
     }, { onConflict: 'id' });
-    if (profErr) console.error('optin candidate_profiles upsert error', profErr);
+    if (profErr) {
+      console.error('optin candidate_profiles upsert error', profErr);
+      const { error: updateErr } = await supabaseAdmin.from('candidate_profiles').update({
+        full_name: fullName,
+        current_title: jobTitle,
+        consent_recruiter_share,
+        consent_email_jobs,
+        consent_analytics,
+        consent_version: CONSENT_VERSION,
+        consent_at: now,
+        resume_data: data,
+        updated_at: now,
+      }).eq('id', candidateId);
+      if (updateErr) console.error('optin candidate_profiles fallback update error', updateErr);
+    }
 
     // ---- 3. consent audit log (match the REAL consent_logs columns) ----
     try {
@@ -129,7 +181,7 @@ export async function POST(request: Request) {
       });
     } catch (e) { console.warn('consent_logs insert failed (non-fatal)', e); }
 
-    return NextResponse.json({ success: true, completeness: completeness(data) });
+    return NextResponse.json({ success: true, candidateId, consent_recruiter_share, completeness: score });
   } catch (error: any) {
     console.error('optin error', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

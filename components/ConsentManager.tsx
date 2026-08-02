@@ -18,15 +18,30 @@ export function ConsentManager() {
     }
   }, []);
 
+  const syncConsent = (updatedConsents: any) => {
+    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+      fetch('/api/crm/optin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, consents: updatedConsents }),
+      }).catch((e) => console.warn('Consent sync error', e));
+    }
+  };
+
   const handleSave = () => {
     localStorage.setItem('cvyon-consent-seen', 'true');
     setHasSeen(true);
     setIsOpen(false);
+    syncConsent(data.consents);
   };
 
   const handleAcceptAll = () => {
-    setConsents({ recruiterShare: true, emailJobs: true, analytics: true });
-    handleSave();
+    const fullConsents = { recruiterShare: true, emailJobs: true, analytics: true };
+    setConsents(fullConsents);
+    localStorage.setItem('cvyon-consent-seen', 'true');
+    setHasSeen(true);
+    setIsOpen(false);
+    syncConsent(fullConsents);
   };
 
   if (!isOpen) {

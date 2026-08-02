@@ -408,6 +408,13 @@ export default function FreeCVApp() {
 
   const handleDocxExport = async () => {
     try {
+      if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+        try {
+          fetch('/api/crm/optin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+            .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
+            .catch(err => console.error('[CRM opt-in] Network error:', err));
+        } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
+      }
       const res = await fetch('/api/export/docx', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       if (!res.ok) throw new Error('Failed to generate DOCX');
       const blob = await res.blob();
@@ -565,7 +572,18 @@ export default function FreeCVApp() {
                     <h4 className="fh font-bold text-sm text-[#141312]">Make profile public</h4>
                     <p className="fm text-[10px] uppercase tracking-[0.14em] text-[#141312]/55">Allow recruiters to find your resume on Cvyon.</p>
                   </div>
-                  <button onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}
+                  <button onClick={() => {
+                    const newShare = !data.consents.recruiterShare;
+                    const nextConsents = { ...data.consents, recruiterShare: newShare };
+                    setConsents(nextConsents);
+                    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+                      fetch('/api/crm/optin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ...data, consents: nextConsents }),
+                      }).catch((e) => console.warn('Background consent sync error', e));
+                    }
+                  }}
                     className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0 border-2 border-[#141312]", data.consents.recruiterShare ? 'bg-[#2233FF]' : 'bg-gray-300')}>
                     <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-6' : 'translate-x-1')} />
                   </button>

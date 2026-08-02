@@ -8,7 +8,11 @@ import { cn } from '@/lib/utils'; // if exists, otherwise I'll need to define it
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [consents, setConsents] = useState({
+    consent_recruiter_share: false,
+    consent_email_jobs: false,
+    consent_analytics: true,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -23,27 +27,33 @@ export default function SettingsPage() {
       }
       setUser(session.user);
       
-      // Fetch profile based on email
-      const { data } = await supabase
-        .from('candidates')
-        .select('id, email, candidate_profiles(consent_recruiter_share, consent_email_jobs, consent_analytics)')
-        .eq('email', session.user.email)
-        .single();
-        
-      if (data) {
-        setProfile(data);
+      try {
+        const res = await fetch(`/api/user/consent?email=${encodeURIComponent(session.user.email || '')}`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        const d = await res.json();
+        if (d?.success && d?.consents) {
+          setConsents({
+            consent_recruiter_share: !!d.consents.consent_recruiter_share,
+            consent_email_jobs: !!d.consents.consent_email_jobs,
+            consent_analytics: d.consents.consent_analytics !== undefined ? !!d.consents.consent_analytics : true,
+          });
+        }
+      } catch (err) {
+        console.warn('Failed to load user consents', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     checkUser();
   }, [router]);
 
   const handleToggle = async (field: string, value: boolean) => {
-    if (!profile) return;
+    if (!user?.email) return;
+    const nextConsents = { ...consents, [field]: value };
+    setConsents(nextConsents);
     setSaving(true);
     
-    // Call our secure endpoint or direct supabase if RLS allows (currently public insert only)
-    // Actually we need an API endpoint to update because candidate_profiles is locked down for updates
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/user/consent', {
@@ -54,24 +64,18 @@ export default function SettingsPage() {
         },
         body: JSON.stringify({
           email: user.email,
-          consents: {
-            ...profile.candidate_profiles[0],
-            [field]: value
-          }
+          consents: nextConsents
         })
       });
       if (res.ok) {
-        setProfile({
-          ...profile,
-          candidate_profiles: [{ ...profile.candidate_profiles[0], [field]: value }]
-        });
         setMsg('Preferences updated');
         setTimeout(() => setMsg(''), 3000);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Failed to update consent preferences', e);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleLogout = async () => {
@@ -124,10 +128,11 @@ export default function SettingsPage() {
                     <div className="text-sm text-gray-500">Allow verified top companies to find your profile.</div>
                   </div>
                   <button 
-                    onClick={() => handleToggle('consent_recruiter_share', !profile?.candidate_profiles?.[0]?.consent_recruiter_share)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    disabled={saving}
+                    onClick={() => handleToggle('consent_recruiter_share', !consents.consent_recruiter_share)}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${consents.consent_recruiter_share ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_recruiter_share ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${consents.consent_recruiter_share ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
 
@@ -137,10 +142,11 @@ export default function SettingsPage() {
                     <div className="text-sm text-gray-500">Receive emails when a recruiter has a match.</div>
                   </div>
                   <button 
-                    onClick={() => handleToggle('consent_email_jobs', !profile?.candidate_profiles?.[0]?.consent_email_jobs)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    disabled={saving}
+                    onClick={() => handleToggle('consent_email_jobs', !consents.consent_email_jobs)}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${consents.consent_email_jobs ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_email_jobs ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${consents.consent_email_jobs ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
                 
@@ -150,10 +156,11 @@ export default function SettingsPage() {
                     <div className="text-sm text-gray-500">Help us improve Cvyon by sharing anonymous usage data.</div>
                   </div>
                   <button 
-                    onClick={() => handleToggle('consent_analytics', !profile?.candidate_profiles?.[0]?.consent_analytics)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${profile?.candidate_profiles?.[0]?.consent_analytics ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    disabled={saving}
+                    onClick={() => handleToggle('consent_analytics', !consents.consent_analytics)}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${consents.consent_analytics ? 'bg-blue-600' : 'bg-gray-300'}`}
                   >
-                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${profile?.candidate_profiles?.[0]?.consent_analytics ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${consents.consent_analytics ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </button>
                 </div>
               </div>

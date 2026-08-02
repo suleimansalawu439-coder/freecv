@@ -80,7 +80,7 @@ export async function GET(req: Request) {
 
     let query = supabaseAdmin
       .from('candidate_profiles')
-      .select('id, full_name, current_title, skills, country, experience_years, bio, expected_salary_min, expected_salary_max')
+      .select('id, full_name, current_title, industry, skills, country, city, experience_years, employment_status, preferred_work, highest_education, salary_expectation, completeness_score, linkedin_url, github_url, portfolio_url, updated_at')
       .eq('consent_recruiter_share', true)
       .limit(maxLimit);
 

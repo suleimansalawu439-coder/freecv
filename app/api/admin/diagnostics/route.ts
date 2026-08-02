@@ -137,7 +137,7 @@ export async function GET() {
     key_present: !!supabaseKey,
   };
 
-  // ---- 7. Test opt-in write (dry run — insert + immediate delete) ----
+  // ---- 7. Test opt-in write (dry run — insert + verify candidate_profiles consent + immediate delete) ----
   try {
     const testEmail = `diag-${Date.now()}@test.cvyon.internal`;
     const { data: inserted, error: insErr } = await supabaseAdmin
@@ -149,10 +149,37 @@ export async function GET() {
     if (insErr) {
       checks.write_test = { status: 'INSERT_ERROR', error: insErr.message, code: insErr.code, details: insErr.details };
     } else {
+      const { error: profErr } = await supabaseAdmin
+        .from('candidate_profiles')
+        .upsert({
+          id: inserted.id,
+          full_name: 'DIAGNOSTIC_TEST',
+          current_title: 'Test Engineer',
+          consent_recruiter_share: true,
+          consent_email_jobs: true,
+          consent_analytics: true,
+        }, { onConflict: 'id' });
+
+      // Verify searchability
+      const { data: found } = await supabaseAdmin
+        .from('candidate_profiles')
+        .select('id, consent_recruiter_share')
+        .eq('id', inserted.id)
+        .eq('consent_recruiter_share', true)
+        .single();
+
       // Clean up
       await supabaseAdmin.from('candidate_profiles').delete().eq('id', inserted.id);
       await supabaseAdmin.from('candidates').delete().eq('id', inserted.id);
-      checks.write_test = { status: 'OK', message: 'Insert + delete succeeded' };
+
+      if (profErr || !found) {
+        checks.write_test = {
+          status: 'PROFILE_CONSENT_ERROR',
+          error: profErr?.message || 'Candidate profile consent verification failed'
+        };
+      } else {
+        checks.write_test = { status: 'OK', message: 'Candidate & consent_recruiter_share stamping verified successfully' };
+      }
     }
   } catch (e: any) {
     checks.write_test = { status: 'EXCEPTION', error: e.message };
