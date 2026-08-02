@@ -76,7 +76,8 @@ export const supabase = supabaseUrl && supabaseAnonKey
     } as unknown as ReturnType<typeof createClient>;
 
 // Server-side admin client to bypass RLS
-export const supabaseAdmin = supabaseUrl && supabaseServiceKey
+const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
+export const supabaseAdmin = isRealAdmin
   ? createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
         autoRefreshToken: false,
@@ -84,3 +85,12 @@ export const supabaseAdmin = supabaseUrl && supabaseServiceKey
       }
     })
   : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as ReturnType<typeof createClient>;
+
+/** True when supabaseAdmin is connected to a real database, false when using mock */
+export const isSupabaseConfigured = isRealAdmin;
+
+// Warn loudly on server-side when using mock clients
+if (typeof window === 'undefined' && !isRealAdmin) {
+  console.warn('\n⚠️  [supabase] RUNNING WITH MOCK CLIENT — no database writes will persist!');
+  console.warn('   Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env.\n');
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -24,6 +24,11 @@ export async function POST(request: Request) {
     const data = await request.json();
     const email: string = data?.personalInfo?.email || '';
     if (!email || !email.includes('@')) return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+
+    if (!isSupabaseConfigured) {
+      console.error('[CRM opt-in] Supabase not configured — data will NOT be saved');
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
 
     const country = request.headers.get('x-vercel-ip-country') || 'Unknown';
     const ua = request.headers.get('user-agent') || '';

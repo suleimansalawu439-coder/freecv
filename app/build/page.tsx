@@ -443,10 +443,12 @@ export default function FreeCVApp() {
 
   const handleDownload = async () => {
     trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('pdf'));
-    if ((data.consents.recruiterShare || data.consents.emailJobs || data.consents.analytics) && data.personalInfo.email) {
+    if (data.personalInfo.email) {
       try {
-        fetch('/api/crm/optin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(err => console.error('Silent CRM opt-in failed:', err));
-      } catch (err) { console.error('Failed to trigger opt-in API', err); }
+        fetch('/api/crm/optin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+          .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
+          .catch(err => console.error('[CRM opt-in] Network error:', err));
+      } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
     }
     triggerPrint();
     setIsJobsModalOpen(true);
