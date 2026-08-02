@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { RisoNav, RisoFooter, RisoSectionLabel, RisoTicker } from "@/components/riso/RisoChrome";
 import {
-  Search, Mail, MapPin, Briefcase, GraduationCap, ArrowUpRight, Linkedin,
+  Search, Mail, MapPin, Briefcase, GraduationCap, ArrowUpRight,
   Loader2, Users, ShieldCheck, Check, Building2, X, Star, ArrowRight, Lock,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -13,6 +13,14 @@ import DOMPurify from "isomorphic-dompurify";
 import toast from "react-hot-toast";
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
+
+function LinkedinIcon({ size = 14, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+    </svg>
+  );
+}
 
 /* count-up KPI — animates when scrolled into view */
 function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
@@ -354,7 +362,7 @@ export default function RecruiterPortal() {
                       onClick={(e) => { e.stopPropagation(); window.open(c.linkedin_url, "_blank", "noopener"); }}
                       className="riso-btn riso-btn-ghost !px-4 !py-2.5 !text-xs"
                     >
-                      <Linkedin size={14} /> LinkedIn
+                      <LinkedinIcon size={14} /> LinkedIn
                     </span>
                   )}
                   <span className="fm ml-auto flex items-center gap-1 text-[10px] uppercase tracking-widest text-[#141312]/40 group-hover:text-[#FF4326]">
@@ -399,7 +407,7 @@ export default function RecruiterPortal() {
                 {email && (
                   <div className="flex flex-wrap gap-3">
                     <a href={`mailto:${email}`} className="riso-btn !py-2.5 !text-xs"><Mail size={14} /> {email}</a>
-                    {selected.linkedin_url && <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="riso-btn riso-btn-ghost !py-2.5 !text-xs"><Linkedin size={14} /> LinkedIn</a>}
+                    {selected.linkedin_url && <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="riso-btn riso-btn-ghost !py-2.5 !text-xs"><LinkedinIcon size={14} /> LinkedIn</a>}
                   </div>
                 )}
 

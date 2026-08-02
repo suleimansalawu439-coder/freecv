@@ -124,7 +124,7 @@ export async function GET(request: Request) {
         await supabaseAdmin.from('analytics_events').insert({
           event_type: 'job_match_email_sent', session_id: 'cron-job-match',
           country: code || 'UNKNOWN', metadata: { candidate_id: p.id, jobs: jobs.length },
-        }).catch(() => {});
+        });
         sent++;
       } catch (e) { console.error('per-candidate error', e); skipped++; }
     }
