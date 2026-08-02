@@ -1,35 +1,36 @@
-import React from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { supabaseAdmin } from "@/lib/supabase";
-import { verifyAdminToken } from "@/lib/auth";   // pair of signAdminToken — adjust name if yours differs
-import AdminDashboard from "@/components/admin/AdminDashboard";
+import React from 'react';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { supabaseAdmin } from '@/lib/supabase';
+import { verifyAdminToken } from '@/lib/auth';
+import AdminDashboard from '@/components/admin/AdminDashboard';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
-  // server-side guard so /admin is never public
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_session")?.value;
-  let authorized = false;
-  if (token) {
-    try { authorized = !!(await verifyAdminToken(token)); } catch { authorized = false; }
-  }
-  if (!authorized) redirect("/admin/login");
+  // server-side guard — /admin is never public
+  const token = (await cookies()).get('admin_session')?.value;
+  let ok = false;
+  if (token) { try { ok = !!(await verifyAdminToken(token)); } catch { ok = false; } }
+  if (!ok) redirect('/admin/login');
 
-  const [cand, an, ai, rec] = await Promise.all([
-    supabaseAdmin.from("candidate_profiles").select("*").order("created_at", { ascending: false }),
-    supabaseAdmin.from("analytics_events").select("*").order("created_at", { ascending: false }).limit(5000),
-    supabaseAdmin.from("ai_usage_logs").select("*").order("created_at", { ascending: false }).limit(3000),
-    supabaseAdmin.from("recruiters").select("*, subscriptions(*)").order("created_at", { ascending: false }),
+  const [candidates, analytics, aiLogs, siteSettings, featureFlags, blogPosts] = await Promise.all([
+    supabaseAdmin.from('candidate_profiles').select('*').order('updated_at', { ascending: false }),
+    supabaseAdmin.from('analytics_events').select('*').order('created_at', { ascending: false }).limit(5000),
+    supabaseAdmin.from('ai_usage_logs').select('*').order('created_at', { ascending: false }).limit(3000),
+    supabaseAdmin.from('site_settings').select('*').single(),
+    supabaseAdmin.from('feature_flags').select('*').order('key'),
+    supabaseAdmin.from('blog_posts').select('*').order('created_at', { ascending: false }),
   ]);
 
   return (
     <AdminDashboard
-      candidates={cand.data || []}
-      analytics={an.data || []}
-      aiLogs={ai.data || []}
-      recruiters={rec.data || []}
+      candidates={candidates.data || []}
+      analytics={analytics.data || []}
+      aiLogs={aiLogs.data || []}
+      siteSettings={siteSettings.data || {}}
+      featureFlags={featureFlags.data || []}
+      blogPosts={blogPosts.data || []}
     />
   );
 }
