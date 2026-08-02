@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       throw new Error(result.message || 'Failed to initialize Paystack transaction');
     }
 
-    return NextResponse.json({ url: result.data.authorization_url });
+    return NextResponse.json({ url: result.data.authorization_url, authorization_url: result.data.authorization_url });
   } catch (error: any) {
     console.error('Paystack checkout error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });

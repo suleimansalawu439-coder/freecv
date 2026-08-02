@@ -30,7 +30,16 @@ async function fetchJobs(keywords: string, countryName: string, locale: string) 
     const r = await fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Proxy-Secret': PROXY_SECRET },
-      body: JSON.stringify({ keywords, location: countryName, locale_code: locale, user_ip: '', user_agent: 'Cvyon-JobMatch/1.0', page: 1, page_size: 3 }),
+      body: JSON.stringify({
+        affid: process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID || process.env.CAREERJET_AFFILIATE_ID || '',
+        keywords,
+        location: countryName,
+        locale_code: locale,
+        user_ip: '8.8.8.8',
+        user_agent: 'Cvyon-JobMatch/1.0',
+        page: 1,
+        page_size: 3
+      }),
     });
     if (!r.ok) return [];
     const j = await r.json();

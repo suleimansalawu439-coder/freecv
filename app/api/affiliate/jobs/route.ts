@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Proxy-Secret': PROXY_SECRET },
       body: JSON.stringify({
+        affid: process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID || process.env.CAREERJET_AFFILIATE_ID || '',
         keywords,
         location: countryName,          // <-- country, not the user's address
         locale_code: locale,            // <-- per-country locale, not en_US

@@ -381,7 +381,12 @@ export function SupportTab() {
             {open ? (
               <>
                 <div className="flex-1 space-y-4 overflow-y-auto p-5">
-                  <div className="flex flex-wrap items-center gap-2"><Pill color={statusColor(open.status)}>{open.status}</Pill><Pill color={PRIO[open.priority || "normal"]}>{open.priority}</Pill>{open.category && <Pill>{open.category}</Pill><span className="font-mono text-[11px]" style={{ color: t.faint }}>{open.user_email} · {(open.created_at || "").slice(0, 10)}</span></div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Pill color={statusColor(open.status)}>{open.status}</Pill>
+                    <Pill color={PRIO[open.priority || "normal"]}>{open.priority}</Pill>
+                    {open.category && <Pill>{open.category}</Pill>}
+                    <span className="font-mono text-[11px]" style={{ color: t.faint }}>{open.user_email} · {(open.created_at || "").slice(0, 10)}</span>
+                  </div>
                   <div className="rounded-md border p-4" style={{ borderColor: t.border, background: t.bgAlt }}><div className="mb-1 font-mono text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>customer</div><p className="whitespace-pre-wrap text-sm" style={{ color: t.text }}>{open.message}</p></div>
                   {open.admin_reply && <div className="rounded-md border p-4" style={{ borderColor: t.pass, background: t.surface }}><div className="mb-1 font-mono text-[10px] uppercase tracking-widest" style={{ color: t.pass }}>admin reply</div><p className="whitespace-pre-wrap text-sm" style={{ color: t.text }}>{open.admin_reply}</p></div>}
                 </div>

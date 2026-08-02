@@ -86,6 +86,7 @@ export async function GET() {
         'X-Proxy-Secret': proxySecret,
       },
       body: JSON.stringify({
+        affid: process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID || process.env.CAREERJET_AFFILIATE_ID || '',
         keywords: 'software engineer',
         location: 'United States',
         locale_code: 'en_US',
