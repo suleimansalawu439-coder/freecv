@@ -26,9 +26,11 @@ export async function GET() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: !!(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
     CAREERJET_PROXY_SECRET: !!process.env.CAREERJET_PROXY_SECRET,
     CAREERJET_PROXY_URL: process.env.CAREERJET_PROXY_URL || '(default: proxy.ojnfoundation.org)',
+    CAREERJET_API_KEY: !!(process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID),
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
     JWT_SECRET: !!process.env.JWT_SECRET,
-    RESEND_API_KEY: !!process.env.RESEND_API_KEY,
+    EMAIL_SERVICE_CONFIGURED: !!(process.env.BREVO_API_KEY || process.env.RESEND_API_KEY),
+    PAYSTACK_CONFIGURED: !!process.env.PAYSTACK_SECRET_KEY,
   };
 
   // ---- 2. Supabase connectivity ----
@@ -157,7 +159,12 @@ export async function GET() {
   }
 
   // ---- Summary ----
-  const allOk = Object.values(checks).every((c: any) => c.status === 'OK' || c === true || c.is_real === true);
+  const allOk =
+    checks.supabase?.status === 'OK' &&
+    checks.candidates_table?.status === 'OK' &&
+    checks.careerjet_proxy?.status === 'OK' &&
+    checks.supabase_client?.is_real === true &&
+    checks.write_test?.status === 'OK';
 
   return NextResponse.json({
     overall: allOk ? 'ALL_HEALTHY' : 'ISSUES_DETECTED',
