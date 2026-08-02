@@ -54,9 +54,12 @@ async function resolveRecruiterId(d: any): Promise<string | null> {
 async function rememberCustomerCode(recruiterId: string, d: any) {
   const custCode = d?.customer?.customer_code;
   if (!custCode) return;
-  await supabaseAdmin.from('recruiters')
-    .update({ paystack_customer_code: custCode }).eq('id', recruiterId)
-    .then(() => {}).catch((e: any) => console.warn('[webhook] customer-code save skipped:', e?.message));
+  try {
+    await supabaseAdmin.from('recruiters')
+      .update({ paystack_customer_code: custCode }).eq('id', recruiterId);
+  } catch (e: any) {
+    console.warn('[webhook] customer-code save skipped:', e?.message);
+  }
 }
 
 /* Create-or-activate the subscription row (terms). Money columns are best-effort. */
@@ -76,23 +79,30 @@ async function upsertSubscription(subscriptionCode: string, recruiterId: string,
   const amount = d?.amount ?? d?.subscription?.amount;
   if (amount != null) {
     const cur = d?.currency || d?.subscription?.currency || 'NGN';
-    await supabaseAdmin.from('subscriptions').update({
-      amount_minor: Number(amount), currency: cur, plan: planName(d),
-      fx_to_usd: fxFor(cur), paid_at: new Date().toISOString(),
-    }).eq('paystack_subscription_code', subscriptionCode)
-      .then(() => {}).catch((e: any) => console.warn('[webhook] sub money-cols update skipped (run business-layer migration?):', e?.message));
+    try {
+      await supabaseAdmin.from('subscriptions').update({
+        amount_minor: Number(amount), currency: cur, plan: planName(d),
+        fx_to_usd: fxFor(cur), paid_at: new Date().toISOString(),
+      }).eq('paystack_subscription_code', subscriptionCode);
+    } catch (e: any) {
+      console.warn('[webhook] sub money-cols update skipped (run business-layer migration?):', e?.message);
+    }
   }
 }
 
 /* Record the actual cash movement. Unique index on ref prevents double-cash. */
 async function recordCash(reference: string, recruiterId: string | null, amount: number, currency: string) {
   if (!reference || amount == null) return;
-  await supabaseAdmin.from('revenue_ledger').insert({
-    source: 'subscription', ref: reference, recruiter_id: recruiterId,
-    amount_minor: Number(amount), currency: currency || 'NGN',
-    fx_to_usd: fxFor(currency), status: 'settled',
-    period_start: new Date().toISOString(),
-  }).then(() => {}).catch((e: any) => console.warn('[webhook] revenue_ledger insert skipped:', e?.message));
+  try {
+    await supabaseAdmin.from('revenue_ledger').insert({
+      source: 'subscription', ref: reference, recruiter_id: recruiterId,
+      amount_minor: Number(amount), currency: currency || 'NGN',
+      fx_to_usd: fxFor(currency), status: 'settled',
+      period_start: new Date().toISOString(),
+    });
+  } catch (e: any) {
+    console.warn('[webhook] revenue_ledger insert skipped:', e?.message);
+  }
 }
 
 /* Email a PDF invoice via Brevo. Fully best-effort + permissively typed so a
@@ -177,14 +187,17 @@ export async function POST(req: Request) {
         } else if (subscriptionCode && !recruiterId) {
           // renewal where metadata is gone but the sub row exists: extend by code
           const amount = d?.amount, cur = d?.currency || 'NGN';
-          await supabaseAdmin.from('subscriptions').update({
-            status: 'active', paid_at: new Date().toISOString(),
-            current_period_end: d?.subscription?.next_payment_date || new Date(Date.now() + 30 * 864e5).toISOString(),
-            amount_minor: amount != null ? Number(amount) : undefined,
-            currency: amount != null ? cur : undefined,
-            fx_to_usd: amount != null ? fxFor(cur) : undefined,
-          }).eq('paystack_subscription_code', subscriptionCode)
-            .then(() => {}).catch((e: any) => console.warn('[webhook] renewal extend skipped:', e?.message));
+          try {
+            await supabaseAdmin.from('subscriptions').update({
+              status: 'active', paid_at: new Date().toISOString(),
+              current_period_end: d?.subscription?.next_payment_date || new Date(Date.now() + 30 * 864e5).toISOString(),
+              amount_minor: amount != null ? Number(amount) : undefined,
+              currency: amount != null ? cur : undefined,
+              fx_to_usd: amount != null ? fxFor(cur) : undefined,
+            }).eq('paystack_subscription_code', subscriptionCode);
+          } catch (e: any) {
+            console.warn('[webhook] renewal extend skipped:', e?.message);
+          }
         }
 
         await emailInvoice(d, reference);

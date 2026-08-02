@@ -191,15 +191,15 @@ export function Table({ head, children }: { head: string[]; children: React.Reac
     </div>
   );
 }
-export function Row({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+export function Row({ children, onClick, style, className }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; className?: string }) {
   const { t } = useAdminTheme();
-  return <tr onClick={onClick} className={cn("border-t transition-colors", onClick && "cursor-pointer")}
-    style={{ borderColor: t.border, background: "transparent" }}
+  return <tr onClick={onClick} className={cn("border-t transition-colors", onClick && "cursor-pointer", className)}
+    style={{ borderColor: t.border, background: "transparent", ...style }}
     onMouseEnter={(e) => (e.currentTarget.style.background = t.surface2)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{children}</tr>;
 }
-export function Cell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+export function Cell({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const { t } = useAdminTheme();
-  return <td className={cn("px-4 py-3", className)} style={{ color: t.text }}>{children}</td>;
+  return <td className={cn("px-4 py-3", className)} style={{ color: t.text, ...style }}>{children}</td>;
 }
 export function EmptyState({ icon, title, hint }: { icon?: React.ReactNode; title: string; hint?: string }) {
   const { t } = useAdminTheme();

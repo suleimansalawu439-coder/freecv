@@ -416,7 +416,7 @@ export function BlogTab({ posts }: { posts: any[] }) {
     <div className="space-y-5">
       <div className="flex justify-between"><Reveal><SectionLabel>blog / SEO</SectionLabel></Reveal><Btn onClick={() => setAdd(true)}><Plus size={14} /> New post</Btn></div>
       {posts.length === 0 ? <Card><EmptyState icon={<FileText size={32} />} title="No posts yet." /></Card> :
-        <Table head={["Title", "Slug", "Status", "Date"]}>{posts.map((p) => <Row key={p.id}><Cell className="font-semibold">{p.title}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.f }}>/{p.slug}</Cell><Cell>{p.is_published ? <Pill color={t.pass}>live</Pill> : <Pill>draft</Pill>}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{(p.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}
+        <Table head={["Title", "Slug", "Status", "Date"]}>{posts.map((p) => <Row key={p.id}><Cell className="font-semibold">{p.title}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>/{p.slug}</Cell><Cell>{p.is_published ? <Pill color={t.pass}>live</Pill> : <Pill>draft</Pill>}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{(p.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}
       <Modal open={add} onClose={() => setAdd(false)} title="New post" wide>
         <div className="space-y-4"><Field label="Title"><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></Field>
           <Field label="Content (HTML)"><TextArea rows={8} value={f.content} onChange={(e) => setF({ ...f, content: e.target.value })} /></Field>
