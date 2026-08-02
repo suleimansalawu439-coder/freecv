@@ -6,34 +6,35 @@ export type Mode = "dark" | "light";
 
 export interface Tokens {
   mode: Mode;
-  bg: string; bgAlt: string; surface: string; surface2: string;
+  bg: string; rail: string; surface: string; surface2: string; inset: string;
   border: string; borderStrong: string;
   text: string; muted: string; faint: string;
-  verm: string; cob: string; sage: string; gold: string;
-  pass: string; fail: string; hi: string;
-  grid: string; shadow: string; ring: string;
+  verm: string; cob: string; green: string; gold: string; hi: string;
+  shadow: string; grid: string; dot: string; ring: string;
+  onVerm: string;
 }
 
+/* Riso palette. Dark mode keeps the hues PUNCHY (only lifted where ink-on-ink
+   would fail contrast) so it reads as the SAME family as the front-end, just
+   inverted. Light mode = the literal front-end bone/ink/verm/cob values. */
 export const T: Record<Mode, Tokens> = {
   dark: {
     mode: "dark",
-    bg: "#141312", bgAlt: "#1a1816", surface: "#211e1b", surface2: "#2a2622",
-    border: "#38322c", borderStrong: "#4a4239",
-    text: "#F2ECE1", muted: "#A99F93", faint: "#6f665c",
-    verm: "#FF5A3C", cob: "#6E8BFF", sage: "#9FC0A6", gold: "#EBC06A",
-    pass: "#46C98A", fail: "#FF7A6B", hi: "#FFE14D",
-    grid: "rgba(255,255,255,0.035)", shadow: "0 1px 0 #00000055, 0 10px 30px -18px #000",
-    ring: "#6E8BFF",
+    bg: "#141312", rail: "#0e0d0c", surface: "#1b1916", surface2: "#242019", inset: "#0c0b0a",
+    border: "#322d27", borderStrong: "#E8E7E1",
+    text: "#F2ECE1", muted: "#9a9187", faint: "#6a6258",
+    verm: "#FF4326", cob: "#4F73FF", green: "#2FB877", gold: "#FFC83D", hi: "#FFE14D",
+    shadow: "#000000", grid: "rgba(242,236,225,0.05)", dot: "rgba(242,236,225,0.06)",
+    ring: "#4F73FF", onVerm: "#F2ECE1",
   },
   light: {
     mode: "light",
-    bg: "#E8E7E1", bgAlt: "#efece6", surface: "#ffffff", surface2: "#f4f1ea",
-    border: "#d8d4ca", borderStrong: "#141312",
-    text: "#141312", muted: "#5c554c", faint: "#8a8175",
-    verm: "#FF4326", cob: "#2233FF", sage: "#3f7a5b", gold: "#b07d18",
-    pass: "#0E8A4B", fail: "#D8362A", hi: "#d8a400",
-    grid: "rgba(20,19,18,0.04)", shadow: "4px 4px 0 #141312",
-    ring: "#2233FF",
+    bg: "#E8E7E1", rail: "#dedbd2", surface: "#ffffff", surface2: "#f1eee6", inset: "#f6f4ee",
+    border: "#cdc8bd", borderStrong: "#141312",
+    text: "#141312", muted: "#5d564c", faint: "#8c8478",
+    verm: "#FF4326", cob: "#2233FF", green: "#0E8A4B", gold: "#b07d18", hi: "#d8a400",
+    shadow: "#141312", grid: "rgba(20,19,18,0.05)", dot: "rgba(20,19,18,0.07)",
+    ring: "#2233FF", onVerm: "#F2ECE1",
   },
 };
 
@@ -42,7 +43,7 @@ const AdminThemeContext = createContext<Ctx | null>(null);
 const KEY = "cvyon-admin-theme";
 
 export function AdminThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = useState<Mode>("dark"); // default dark
+  const [mode, setModeState] = useState<Mode>("dark");
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
     if (saved === "light" || saved === "dark") setModeState(saved);
@@ -63,10 +64,11 @@ export function ThemeToggle() {
     <button
       onClick={() => setMode(mode === "dark" ? "light" : "dark")}
       aria-label="Toggle theme"
-      className="grid h-9 w-9 place-items-center rounded-md border transition-colors"
-      style={{ borderColor: t.border, background: t.surface2, color: t.text }}
+      title={mode === "dark" ? "Switch to light" : "Switch to dark"}
+      className="grid h-9 w-9 shrink-0 place-items-center border-2 transition-colors"
+      style={{ borderColor: t.border, background: t.inset, color: t.text }}
     >
-      {mode === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      {mode === "dark" ? <Sun size={15} /> : <Moon size={15} />}
     </button>
   );
 }

@@ -1,175 +1,191 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { useAdminTheme } from "./theme";
+import React, { useEffect } from "react";
 import { X } from "lucide-react";
+import { useAdminTheme } from "./theme";
+import { cn, CountUp, Reveal } from "./motion";
+import { Sparkline, RadialGauge } from "./charts";
 
-export function cn(...i: ClassValue[]) { return twMerge(clsx(i)); }
+export { cn, CountUp, Reveal };
 
-/* ---- motion ---- */
-export function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add("adm-in"); io.unobserve(el); } }), { threshold: 0.12 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  return <div ref={ref} className={cn("adm-reveal", className)} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
-}
-export function CountUp({ to, prefix = "", suffix = "", decimals = 0 }: { to: number; prefix?: string; suffix?: string; decimals?: number }) {
-  const [n, setN] = useState(0); const ref = useRef<HTMLSpanElement>(null); const done = useRef(false);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver((es) => es.forEach((e) => {
-      if (e.isIntersecting && !done.current) {
-        done.current = true;
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(to); return; }
-        const s = performance.now();
-        const tick = (t: number) => { const p = Math.min(1, (t - s) / 1000); setN(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); };
-        requestAnimationFrame(tick);
-      }
-    }), { threshold: 0.4 });
-    io.observe(el); return () => io.disconnect();
-  }, [to]);
-  return <span ref={ref}>{prefix}{n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</span>;
-}
-
-/* ---- surfaces ---- */
-export function Card({ children, className = "", hover = false, style }: { children: React.ReactNode; className?: string; hover?: boolean; style?: React.CSSProperties }) {
-  const { t } = useAdminTheme();
+/* Global Riso grammar for the admin: the three fonts, hard-edge keyframes,
+   film grain, dotted field, and terminal scrollbars. Mount once in the shell. */
+export function AdminStyle() {
   return (
-    <div
-      className={cn("rounded-lg border transition-all duration-200", hover && "adm-hover", className)}
-      style={{ background: t.surface, borderColor: t.border, boxShadow: t.shadow, ...style }}
-    >{children}</div>
+    <style>{`
+      .fd{font-family:var(--fd)} .fm{font-family:var(--fm)} .fb{font-family:var(--fb)}
+      .adm-grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.05;mix-blend-mode:overlay;
+        background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+      .adm-dots{position:fixed;inset:0;pointer-events:none;z-index:0;
+        background-image:radial-gradient(var(--dot) 1.2px,transparent 1.2px);background-size:24px 24px}
+      .adm-reveal{opacity:0;transform:translateY(18px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+      .adm-reveal.adm-in{opacity:1;transform:none}
+      .adm-hover{transition:transform .15s ease, box-shadow .15s ease}
+      .adm-hover:hover{transform:translate(-2px,-2px)}
+      .adm-pop{animation:admpop .26s cubic-bezier(.2,.8,.2,1) both}
+      @keyframes admpop{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+      .adm-drawer{animation:admdraw .3s cubic-bezier(.2,.7,.2,1) both}
+      @keyframes admdraw{from{transform:translateX(100%)}to{transform:none}}
+      .adm-heat{transition:opacity .4s ease, transform .4s ease;transform:scale(.4);opacity:0}
+      .adm-heat{animation:admheat .5s ease forwards}
+      @keyframes admheat{to{transform:scale(1)}}
+      .adm-blink{animation:admb 1.1s steps(2,start) infinite}
+      @keyframes admb{50%{opacity:.15}}
+      .adm-scroll::-webkit-scrollbar{width:9px;height:9px}
+      .adm-scroll::-webkit-scrollbar-thumb{background:var(--sb,#322d27);border:2px solid transparent;background-clip:padding-box}
+      .adm-scroll::-webkit-scrollbar-track{background:transparent}
+      @media (prefers-reduced-motion:reduce){.adm-reveal,.adm-hover,.adm-pop,.adm-drawer,.adm-heat,.adm-blink{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
+    `}</style>
   );
 }
-export function SectionLabel({ children, color }: { children: React.ReactNode; color?: string }) {
-  const { t } = useAdminTheme();
-  return <div className="mb-3 font-mono text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: color || t.cob }}>§ {children}</div>;
-}
-export function Kpi({ label, value, sub, accent, icon }: { label: string; value: React.ReactNode; sub?: string; accent?: string; icon?: React.ReactNode }) {
+
+/* ----------------------------- Card ----------------------------- */
+export function Card({ children, className = "", hover = false, style, accent }:
+  { children: React.ReactNode; className?: string; hover?: boolean; style?: React.CSSProperties; accent?: string }) {
   const { t } = useAdminTheme();
   return (
-    <Card hover className="p-5">
-      <div className="flex items-start justify-between">
-        <div className="font-mono text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: t.muted }}>{label}</div>
-        {icon && <span style={{ color: accent || t.faint }}>{icon}</span>}
-      </div>
-      <div className="fd mt-2 text-3xl tracking-tight" style={{ color: accent || t.text }}>{value}</div>
-      {sub && <div className="mt-1 font-mono text-[11px]" style={{ color: t.faint }}>{sub}</div>}
-    </Card>
-  );
-}
-export function Bar({ label, value, max, color }: { label: string; value: number; max: number; color?: string }) {
-  const { t } = useAdminTheme(); const pct = max ? Math.round((value / max) * 100) : 0;
-  const [w, setW] = useState(0);
-  useEffect(() => { const id = setTimeout(() => setW(pct), 60); return () => clearTimeout(id); }, [pct]);
-  return (
-    <div>
-      <div className="mb-1 flex justify-between font-mono text-[11px] font-bold uppercase tracking-wider">
-        <span className="truncate pr-2" style={{ color: t.text }}>{label}</span><span style={{ color: t.muted }}>{value}</span>
-      </div>
-      <div className="h-2.5 w-full overflow-hidden rounded-sm" style={{ background: t.surface2 }}>
-        <div className="h-full rounded-sm transition-[width] duration-700 ease-out" style={{ width: `${w}%`, background: color || t.cob }} />
-      </div>
+    <div className={cn("relative border-[3px] adm-hover", hover && "adm-hover", className)}
+      style={{ background: t.surface, borderColor: accent || t.border, boxShadow: `6px 6px 0 ${t.shadow}`, ...style }}>
+      {accent && <span className="absolute left-0 top-0 h-full w-[5px]" style={{ background: accent }} />}
+      {children}
     </div>
   );
 }
-export function Pill({ children, color, bg }: { children: React.ReactNode; color?: string; bg?: string }) {
+
+export function SectionLabel({ children, color }: { children: React.ReactNode; color?: string }) {
   const { t } = useAdminTheme();
-  return <span className="inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider"
-    style={{ color: color || t.muted, borderColor: color || t.border, background: bg || "transparent" }}>{children}</span>;
+  return <div className="mb-3 fm text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: color || t.cob }}>§ {children}</div>;
 }
 
-/* ---- controls ---- */
+/* ----------------------------- KPI ----------------------------- */
+export function Kpi({ label, value, sub, accent, icon, spark, delta, gauge }:
+  { label: string; value: React.ReactNode; sub?: string; accent?: string; icon?: React.ReactNode;
+    spark?: number[]; delta?: number; gauge?: { value: number; max?: number } }) {
+  const { t } = useAdminTheme();
+  const c = accent || t.text;
+  const up = (delta ?? 0) >= 0;
+  return (
+    <Card hover className="p-5" accent={c}>
+      <div className="flex items-start justify-between gap-2">
+        <span className="fm text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: t.muted }}>{label}</span>
+        {icon && <span style={{ color: c }}>{icon}</span>}
+      </div>
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <div className="fd text-[2rem] leading-none tracking-tight" style={{ color: c }}>{value}</div>
+          {sub && <div className="mt-1.5 fm text-[11px]" style={{ color: t.faint }}>{sub}</div>}
+        </div>
+        {gauge && <RadialGauge value={gauge.value} max={gauge.max} color={c} size={70} />}
+        {spark && spark.length > 1 && <Sparkline data={spark} color={c} width={104} height={38} />}
+      </div>
+      {delta !== undefined && (
+        <div className="mt-3 inline-flex items-center gap-1 border-2 px-2 py-0.5 fm text-[10px] font-bold"
+          style={{ borderColor: up ? t.green : t.verm, color: up ? t.green : t.verm }}>
+          {up ? "▲" : "▼"} {Math.abs(delta)}%
+        </div>
+      )}
+    </Card>
+  );
+}
+
+export function Pill({ children, color, bg }: { children: React.ReactNode; color?: string; bg?: string }) {
+  const { t } = useAdminTheme();
+  return (
+    <span className="inline-flex items-center gap-1 border-2 px-2 py-0.5 fm text-[10px] font-bold uppercase tracking-wider"
+      style={{ color: color || t.muted, borderColor: color || t.border, background: bg || "transparent" }}>{children}</span>
+  );
+}
+
+/* ----------------------------- Controls ----------------------------- */
 export function Btn({ children, onClick, variant = "primary", disabled, type = "button", className = "" }:
   { children: React.ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "danger"; disabled?: boolean; type?: "button" | "submit"; className?: string }) {
   const { t } = useAdminTheme();
-  const base = "inline-flex items-center justify-center gap-2 rounded-md border-2 px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-widest transition-all active:translate-y-px disabled:opacity-50";
-  const styles =
-    variant === "danger" ? { background: t.fail, borderColor: t.fail, color: "#fff" } :
-    variant === "ghost" ? { background: "transparent", borderColor: t.border, color: t.text } :
-    { background: t.text, borderColor: t.text, color: t.bg };
+  const base = "inline-flex items-center justify-center gap-2 border-[3px] px-4 py-2.5 fm text-[11px] font-bold uppercase tracking-widest transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50";
+  const styles: React.CSSProperties =
+    variant === "danger" ? { background: t.verm, borderColor: t.verm, color: t.onVerm, boxShadow: `4px 4px 0 ${t.shadow}` } :
+    variant === "ghost" ? { background: "transparent", borderColor: t.border, color: t.text, boxShadow: `4px 4px 0 ${t.shadow}` } :
+    { background: t.verm, borderColor: t.verm, color: t.onVerm, boxShadow: `4px 4px 0 ${t.shadow}` };
   return <button type={type} onClick={onClick} disabled={disabled} className={cn(base, className)} style={styles}>{children}</button>;
 }
+
 export function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   const { t } = useAdminTheme();
   return (
     <label className="block">
-      <span className="mb-1.5 block font-mono text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: t.muted }}>{label}</span>
+      <span className="mb-1.5 block fm text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: t.muted }}>{label}</span>
       {children}
       {hint && <span className="mt-1 block text-[11px]" style={{ color: t.faint }}>{hint}</span>}
     </label>
   );
 }
-const inputStyle = (t: any): React.CSSProperties => ({ background: t.bgAlt, borderColor: t.border, color: t.text });
+
+const fieldBox = (t: any): React.CSSProperties => ({
+  background: t.inset, borderColor: t.border, color: t.text, ["--ring" as any]: t.ring,
+});
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   const { t } = useAdminTheme();
-  return <input {...props} className={cn("w-full rounded-md border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)}
-    style={{ ...inputStyle(t), ["--ring" as any]: t.ring }} />;
+  return <input {...props} className={cn("w-full border-2 px-3 py-2.5 fb text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)} style={{ ...fieldBox(t), ...props.style }} />;
 }
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const { t } = useAdminTheme();
-  return <textarea {...props} className={cn("w-full rounded-md border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)}
-    style={{ ...inputStyle(t), ["--ring" as any]: t.ring }} />;
+  return <textarea {...props} className={cn("w-full border-2 px-3 py-2.5 fb text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)} style={{ ...fieldBox(t), ...props.style }} />;
 }
 export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   const { t } = useAdminTheme();
-  return <select {...props} className={cn("w-full rounded-md border px-3 py-2.5 text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)}
-    style={{ ...inputStyle(t), ["--ring" as any]: t.ring }} />;
+  return <select {...props} className={cn("w-full border-2 px-3 py-2.5 fb text-sm outline-none transition-colors focus:border-[var(--ring)]", props.className)} style={{ ...fieldBox(t), ...props.style }} />;
 }
 export function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   const { t } = useAdminTheme();
   return (
     <button type="button" onClick={() => onChange(!on)} aria-pressed={on}
-      className="relative h-6 w-11 shrink-0 rounded-full border-2 transition-colors"
-      style={{ borderColor: t.border, background: on ? t.pass : t.surface2 }}>
-      <span className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all" style={{ left: on ? 22 : 2 }} />
+      className="relative h-6 w-11 shrink-0 border-2 transition-colors"
+      style={{ borderColor: t.border, background: on ? t.green : t.inset }}>
+      <span className="absolute top-[3px] h-[18px] w-[18px] bg-[#F2ECE1] transition-all" style={{ left: on ? 22 : 3 }} />
     </button>
   );
 }
 
-/* ---- overlays ---- */
-export function Modal({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean }) {
+/* ----------------------------- Overlays ----------------------------- */
+export function Modal({ open, onClose, title, children, wide }:
+  { open: boolean; onClose: () => void; title: string; children: React.ReactNode; wide?: boolean }) {
   const { t } = useAdminTheme();
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", k); const p = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = p; };
+    document.addEventListener("keydown", k); const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = prev; };
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className={cn("adm-pop max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-2 sm:rounded-xl", wide ? "sm:max-w-3xl" : "sm:max-w-lg")}
-        style={{ background: t.bg, borderColor: t.borderStrong, boxShadow: t.shadow }}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b-2 px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className={cn("adm-pop adm-scroll max-h-[90vh] w-full overflow-y-auto border-[3px]", wide ? "sm:max-w-3xl" : "sm:max-w-lg")}
+        style={{ background: t.bg, borderColor: t.borderStrong, boxShadow: `10px 10px 0 ${t.shadow}` }}>
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b-[3px] px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
           <h3 className="fd text-lg tracking-tight" style={{ color: t.text }}>{title}</h3>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md border" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
+          <button onClick={onClose} aria-label="Close" className="grid h-8 w-8 place-items-center border-2" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
         </div>
         <div className="p-6">{children}</div>
       </div>
     </div>
   );
 }
-export function Drawer({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+
+export function Drawer({ open, onClose, title, children }:
+  { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   const { t } = useAdminTheme();
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", k); const p = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = p; };
+    document.addEventListener("keydown", k); const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = prev; };
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex justify-end bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="adm-drawer flex h-full w-full max-w-xl flex-col border-l-2"
+    <div className="fixed inset-0 z-[200] flex justify-end bg-black/65 backdrop-blur-sm" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="adm-drawer adm-scroll flex h-full w-full max-w-xl flex-col border-l-[3px]"
         style={{ background: t.bg, borderColor: t.borderStrong }}>
-        <div className="flex items-center justify-between border-b-2 px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
+        <div className="flex items-center justify-between border-b-[3px] px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
           <h3 className="fd truncate text-lg tracking-tight" style={{ color: t.text }}>{title}</h3>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-md border" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
+          <button onClick={onClose} aria-label="Close" className="grid h-8 w-8 place-items-center border-2" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
       </div>
@@ -177,50 +193,45 @@ export function Drawer({ open, onClose, title, children }: { open: boolean; onCl
   );
 }
 
-/* ---- table + misc ---- */
+/* ----------------------------- Table ----------------------------- */
 export function Table({ head, children }: { head: string[]; children: React.ReactNode }) {
   const { t } = useAdminTheme();
   return (
-    <div className="overflow-x-auto rounded-lg border" style={{ borderColor: t.border }}>
+    <div className="adm-scroll overflow-x-auto border-[3px]" style={{ borderColor: t.border }}>
       <table className="w-full text-left text-sm">
         <thead><tr style={{ background: t.surface2 }}>
-          {head.map((h) => <th key={h} className="whitespace-nowrap px-4 py-3 font-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>{h}</th>)}
+          {head.map((h) => <th key={h} className="whitespace-nowrap px-4 py-3 fm text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>{h}</th>)}
         </tr></thead>
         <tbody>{children}</tbody>
       </table>
     </div>
   );
 }
-export function Row({ children, onClick, style, className }: { children: React.ReactNode; onClick?: () => void; style?: React.CSSProperties; className?: string }) {
+export function Row({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   const { t } = useAdminTheme();
-  return <tr onClick={onClick} className={cn("border-t transition-colors", onClick && "cursor-pointer", className)}
-    style={{ borderColor: t.border, background: "transparent", ...style }}
-    onMouseEnter={(e) => (e.currentTarget.style.background = t.surface2)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{children}</tr>;
+  return (
+    <tr onClick={onClick} className={cn("border-t-2 transition-colors", onClick && "cursor-pointer")}
+      style={{ borderColor: t.border }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = t.surface2)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{children}</tr>
+  );
 }
 export function Cell({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const { t } = useAdminTheme();
   return <td className={cn("px-4 py-3", className)} style={{ color: t.text, ...style }}>{children}</td>;
 }
+
 export function EmptyState({ icon, title, hint }: { icon?: React.ReactNode; title: string; hint?: string }) {
   const { t } = useAdminTheme();
-  return <div className="py-16 text-center">{icon && <div className="mb-3 flex justify-center" style={{ color: t.faint }}>{icon}</div>}
-    <p className="fd text-lg" style={{ color: t.text }}>{title}</p>{hint && <p className="mt-1 text-sm" style={{ color: t.muted }}>{hint}</p>}</div>;
-}
-export function Spinner({ size = 22 }: { size?: number }) {
-  const { t } = useAdminTheme();
-  return <span className="inline-block animate-spin rounded-full border-2 border-t-transparent" style={{ width: size, height: size, borderColor: t.cob, borderTopColor: "transparent" }} />;
+  return (
+    <div className="py-16 text-center">
+      {icon && <div className="mb-3 flex justify-center" style={{ color: t.faint }}>{icon}</div>}
+      <p className="fd text-lg" style={{ color: t.text }}>{title}</p>
+      {hint && <p className="mt-1 fb text-sm" style={{ color: t.muted }}>{hint}</p>}
+    </div>
+  );
 }
 
-/* ---- global motion css (mount once via the shell) ---- */
-export function AdminMotion() {
-  return <style>{`
-    .adm-reveal{opacity:0;transform:translateY(18px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
-    .adm-reveal.adm-in{opacity:1;transform:none}
-    .adm-hover:hover{transform:translateY(-2px)}
-    .adm-pop{animation:admpop .28s cubic-bezier(.2,.8,.2,1) both}
-    @keyframes admpop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
-    .adm-drawer{animation:admdraw .3s cubic-bezier(.2,.7,.2,1) both}
-    @keyframes admdraw{from{transform:translateX(100%)}to{transform:none}}
-    @media (prefers-reduced-motion:reduce){.adm-reveal,.adm-hover,.adm-pop,.adm-drawer{animation:none!important;transition:none!important;opacity:1!important;transform:none!important}}
-  `}</style>;
+export function Spinner({ size = 24 }: { size?: number }) {
+  const { t } = useAdminTheme();
+  return <span className="inline-block animate-spin" style={{ width: size, height: size, border: `3px solid ${t.cob}`, borderTopColor: "transparent" }} />;
 }

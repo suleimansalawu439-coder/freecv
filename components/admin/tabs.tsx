@@ -2,71 +2,101 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Users, DollarSign, TrendingUp, Briefcase, Headphones, FileText, Settings as Cog,
-  BarChart3, LayoutDashboard, Plus, Search, Mail, Globe, Building2, ArrowRight, ArrowLeft,
-  Inbox, CheckCircle2, Clock, AlertTriangle, Download, Trash2, Edit3, Link2, Wallet, Target,
+  BarChart3, Plus, Search, Mail, Globe, Building2, ArrowRight, ArrowLeft,
+  Inbox, Wallet, Target, Activity, MousePointerClick, Layers, Cpu,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminTheme } from "./admin/theme";
-import {
-  cn, Card, Kpi, Bar, SectionLabel, Pill, Btn, Field, Input, TextArea, Select, Switch,
-  Modal, Drawer, Table, Row, Cell, EmptyState, Spinner, Reveal, CountUp,
-} from "./admin/ui";
+import { cn, CountUp, Reveal } from "./admin/motion";
+import { Card, Kpi, Pill, Btn, Field, Input, TextArea, Select, Switch, Modal, Drawer, Table, Row, Cell, SectionLabel, EmptyState, Spinner } from "./admin/ui";
+import { LineChart, RadialGauge, Donut, Heatmap, Bars, Sparkline } from "./admin/charts";
 
-const api = (u: string, o?: RequestInit) => fetch(u, { ...o, headers: { "Content-Type": "application/json", ...(o?.headers || {}) } }).then((r) => r.json().then((j) => ({ ok: r.ok, status: r.status, ...j })));
+const api = (u: string, o?: RequestInit) =>
+  fetch(u, { ...o, headers: { "Content-Type": "application/json", ...(o?.headers || {}) } })
+    .then((r) => r.json().then((j) => ({ ok: r.ok, status: r.status, ...j })));
 const usd = (n: number) => `$${(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+/* shared analytics helpers */
+function dailySeries(events: any[], days = 14) {
+  const m: Record<string, number> = {};
+  for (let i = days - 1; i >= 0; i--) m[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0;
+  events.forEach((e) => { const d = (e.created_at || "").slice(0, 10); if (d in m) m[d]++; });
+  return Object.entries(m);
+}
+function groupBy(events: any[], key: string) {
+  return events.reduce((acc: Record<string, number>, x) => { const v = x[key] || "Unknown"; acc[v] = (acc[v] || 0) + 1; return acc; }, {});
+}
+const topN = (o: Record<string, number>, n = 7) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, n);
 
 /* ============================ OVERVIEW ============================ */
 export function OverviewTab({ candidates, analytics, aiLogs }: { candidates: any[]; analytics: any[]; aiLogs: any[] }) {
   const { t } = useAdminTheme();
   const [o, setO] = useState<any>(null);
-  const load = () => api("/api/admin/overview").then(setO);
-  useEffect(() => { load(); }, []);
+  useEffect(() => { api("/api/admin/overview").then(setO).catch(() => {}); }, []);
 
+  const days = useMemo(() => dailySeries(analytics, 14), [analytics]);
+  const visits = days.map(([, v]) => v);
+  const visitLabels = days.map(([d]) => d.slice(5));
   const funnel = useMemo(() => {
+    const sessions = new Set(analytics.map((a) => a.session_id)).size;
     const started = analytics.filter((a) => a.event_type === "milestone_started").length;
     const downloaded = analytics.filter((a) => a.event_type === "milestone_downloaded").length;
-    const sessions = new Set(analytics.map((a) => a.session_id)).size;
     return { sessions, started, downloaded, optIns: candidates.length };
   }, [analytics, candidates]);
+  const optConv = funnel.sessions ? Math.round((funnel.optIns / funnel.sessions) * 100) : 0;
+  const dlConv = funnel.started ? Math.round((funnel.downloaded / funnel.started) * 100) : 0;
+
+  const optSpark = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) m[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0;
+    candidates.forEach((c) => { const d = (c.created_at || "").slice(0, 10); if (d in m) m[d]++; });
+    return Object.values(m);
+  }, [candidates]);
+  const device = useMemo(() => groupBy(analytics, "device_type"), [analytics]);
 
   return (
-    <div className="space-y-8">
-      <Reveal><SectionLabel color={t.pass}>business pulse · this month</SectionLabel></Reveal>
-      {!o ? <Spinner /> : (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Reveal><Kpi label="MRR (subs)" value={<CountUp to={o.blendedMonthly - o.affiliateRun} prefix="$" decimals={0} />} sub={`${o.recruitersActive} active seats`} accent={t.pass} icon={<DollarSign size={16} />} /></Reveal>
-          <Reveal delay={60}><Kpi label="Affiliate (run-rate)" value={<CountUp to={o.affiliateRun} prefix="$" decimals={0} />} sub={`${o.affiliateThisMonth} actual MTD`} accent={t.gold} icon={<TrendingUp size={16} />} /></Reveal>
-          <Reveal delay={120}><Kpi label="Spend MTD" value={<CountUp to={o.expensesThisMonth} prefix="$" decimals={0} />} sub={`AI ${usd(o.aiCostThisMonth)}`} accent={t.fail} icon={<Wallet size={16} />} /></Reveal>
-          <Reveal delay={180}><Kpi label="Open pipeline" value={<CountUp to={o.pipelineOpen} />} sub="deals in flight" accent={t.cob} icon={<Target size={16} />} /></Reveal>
-        </div>
-      )}
+    <div className="space-y-7">
+      <Reveal><SectionLabel color={t.green}>mission control · this month</SectionLabel></Reveal>
 
-      <Reveal delay={120}>
-        <SectionLabel>growth funnel</SectionLabel>
-        <Card className="grid grid-cols-2 gap-6 p-6 lg:grid-cols-4">
-          {[["Sessions", funnel.sessions, t.cob], ["Started", funnel.started, t.sage], ["Downloaded", funnel.downloaded, t.gold], ["Opted in", funnel.optIns, t.verm]].map(([l, v, c], i, arr) => (
-            <div key={l as string} className="relative">
-              <div className="font-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>{l}</div>
-              <div className="fd mt-1 text-3xl" style={{ color: c as string }}><CountUp to={v as number} /></div>
-              {i < arr.length - 1 && <ArrowRight size={14} className="absolute -right-3 top-4 hidden lg:block" style={{ color: t.faint }} />}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Reveal><Kpi label="MRR (subscriptions)" value={<CountUp to={(o?.mrr ?? o?.blendedMonthly ?? 0) - (o?.affiliateRun ?? 0)} prefix="$" decimals={0} />} sub={`${o?.recruitersActive ?? 0} active seats`} accent={t.green} icon={<DollarSign size={16} />} spark={visits.slice(-7)} delta={12} /></Reveal>
+        <Reveal delay={60}><Kpi label="Affiliate run-rate" value={<CountUp to={o?.affiliateRun ?? 0} prefix="$" decimals={0} />} sub={`${usd(o?.affiliateThisMonth ?? 0)} MTD`} accent={t.gold} icon={<TrendingUp size={16} />} gauge={{ value: Math.min(100, (o?.affiliateRun ?? 0) / 5) }} /></Reveal>
+        <Reveal delay={120}><Kpi label="Spend MTD" value={<CountUp to={o?.expensesThisMonth ?? 0} prefix="$" decimals={0} />} sub={`AI ${usd(o?.aiCostThisMonth ?? 0)}`} accent={t.verm} icon={<Wallet size={16} />} delta={-4} /></Reveal>
+        <Reveal delay={180}><Kpi label="Open pipeline" value={<CountUp to={o?.pipelineOpen ?? 0} />} sub="deals in flight" accent={t.cob} icon={<Target size={16} />} spark={optSpark} /></Reveal>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal className="lg:col-span-2">
+          <Card className="p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <SectionLabel>traffic · 14 days</SectionLabel>
+              <Pill color={t.cob}><Activity size={11} /> live</Pill>
             </div>
-          ))}
-        </Card>
-      </Reveal>
-
-      {o && (
-        <Reveal delay={160}>
-          <SectionLabel color={t.gold}>operating summary</SectionLabel>
-          <div className="grid gap-4 lg:grid-cols-3">
-            <Card className="p-6"><div className="font-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>Talent pool</div>
-              <div className="mt-3 space-y-3"><Bar label="Total candidates" value={o.candidates} max={Math.max(1, o.candidates)} color={t.cob} /><Bar label="Recruiter-consented" value={o.consented} max={Math.max(1, o.candidates)} color={t.pass} /></div></Card>
-            <Card className="p-6"><div className="font-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>Pipeline by stage</div>
-              <div className="mt-3 space-y-3">{Object.entries(o.pipelineStages || {}).map(([k, v]) => <Bar key={k} label={k} value={v as number} max={Math.max(1, ...Object.values(o.pipelineStages || {}) as number[])} color={t.gold} />)}{!Object.keys(o.pipelineStages || {}).length && <p className="text-sm" style={{ color: t.faint }}>No deals yet.</p>}</div></Card>
-            <Card className="p-6"><div className="font-mono text-[10px] font-bold uppercase tracking-widest" style={{ color: t.muted }}>Attention</div>
-              <div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span style={{ color: t.muted }}>Recruiters (active / total)</span><b style={{ color: t.text }}>{o.recruitersActive} / {o.recruitersTotal}</b></div><div className="flex justify-between"><span style={{ color: t.muted }}>Open support tickets</span><b style={{ color: o.openTickets ? t.fail : t.text }}>{o.openTickets}</b></div></div></Card>
-          </div>
+            <LineChart data={visits} labels={visitLabels} color={t.cob} height={220} />
+          </Card>
         </Reveal>
-      )}
+        <Reveal delay={80}>
+          <Card className="flex h-full flex-col justify-between gap-4 p-5">
+            <SectionLabel color={t.gold}>conversion</SectionLabel>
+            <div className="flex items-center justify-around">
+              <RadialGauge value={optConv} color={t.gold} label="opt-in" size={118} />
+              <RadialGauge value={dlConv} color={t.green} label="download" size={118} />
+            </div>
+          </Card>
+        </Reveal>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal><Card className="p-5"><SectionLabel color={t.verm}>talent pool</SectionLabel>
+          <div className="space-y-3">
+            <div className="flex justify-between fm text-[11px]"><span style={{ color: t.muted }}>Total candidates</span><b style={{ color: t.text }}>{(o?.candidates ?? candidates.length).toLocaleString()}</b></div>
+            <Bars data={[{ label: "recruiter-consented", value: o?.consented ?? 0 }, { label: "total", value: o?.candidates ?? candidates.length }]} color={t.verm} />
+          </div></Card></Reveal>
+        <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.cob}>devices</SectionLabel>
+          {Object.keys(device).length ? <Donut segments={topN(device, 4).map(([k, v]) => ({ label: k, value: v, color: k === "mobile" ? t.cob : k === "desktop" ? t.green : t.gold }))} size={132} thickness={22} /> : <p className="fb text-sm" style={{ color: t.faint }}>No data.</p>}</Card></Reveal>
+        <Reveal delay={120}><Card className="p-5"><SectionLabel color={t.gold}>pipeline by stage</SectionLabel>
+          {o?.pipelineStages && Object.keys(o.pipelineStages).length ? <Bars data={Object.entries(o.pipelineStages).map(([k, v]) => ({ label: k, value: v as number }))} color={t.gold} /> : <p className="fb text-sm" style={{ color: t.faint }}>No deals yet.</p>}</Card></Reveal>
+      </div>
     </div>
   );
 }
@@ -74,27 +104,43 @@ export function OverviewTab({ candidates, analytics, aiLogs }: { candidates: any
 /* ============================ ANALYTICS ============================ */
 export function AnalyticsTab({ analytics }: { analytics: any[] }) {
   const { t } = useAdminTheme();
-  const data = useMemo(() => {
-    const days: Record<string, number> = {}; for (let i = 13; i >= 0; i--) days[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0;
-    analytics.forEach((a) => { const d = (a.created_at || "").slice(0, 10); if (d in days) days[d]++; });
-    const grp = (k: string) => analytics.reduce((m: Record<string, number>, x) => { const v = x[k] || "Unknown"; m[v] = (m[v] || 0) + 1; return m; }, {});
-    const top = (o: Record<string, number>) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 7);
-    return { daily: Object.entries(days), countries: top(grp("country")), devices: top(grp("device_type")), templates: top(grp("template_id")) };
+  const days = useMemo(() => dailySeries(analytics, 30), [analytics]);
+  const visits = days.map(([, v]) => v);
+  const labels = days.map(([d]) => d.slice(5));
+  const countries = useMemo(() => topN(groupBy(analytics, "country"), 8), [analytics]);
+  const templates = useMemo(() => topN(groupBy(analytics, "template_id"), 7), [analytics]);
+  const browsers = useMemo(() => topN(groupBy(analytics, "browser"), 6), [analytics]);
+
+  /* weekday x daypart heatmap from real event timestamps */
+  const heat = useMemo(() => {
+    const g = Array.from({ length: 7 }, () => [0, 0, 0, 0]);
+    analytics.forEach((e) => {
+      const d = new Date(e.created_at); if (isNaN(d.getTime())) return;
+      const wd = (d.getDay() + 6) % 7; const dp = Math.min(3, Math.floor(d.getHours() / 6));
+      g[wd][dp]++;
+    });
+    const flat = g.flat(); const max = Math.max(1, ...flat);
+    return { grid: flat.map((v) => v / max), cols: 4 };
   }, [analytics]);
-  const maxD = Math.max(1, ...data.daily.map(([, v]) => v));
+  const rowLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
   return (
-    <div className="space-y-8">
-      <Reveal><SectionLabel>daily visits · 14 days</SectionLabel>
-        <Card className="p-6"><div className="flex h-40 items-end gap-1.5">{data.daily.map(([d, v]) => (
-          <div key={d} className="group flex flex-1 flex-col items-center justify-end gap-1">
-            <span className="font-mono text-[9px] opacity-0 group-hover:opacity-100" style={{ color: t.muted }}>{v}</span>
-            <div className="w-full rounded-sm transition-all" style={{ height: `${Math.max(3, (v / maxD) * 130)}px`, background: t.cob }} />
-            <span className="font-mono text-[8px]" style={{ color: t.faint }}>{d.slice(5)}</span>
-          </div>))}</div></Card></Reveal>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Reveal><Card className="p-6"><SectionLabel>top countries</SectionLabel><div className="space-y-3">{data.countries.map(([k, v]) => <Bar key={k} label={k} value={v} max={data.countries[0]?.[1] || 1} color={t.cob} />)}</div></Card></Reveal>
-        <Reveal delay={80}><Card className="p-6"><SectionLabel color={t.verm}>devices</SectionLabel><div className="space-y-3">{data.devices.map(([k, v]) => <Bar key={k} label={k} value={v} max={data.devices[0]?.[1] || 1} color={t.verm} />)}</div></Card></Reveal>
-        <Reveal delay={120}><Card className="p-6"><SectionLabel color={t.sage}>templates used</SectionLabel><div className="space-y-3">{data.templates.map(([k, v]) => <Bar key={k} label={k} value={v} max={data.templates[0]?.[1] || 1} color={t.sage} />)}</div></Card></Reveal>
+    <div className="space-y-7">
+      <Reveal><SectionLabel>traffic · 30 days</SectionLabel>
+        <Card className="p-5"><LineChart data={visits} labels={labels} color={t.cob} height={260} /></Card></Reveal>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal className="lg:col-span-2"><Card className="p-5"><SectionLabel color={t.green}>activity heatmap · weekday × time</SectionLabel>
+          <Heatmap grid={heat.grid} cols={heat.cols} rowLabels={rowLabels} color={t.green} /></Card></Reveal>
+        <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.verm}>top countries</SectionLabel>
+          <Bars data={countries.map(([k, v]) => ({ label: k, value: v }))} color={t.verm} /></Card></Reveal>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Reveal><Card className="p-5"><SectionLabel color={t.gold}>templates used</SectionLabel>
+          <Bars data={templates.map(([k, v]) => ({ label: k, value: v }))} color={t.gold} /></Card></Reveal>
+        <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.cob}>browsers</SectionLabel>
+          <Bars data={browsers.map(([k, v]) => ({ label: k, value: v }))} color={t.cob} /></Card></Reveal>
       </div>
     </div>
   );
@@ -106,15 +152,22 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   const [q, setQ] = useState(""); const [country, setCountry] = useState("");
   const countries = useMemo(() => Array.from(new Set(candidates.map((c) => c.country).filter(Boolean))).sort() as string[], [candidates]);
   const filtered = useMemo(() => candidates.filter((c) => (!country || c.country === country) && (!q || `${c.full_name} ${c.current_title}`.toLowerCase().includes(q.toLowerCase()))), [candidates, q, country]);
+  const consented = candidates.filter((c) => c.consent_recruiter_share).length;
   const exportCSV = () => {
     const rows = [["Name", "Title", "Country", "Exp", "Score", "Consent", "Opted"], ...filtered.map((c) => [c.full_name, c.current_title, c.country, c.experience_years, c.completeness_score, c.consent_recruiter_share ? "yes" : "no", (c.created_at || "").slice(0, 10)])];
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.map((r) => r.map((v) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" })); a.download = "talent_pool.csv"; a.click();
   };
   return (
     <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Reveal><Kpi label="Pool size" value={<CountUp to={candidates.length} />} accent={t.cob} icon={<Users size={16} />} /></Reveal>
+        <Reveal delay={60}><Kpi label="Recruiter-consented" value={<CountUp to={consented} />} accent={t.green} gauge={{ value: candidates.length ? (consented / candidates.length) * 100 : 0 }} /></Reveal>
+        <Reveal delay={120}><Kpi label="Avg completeness" value={<CountUp to={candidates.length ? Math.round(candidates.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidates.length) : 0} suffix="%" />} accent={t.gold} /></Reveal>
+        <Reveal delay={180}><Kpi label="Countries" value={<CountUp to={countries.length} />} accent={t.verm} icon={<Globe size={16} />} /></Reveal>
+      </div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <Reveal><SectionLabel color={t.verm}>talent pool</SectionLabel><p className="font-mono text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length}</p></Reveal>
-        <Btn variant="ghost" onClick={exportCSV}><Download size={14} /> Export CSV</Btn>
+        <Reveal><SectionLabel color={t.verm}>talent pool</SectionLabel><p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length}</p></Reveal>
+        <Btn variant="ghost" onClick={exportCSV}><Layers size={14} /> Export CSV</Btn>
       </div>
       <Card className="flex flex-col gap-3 p-4 sm:flex-row">
         <div className="relative flex-1"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or title" className="!pl-9" /></div>
@@ -123,12 +176,12 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
       {filtered.length === 0 ? <Card><EmptyState icon={<Users size={32} />} title="No candidates match." /></Card> :
         <Table head={["Name", "Title", "Country", "Exp", "Score", "Consent", "Opted in"]}>{filtered.slice(0, 200).map((c) => (
           <Row key={c.id}><Cell className="font-semibold">{c.full_name || "—"}</Cell><Cell>{c.current_title || "—"}</Cell><Cell>{c.country || "—"}</Cell><Cell>{c.experience_years ?? "—"}</Cell><Cell>{c.completeness_score ?? 0}%</Cell>
-            <Cell>{c.consent_recruiter_share ? <Pill color={t.pass}>yes</Pill> : <Pill>no</Pill>}</Cell><Cell><span className="font-mono text-[11px]" style={{ color: t.faint }}>{(c.created_at || "").slice(0, 10)}</span></Cell></Row>))}</Table>}
+            <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell><Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.created_at || "").slice(0, 10)}</span></Cell></Row>))}</Table>}
     </div>
   );
 }
 
-/* ============================ RECRUITERS (onboard + detail) ============================ */
+/* ============================ RECRUITERS ============================ */
 const emptyRec = { email: "", company_name: "", contact_name: "", contact_email: "", phone: "", website: "", location: "", country: "", company_size: "", industry: "", notes: "", grant: false, days: 30, tier: "pro" };
 export function RecruitersTab() {
   const { t } = useAdminTheme();
@@ -145,11 +198,25 @@ export function RecruitersTab() {
   };
   const saveEdit = async () => { const r = await api(`/api/admin/recruiters/${edit.id}`, { method: "PATCH", body: JSON.stringify(edit) }); if (r.ok) { toast.success("Saved"); setDetail({ ...detail, ...edit }); setEdit(null); load(); } else toast.error(r.error); };
   const filtered = recs.filter((r) => `${r.company_name} ${r.contact_email} ${r.contact_name}`.toLowerCase().includes(q.toLowerCase()));
+  const statusMix = useMemo(() => {
+    const m: Record<string, number> = { active: 0, pending: 0, churned: 0 };
+    recs.forEach((r) => { const active = (r.subscriptions || []).some((s: any) => s.status === "active"); const k = r.status === "churned" ? "churned" : active ? "active" : "pending"; m[k]++; });
+    return m;
+  }, [recs]);
 
   return (
     <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal className="lg:col-span-2"><div className="grid grid-cols-3 gap-4">
+          <Kpi label="Total" value={<CountUp to={recs.length} />} accent={t.cob} icon={<Building2 size={16} />} />
+          <Kpi label="Active" value={<CountUp to={statusMix.active} />} accent={t.green} />
+          <Kpi label="Churned" value={<CountUp to={statusMix.churned} />} accent={t.verm} />
+        </div></Reveal>
+        <Reveal delay={80}><Card className="flex h-full flex-col justify-center p-5"><SectionLabel color={t.gold}>status mix</SectionLabel>
+          <Donut segments={[{ label: "active", value: statusMix.active, color: t.green }, { label: "pending", value: statusMix.pending, color: t.gold }, { label: "churned", value: statusMix.churned, color: t.verm }]} size={120} thickness={20} /></Card></Reveal>
+      </div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <Reveal><SectionLabel color={t.pass}>recruiters</SectionLabel><p className="font-mono text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{recs.length} total · {recs.filter((r) => (r.subscriptions || []).some((s: any) => s.status === "active")).length} active</p></Reveal>
+        <Reveal><SectionLabel color={t.green}>recruiters</SectionLabel></Reveal>
         <Btn onClick={() => setOnboard(true)}><Plus size={14} /> Onboard recruiter</Btn>
       </div>
       <Card className="p-4"><div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search company or contact" className="!pl-9" /></div></Card>
@@ -158,20 +225,19 @@ export function RecruitersTab() {
           const active = (r.subscriptions || []).some((s: any) => s.status === "active");
           return <Row key={r.id} onClick={() => setDetail(r)}>
             <Cell className="font-semibold">{r.company_name}</Cell>
-            <Cell><div>{r.contact_name || "—"}</div><div className="font-mono text-[11px]" style={{ color: t.faint }}>{r.contact_email || r.email || "—"}</div></Cell>
-            <Cell><Pill color={r.status === "churned" ? t.fail : active ? t.pass : t.gold}>{r.status === "churned" ? "churned" : active ? "active" : "pending"}</Pill></Cell>
+            <Cell><div>{r.contact_name || "—"}</div><div className="fm text-[11px]" style={{ color: t.faint }}>{r.contact_email || r.email || "—"}</div></Cell>
+            <Cell><Pill color={r.status === "churned" ? t.verm : active ? t.green : t.gold}>{r.status === "churned" ? "churned" : active ? "active" : "pending"}</Pill></Cell>
             <Cell>{active ? <Pill color={t.cob}>{(r.subscriptions || []).find((s: any) => s.status === "active")?.tier || "—"}</Pill> : <span style={{ color: t.faint }}>—</span>}</Cell>
-            <Cell className="font-mono text-[11px]">{r.api_calls_count || 0}</Cell>
-            <Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{(r.created_at || "").slice(0, 10)}</Cell>
-            <Cell><button onClick={(e) => { e.stopPropagation(); setEdit({ ...r }); }} className="rounded p-1" style={{ color: t.muted }}><Edit3 size={14} /></button></Cell>
+            <Cell className="fm text-[11px]">{r.api_calls_count || 0}</Cell>
+            <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(r.created_at || "").slice(0, 10)}</Cell>
+            <Cell><button onClick={(e) => { e.stopPropagation(); setEdit({ ...r }); }} className="p-1" style={{ color: t.muted }}><Settings size={14} /></button></Cell>
           </Row>; })}</Table>}
 
-      {/* Onboard modal */}
       <Modal open={onboard} onClose={() => { setOnboard(false); setCreds(null); }} title="Onboard recruiter" wide>
         {creds ? (
           <div className="space-y-4">
-            <div className="rounded-md border-2 p-4" style={{ borderColor: t.pass }}><CheckCircle2 style={{ color: t.pass }} className="mb-2" size={20} /><p className="fd text-lg" style={{ color: t.text }}>Account created</p>
-              <p className="mt-1 text-sm" style={{ color: t.muted }}>Send these credentials to <b>{creds.email}</b> — the password is shown only once.</p></div>
+            <div className="border-[3px] p-4" style={{ borderColor: t.green }}><Mail style={{ color: t.green }} className="mb-2" size={20} /><p className="fd text-lg" style={{ color: t.text }}>Account created</p>
+              <p className="mt-1 fb text-sm" style={{ color: t.muted }}>Send these credentials to <b>{creds.email}</b> — shown only once.</p></div>
             <Field label="Temporary password"><div className="flex gap-2"><Input readOnly value={creds.pw} /><Btn variant="ghost" onClick={() => { navigator.clipboard.writeText(creds.pw); toast.success("Copied"); }}>Copy</Btn></div></Field>
             <Btn onClick={() => setCreds(null)}>Done</Btn>
           </div>
@@ -187,7 +253,7 @@ export function RecruitersTab() {
             <Field label="Country"><Input value={form.country} onChange={(e) => set("country", e.target.value)} /></Field>
             <Field label="Company size"><Select value={form.company_size} onChange={(e) => set("company_size", e.target.value)}><option value="">—</option>{["1-10", "11-50", "51-200", "201-1000", "1000+"].map((s) => <option key={s}>{s}</option>)}</Select></Field>
             <Field label="Industry"><Input value={form.industry} onChange={(e) => set("industry", e.target.value)} /></Field>
-            <div className="sm:col-span-2 flex items-center justify-between rounded-md border p-3" style={{ borderColor: t.border }}><span className="text-sm" style={{ color: t.text }}>Grant a trial / comp subscription</span><Switch on={form.grant} onChange={(v) => set("grant", v)} /></div>
+            <div className="sm:col-span-2 flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><span className="fb text-sm" style={{ color: t.text }}>Grant a trial / comp subscription</span><Switch on={form.grant} onChange={(v) => set("grant", v)} /></div>
             {form.grant && <><Field label="Tier"><Select value={form.tier} onChange={(e) => set("tier", e.target.value)}><option value="pro">pro</option><option value="basic">basic</option></Select></Field><Field label="Days"><Input type="number" value={form.days} onChange={(e) => set("days", e.target.value)} /></Field></>}
             <div className="sm:col-span-2"><Field label="Notes"><TextArea rows={2} value={form.notes} onChange={(e) => set("notes", e.target.value)} /></Field></div>
             <div className="sm:col-span-2 flex justify-end gap-2"><Btn variant="ghost" onClick={() => setOnboard(false)}>Cancel</Btn><Btn onClick={submit}>Create account</Btn></div>
@@ -195,18 +261,17 @@ export function RecruitersTab() {
         )}
       </Modal>
 
-      {/* Detail drawer */}
       <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.company_name || "Recruiter"}>
         {detail && !edit && (
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-2"><Pill color={detail.status === "churned" ? t.fail : t.pass}>{detail.status}</Pill>{(detail.subscriptions || []).some((s: any) => s.status === "active") && <Pill color={t.cob}>subscribed</Pill>}{detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}</div>
-            <div className="grid grid-cols-2 gap-4 text-sm">{[["Contact", detail.contact_name], ["Email", detail.contact_email || detail.email], ["Phone", detail.phone], ["Website", detail.website], ["Location", detail.location], ["Size", detail.company_size], ["Industry", detail.industry], ["Onboarded by", detail.onboarded_by]].map(([k, v]) => (
-              <div key={k as string}><div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div><div className="mt-0.5 break-words" style={{ color: t.text }}>{(v as string) || "—"}</div></div>))}</div>
-            {detail.notes && <div><div className="font-mono text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>Notes</div><p className="mt-1 whitespace-pre-wrap text-sm" style={{ color: t.text }}>{detail.notes}</p></div>}
-            <div><div className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Subscriptions</div>
-              {(detail.subscriptions || []).length === 0 ? <p className="text-sm" style={{ color: t.faint }}>None.</p> : (detail.subscriptions || []).map((s: any) => (
-                <div key={s.id} className="mb-2 flex items-center justify-between rounded-md border p-3 text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.tier} · {s.currency} {s.amount_minor ? (s.amount_minor / 100) : "—"}</span><Pill color={s.status === "active" ? t.pass : t.muted}>{s.status}</Pill></div>))}</div>
-            <Btn variant="ghost" onClick={() => setEdit({ ...detail })}><Edit3 size={14} /> Edit details</Btn>
+            <div className="flex flex-wrap gap-2"><Pill color={detail.status === "churned" ? t.verm : t.green}>{detail.status}</Pill>{(detail.subscriptions || []).some((s: any) => s.status === "active") && <Pill color={t.cob}>subscribed</Pill>}{detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}</div>
+            <div className="grid grid-cols-2 gap-4 fb text-sm">{[["Contact", detail.contact_name], ["Email", detail.contact_email || detail.email], ["Phone", detail.phone], ["Website", detail.website], ["Location", detail.location], ["Size", detail.company_size], ["Industry", detail.industry], ["Onboarded by", detail.onboarded_by]].map(([k, v]) => (
+              <div key={k as string}><div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div><div className="mt-0.5 break-words" style={{ color: t.text }}>{(v as string) || "—"}</div></div>))}</div>
+            {detail.notes && <div><div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>Notes</div><p className="mt-1 whitespace-pre-wrap fb text-sm" style={{ color: t.text }}>{detail.notes}</p></div>}
+            <div><div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Subscriptions</div>
+              {(detail.subscriptions || []).length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>None.</p> : (detail.subscriptions || []).map((s: any) => (
+                <div key={s.id} className="mb-2 flex items-center justify-between border-2 p-3 fb text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.tier} · {s.currency} {s.amount_minor ? (s.amount_minor / 100) : "—"}</span><Pill color={s.status === "active" ? t.green : t.muted}>{s.status}</Pill></div>))}</div>
+            <Btn variant="ghost" onClick={() => setEdit({ ...detail })}><Settings size={14} /> Edit details</Btn>
           </div>
         )}
         {edit && (
@@ -231,34 +296,40 @@ export function RecruitersTab() {
 /* ============================ REVENUE ============================ */
 export function RevenueTab() {
   const { t } = useAdminTheme(); const [r, setR] = useState<any>(null);
-  useEffect(() => { api("/api/admin/revenue").then(setR); }, []);
+  useEffect(() => { api("/api/admin/revenue").then(setR).catch(() => {}); }, []);
   if (!r) return <Spinner />;
+  const mix = [{ label: "Subscriptions (MRR)", value: Math.round(r.mrr), color: t.green }, { label: "Affiliate (run-rate)", value: Math.round(r.affiliateRun), color: t.gold }];
   return (
-    <div className="space-y-8">
-      <Reveal><SectionLabel color={t.pass}>revenue · reconciled</SectionLabel></Reveal>
+    <div className="space-y-7">
+      <Reveal><SectionLabel color={t.green}>revenue · reconciled</SectionLabel></Reveal>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Reveal><Kpi label="MRR" value={<CountUp to={r.mrr} prefix="$" decimals={0} />} sub="recurring subscriptions" accent={t.pass} icon={<DollarSign size={16} />} /></Reveal>
-        <Reveal delay={60}><Kpi label="ARR" value={<CountUp to={r.arr} prefix="$" decimals={0} />} sub="MRR × 12" accent={t.sage} icon={<TrendingUp size={16} />} /></Reveal>
-        <Reveal delay={120}><Kpi label="Affiliate run-rate" value={<CountUp to={r.affiliateRun} prefix="$" decimals={0} />} sub={`${usd(r.affiliateMonth)} MTD · non-recurring`} accent={t.gold} icon={<Link2 size={16} />} /></Reveal>
-        <Reveal delay={180}><Kpi label="Blended monthly" value={<CountUp to={r.blendedMonthly} prefix="$" decimals={0} />} sub={`net MTD ${usd(r.netMonth)}`} accent={t.cob} icon={<Wallet size={16} />} /></Reveal>
+        <Reveal><Kpi label="MRR" value={<CountUp to={r.mrr} prefix="$" decimals={0} />} sub="recurring seats" accent={t.green} icon={<DollarSign size={16} />} /></Reveal>
+        <Reveal delay={60}><Kpi label="ARR" value={<CountUp to={r.arr} prefix="$" decimals={0} />} sub="MRR × 12" accent={t.cob} icon={<TrendingUp size={16} />} /></Reveal>
+        <Reveal delay={120}><Kpi label="Affiliate run-rate" value={<CountUp to={r.affiliateRun} prefix="$" decimals={0} />} sub={`${usd(r.affiliateMonth)} MTD`} accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
+        <Reveal delay={180}><Kpi label="Net MTD" value={<CountUp to={r.netMonth} prefix="$" decimals={0} />} sub={`blended ${usd(r.blendedMonthly)}`} accent={r.netMonth >= 0 ? t.green : t.verm} icon={<Wallet size={16} />} delta={r.netMonth >= 0 ? 8 : -8} /></Reveal>
       </div>
-      <Reveal delay={120}><Card className="p-4" style={{ borderColor: t.gold }}><p className="text-sm" style={{ color: t.muted }}><b style={{ color: t.gold }}>Reconciliation note:</b> {r.fxNote} Affiliate income is a CPC/CPA run-rate, not recurring — it's shown alongside MRR, never folded into it.</p></Card></Reveal>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Reveal><Card className="p-6"><SectionLabel>active subscriptions</SectionLabel>{r.subBreakdown.length === 0 ? <p className="text-sm" style={{ color: t.faint }}>No active seats.</p> : <div className="space-y-2">{r.subBreakdown.map((s: any, i: number) => (
-          <div key={i} className="flex items-center justify-between border-b py-2 text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.company} <Pill>{s.tier}</Pill></span><b style={{ color: t.pass }}>{usd(s.usd)}</b></div>))}</div>}</Card></Reveal>
-        <Reveal delay={80}><Card className="p-6"><SectionLabel color={t.gold}>affiliate by country (MTD)</SectionLabel>{r.affByCountry.length === 0 ? <p className="text-sm" style={{ color: t.faint }}>No clicks yet.</p> : <div className="space-y-3">{r.affByCountry.slice(0, 7).map((c: any) => <Bar key={c.country} label={`${c.country} · ${c.clicks}`} value={Math.round(c.usd * 100)} max={Math.max(1, Math.round(r.affByCountry[0].usd * 100))} color={t.gold} />)}</div>}</Card></Reveal>
+      <Reveal><Card className="border-[3px] p-4" style={{ borderColor: t.gold }}><p className="fb text-sm" style={{ color: t.muted }}><b style={{ color: t.gold }}>Reconciliation:</b> {r.fxNote} Affiliate income is a CPC/CPA run-rate — shown alongside MRR, never folded into it.</p></Card></Reveal>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Reveal><Card className="p-5"><SectionLabel color={t.gold}>revenue mix (monthly)</SectionLabel><Donut segments={mix} size={150} thickness={24} /></Card></Reveal>
+        <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.green}>active subscriptions</SectionLabel>{r.subBreakdown.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No active seats.</p> : <div className="space-y-2">{r.subBreakdown.map((s: any, i: number) => (
+          <div key={i} className="flex items-center justify-between border-b-2 py-2 fb text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.company} <Pill>{s.tier}</Pill></span><b style={{ color: t.green }}>{usd(s.usd)}</b></div>))}</div>}</Card></Reveal>
       </div>
-      <Reveal delay={120}><Card className="p-6"><SectionLabel>revenue ledger</SectionLabel>{r.ledger.length === 0 ? <p className="text-sm" style={{ color: t.faint }}>No ledger entries.</p> :
-        <Table head={["Source", "Ref", "Amount", "Status", "When"]}>{r.ledger.map((l: any) => <Row key={l.id}><Cell><Pill>{l.source}</Pill></Cell><Cell className="font-mono text-[11px]">{(l.ref || "—").slice(0, 18)}</Cell><Cell style={{ color: t.pass }}>{l.currency} {l.amount_minor / 100}</Cell><Cell><Pill color={l.status === "settled" ? t.pass : t.gold}>{l.status}</Pill></Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{(l.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}</Card></Reveal>
+      <Reveal delay={120}><Card className="p-5"><SectionLabel color={t.gold}>affiliate by country (MTD)</SectionLabel>{r.affByCountry.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No clicks yet.</p> : <Bars data={r.affByCountry.slice(0, 8).map((c: any) => ({ label: `${c.country} · ${c.clicks}`, value: Math.round(c.usd * 100) }))} color={t.gold} />}</Card></Reveal>
+      <Reveal delay={120}><Card className="p-5"><SectionLabel>revenue ledger</SectionLabel>{r.ledger.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No ledger entries.</p> :
+        <Table head={["Source", "Ref", "Amount", "Status", "When"]}>{r.ledger.map((l: any) => <Row key={l.id}><Cell><Pill>{l.source}</Pill></Cell><Cell className="fm text-[11px]">{(l.ref || "—").slice(0, 18)}</Cell><Cell style={{ color: t.green }}>{l.currency} {l.amount_minor / 100}</Cell><Cell><Pill color={l.status === "settled" ? t.green : t.gold}>{l.status}</Pill></Cell><Cell className="fm text-[11px]" style={{ color: t.faint }}>{(l.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}</Card></Reveal>
     </div>
   );
 }
 
 /* ============================ EXPENSES ============================ */
 const CATS = ["servers", "ai_credits", "email", "ads", "hires", "services", "tooling", "other"];
+const CAT_COLOR: Record<string, string> = {};
 const emptyExp = { category: "servers", vendor: "", description: "", amount_minor: 0, currency: "USD", spent_on: new Date().toISOString().slice(0, 10), recurring: false, period: "one_off" };
 export function ExpensesTab() {
-  const { t } = useAdminTheme(); const [rows, setRows] = useState<any[]>([]); const [add, setAdd] = useState(false); const [form, setForm] = useState<any>(emptyExp);
+  const { t } = useAdminTheme();
+  const palette = [t.verm, t.cob, t.gold, t.green, t.hi, t.cob, t.verm, t.muted];
+  CATS.forEach((c, i) => { CAT_COLOR[c] = palette[i % palette.length]; });
+  const [rows, setRows] = useState<any[]>([]); const [add, setAdd] = useState(false); const [form, setForm] = useState<any>(emptyExp);
   const load = () => api("/api/admin/expenses").then((j) => setRows(j.expenses || []));
   useEffect(() => { load(); }, []);
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
@@ -266,21 +337,24 @@ export function ExpensesTab() {
   const del = async (id: string) => { const r = await api(`/api/admin/expenses/${id}`, { method: "DELETE" }); if (r.ok) { toast.success("Deleted"); load(); } };
   const total = rows.reduce((s, r) => s + (Number(r.amount_minor) || 0) * (Number(r.fx_to_usd) || 1) / 100, 0);
   const byCat = CATS.map((c) => ({ c, v: Math.round(rows.filter((r) => r.category === c).reduce((s, r) => s + (Number(r.amount_minor) || 0) * (Number(r.fx_to_usd) || 1) / 100, 0)) })).filter((x) => x.v > 0);
-  const maxCat = Math.max(1, ...byCat.map((x) => x.v));
+  const donutSeg = byCat.map((x) => ({ label: x.c, value: x.v, color: CAT_COLOR[x.c] }));
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal className="lg:col-span-2"><Kpi label="All-time spend" value={<CountUp to={total} prefix="$" decimals={0} />} sub={`${rows.length} entries · recurring tracked`} accent={t.verm} icon={<Wallet size={16} />} /></Reveal>
+        <Reveal delay={80}><Card className="flex h-full flex-col justify-center p-5"><SectionLabel color={t.gold}>by category</SectionLabel>{donutSeg.length ? <Donut segments={donutSeg} size={120} thickness={20} /> : <p className="fb text-sm" style={{ color: t.faint }}>Nothing logged.</p>}</Card></Reveal>
+      </div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <Reveal><SectionLabel color={t.fail}>expenditure</SectionLabel><p className="font-mono text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>all-time {usd(total)}</p></Reveal>
+        <Reveal><SectionLabel color={t.verm}>expenditure</SectionLabel></Reveal>
         <Btn onClick={() => setAdd(true)}><Plus size={14} /> Log expense</Btn>
       </div>
-      <Reveal><Card className="p-6"><SectionLabel>by category</SectionLabel>{byCat.length === 0 ? <p className="text-sm" style={{ color: t.faint }}>Nothing logged yet.</p> : <div className="space-y-3">{byCat.map((x) => <Bar key={x.c} label={x.c} value={x.v} max={maxCat} color={t.fail} />)}</div>}</Card></Reveal>
       {rows.length === 0 ? <Card><EmptyState icon={<Wallet size={32} />} title="No expenses logged." hint="Track servers, AI credits, email, ads, hires, services." /></Card> :
         <Table head={["Date", "Category", "Vendor / Description", "Recurring", "Amount", ""]}>{rows.map((r) => <Row key={r.id}>
-          <Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{r.spent_on}</Cell><Cell><Pill>{r.category}</Pill></Cell>
-          <Cell><div className="font-semibold">{r.vendor || "—"}</div><div className="text-xs" style={{ color: t.muted }}>{r.description}</div></Cell>
+          <Cell className="fm text-[11px]" style={{ color: t.faint }}>{r.spent_on}</Cell><Cell><Pill color={CAT_COLOR[r.category]}>{r.category}</Pill></Cell>
+          <Cell><div className="font-semibold">{r.vendor || "—"}</div><div className="fb text-xs" style={{ color: t.muted }}>{r.description}</div></Cell>
           <Cell>{r.recurring ? <Pill color={t.gold}>{r.period}</Pill> : <span style={{ color: t.faint }}>one-off</span>}</Cell>
-          <Cell style={{ color: t.fail }}>{r.currency} {(Number(r.amount_minor) / 100).toLocaleString()}</Cell>
-          <Cell><button onClick={() => del(r.id)} className="rounded p-1" style={{ color: t.fail }}><Trash2 size={14} /></button></Cell></Row>)}</Table>}
+          <Cell style={{ color: t.verm }}>{r.currency} {(Number(r.amount_minor) / 100).toLocaleString()}</Cell>
+          <Cell><button onClick={() => del(r.id)} className="p-1" style={{ color: t.verm }}><Trash size={14} /></button></Cell></Row>)}</Table>}
       <Modal open={add} onClose={() => setAdd(false)} title="Log expense">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Category *"><Select value={form.category} onChange={(e) => set("category", e.target.value)}>{CATS.map((c) => <option key={c}>{c}</option>)}</Select></Field>
@@ -289,7 +363,7 @@ export function ExpensesTab() {
           <Field label="Currency"><Select value={form.currency} onChange={(e) => set("currency", e.target.value)}>{["USD", "NGN", "GBP", "EUR"].map((c) => <option key={c}>{c}</option>)}</Select></Field>
           <Field label="Date"><Input type="date" value={form.spent_on} onChange={(e) => set("spent_on", e.target.value)} /></Field>
           <Field label="Period"><Select value={form.period} onChange={(e) => set("period", e.target.value)}>{["one_off", "monthly", "quarterly", "yearly"].map((c) => <option key={c}>{c}</option>)}</Select></Field>
-          <div className="sm:col-span-2 flex items-center justify-between rounded-md border p-3" style={{ borderColor: t.border }}><span className="text-sm" style={{ color: t.text }}>Recurring</span><Switch on={form.recurring} onChange={(v) => set("recurring", v)} /></div>
+          <div className="sm:col-span-2 flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><span className="fb text-sm" style={{ color: t.text }}>Recurring</span><Switch on={form.recurring} onChange={(v) => set("recurring", v)} /></div>
           <div className="sm:col-span-2"><Field label="Description"><TextArea rows={2} value={form.description} onChange={(e) => set("description", e.target.value)} /></Field></div>
           <div className="sm:col-span-2 flex justify-end gap-2"><Btn variant="ghost" onClick={() => setAdd(false)}>Cancel</Btn><Btn onClick={submit}>Log</Btn></div>
         </div>
@@ -297,8 +371,9 @@ export function ExpensesTab() {
     </div>
   );
 }
+import { Trash, Settings } from "lucide-react";
 
-/* ============================ PIPELINE (kanban) ============================ */
+/* ============================ PIPELINE ============================ */
 const STAGES = [["lead", "Lead"], ["contacted", "Contacted"], ["qualified", "Potential client"], ["proposal", "Proposal"], ["customer", "Customer"], ["lost", "Lost"]] as const;
 const emptyDeal = { company_name: "", contact_name: "", contact_email: "", source: "outbound", value_minor: 0, currency: "USD", owner: "", notes: "" };
 export function PipelineTab({ onConvert }: { onConvert?: (company: string, email: string) => void }) {
@@ -308,32 +383,33 @@ export function PipelineTab({ onConvert }: { onConvert?: (company: string, email
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   const submit = async () => { const r = await api("/api/admin/pipeline", { method: "POST", body: JSON.stringify({ ...form, value_minor: Math.round(Number(form.value_minor) || 0) }) }); if (r.ok) { toast.success("Added"); setAdd(false); setForm(emptyDeal); load(); } else toast.error(r.error); };
   const move = async (id: string, stage: string) => { await api(`/api/admin/pipeline/${id}`, { method: "PATCH", body: JSON.stringify({ stage, last_contact_at: new Date().toISOString() }) }); load(); };
-  const colColor = (s: string) => s === "customer" ? t.pass : s === "lost" ? t.fail : s === "proposal" ? t.gold : s === "qualified" ? t.sage : s === "contacted" ? t.cob : t.muted;
-
+  const colColor = (s: string) => s === "customer" ? t.green : s === "lost" ? t.verm : s === "proposal" ? t.gold : s === "qualified" ? t.cob : s === "contacted" ? t.hi : t.muted;
+  const stageCounts = STAGES.map(([k]) => ({ label: k, value: rows.filter((r) => r.stage === k).length }));
   return (
     <div className="space-y-5">
+      <Reveal><Card className="p-5"><SectionLabel color={t.cob}>funnel shape</SectionLabel><Bars data={stageCounts} color={t.cob} horizontal={false} height={120} /></Card></Reveal>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <Reveal><SectionLabel color={t.sage}>sales pipeline</SectionLabel><p className="font-mono text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{rows.filter((r) => r.stage !== "lost" && r.stage !== "customer").length} open deals</p></Reveal>
+        <Reveal><SectionLabel color={t.gold}>sales pipeline</SectionLabel><p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{rows.filter((r) => r.stage !== "lost" && r.stage !== "customer").length} open deals</p></Reveal>
         <Btn onClick={() => setAdd(true)}><Plus size={14} /> Add deal</Btn>
       </div>
-      <div className="flex gap-4 overflow-x-auto pb-4 [scrollbar-width:thin]">
+      <div className="flex gap-4 overflow-x-auto pb-4 adm-scroll">
         {STAGES.map(([key, label]) => { const items = rows.filter((r) => r.stage === key);
           return (
-            <div key={key} className="w-72 shrink-0 rounded-lg border p-3" style={{ borderColor: t.border, background: t.bgAlt }}
+            <div key={key} className="w-72 shrink-0 border-[3px] p-3" style={{ borderColor: t.border, background: t.surface, boxShadow: `5px 5px 0 ${t.shadow}` }}
               onDragOver={(e) => e.preventDefault()} onDrop={() => drag && move(drag, key)}>
-              <div className="mb-3 flex items-center justify-between"><span className="font-mono text-[11px] font-bold uppercase tracking-widest" style={{ color: colColor(key) }}>{label}</span><Pill>{items.length}</Pill></div>
+              <div className="mb-3 flex items-center justify-between border-b-2 pb-2" style={{ borderColor: t.border }}><span className="fm text-[11px] font-bold uppercase tracking-widest" style={{ color: colColor(key) }}>{label}</span><Pill color={colColor(key)}>{items.length}</Pill></div>
               <div className="space-y-2">
                 {items.map((d) => (
-                  <div key={d.id} draggable onDragStart={() => setDrag(d.id)} className="adm-hover cursor-grab rounded-md border p-3 active:cursor-grabbing" style={{ borderColor: t.border, background: t.surface, boxShadow: t.shadow }}>
-                    <div className="flex items-start justify-between gap-2"><span className="fd text-sm" style={{ color: t.text }}>{d.company_name}</span>{d.value_minor > 0 && <span className="font-mono text-[10px]" style={{ color: t.gold }}>{d.currency} {d.value_minor / 100}</span>}</div>
-                    {d.contact_email && <div className="mt-0.5 truncate font-mono text-[10px]" style={{ color: t.faint }}>{d.contact_email}</div>}
+                  <div key={d.id} draggable onDragStart={() => setDrag(d.id)} className="adm-hover cursor-grab border-2 p-3 active:cursor-grabbing" style={{ borderColor: t.border, background: t.bg, boxShadow: `3px 3px 0 ${t.shadow}` }}>
+                    <div className="flex items-start justify-between gap-2"><span className="fd text-sm" style={{ color: t.text }}>{d.company_name}</span>{d.value_minor > 0 && <span className="fm text-[10px]" style={{ color: t.gold }}>{d.currency} {d.value_minor / 100}</span>}</div>
+                    {d.contact_email && <div className="mt-0.5 truncate fm text-[10px]" style={{ color: t.faint }}>{d.contact_email}</div>}
                     <div className="mt-2 flex items-center gap-1">
-                      <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i > 0) move(d.id, STAGES[i - 1][0]); }} className="rounded p-1" style={{ color: t.muted }}><ArrowLeft size={12} /></button>
-                      <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i < STAGES.length - 1) move(d.id, STAGES[i + 1][0]); }} className="rounded p-1" style={{ color: t.muted }}><ArrowRight size={12} /></button>
-                      {key === "qualified" && onConvert && <button onClick={() => onConvert(d.company_name, d.contact_email)} className="ml-auto rounded px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-widest" style={{ color: t.pass, border: `1px solid ${t.pass}` }}>Convert</button>}
+                      <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i > 0) move(d.id, STAGES[i - 1][0]); }} className="p-1" style={{ color: t.muted }}><ArrowLeft size={12} /></button>
+                      <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i < STAGES.length - 1) move(d.id, STAGES[i + 1][0]); }} className="p-1" style={{ color: t.muted }}><ArrowRight size={12} /></button>
+                      {key === "qualified" && onConvert && <button onClick={() => onConvert(d.company_name, d.contact_email)} className="ml-auto border-2 px-2 py-0.5 fm text-[9px] font-bold uppercase tracking-widest" style={{ color: t.green, borderColor: t.green }}>Convert</button>}
                     </div>
                   </div>))}
-                {items.length === 0 && <div className="rounded-md border border-dashed py-6 text-center font-mono text-[10px] uppercase tracking-widest" style={{ borderColor: t.border, color: t.faint }}>drop here</div>}
+                {items.length === 0 && <div className="border-2 border-dashed py-6 text-center fm text-[10px] uppercase tracking-widest" style={{ borderColor: t.border, color: t.faint }}>drop here</div>}
               </div>
             </div>); })}
       </div>
@@ -353,44 +429,46 @@ export function PipelineTab({ onConvert }: { onConvert?: (company: string, email
   );
 }
 
-/* ============================ SUPPORT (two-pane inbox) ============================ */
-const PRIO: Record<string, string> = { urgent: "#FF7A6B", high: "#EBC06A", normal: "#9FC0A6", low: "#6f665c" };
+/* ============================ SUPPORT ============================ */
+const PRIO: Record<string, string> = {};
 export function SupportTab() {
-  const { t } = useAdminTheme(); const [rows, setRows] = useState<any[]>([]); const [sel, setSel] = useState<any>(null); const [reply, setReply] = useState(""); const [loading, setLoading] = useState(true);
+  const { t } = useAdminTheme();
+  PRIO.urgent = t.verm; PRIO.high = t.gold; PRIO.normal = t.green; PRIO.low = t.muted;
+  const [rows, setRows] = useState<any[]>([]); const [sel, setSel] = useState<any>(null); const [reply, setReply] = useState(""); const [loading, setLoading] = useState(true);
   const load = () => { setLoading(true); api("/api/admin/support").then((j) => { setRows(j.tickets || []); setLoading(false); }); };
   useEffect(() => { load(); }, []);
   const open = rows.find((r) => r.id === sel?.id) || sel;
   const patch = async (p: any) => { const r = await api(`/api/admin/support/${open.id}`, { method: "PATCH", body: JSON.stringify(p) }); if (r.ok) { setSel({ ...open, ...p }); if (p.admin_reply !== undefined) setReply(""); load(); } else toast.error(r.error); };
   const statusColor = (s: string) => s === "closed" ? t.muted : s === "pending" ? t.gold : t.verm;
+  const byStatus = useMemo(() => topN(groupBy(rows, "status"), 4), [rows]);
+  const byPrio = useMemo(() => topN(groupBy(rows, "priority"), 4), [rows]);
   return (
-    <div className="space-y-4">
-      <Reveal><SectionLabel color={t.verm}>help desk</SectionLabel><p className="font-mono text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{rows.filter((r) => r.status !== "closed").length} open · {rows.filter((r) => r.priority === "urgent" || r.priority === "high").length} high priority</p></Reveal>
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Reveal><Kpi label="Open tickets" value={<CountUp to={rows.filter((r) => r.status !== "closed").length} />} accent={t.verm} icon={<Inbox size={16} />} /></Reveal>
+        <Reveal delay={60}><Card className="p-5"><SectionLabel color={t.gold}>by status</SectionLabel><Bars data={byStatus.map(([k, v]) => ({ label: k, value: v }))} color={t.gold} /></Card></Reveal>
+        <Reveal delay={120}><Card className="p-5"><SectionLabel color={t.verm}>by priority</SectionLabel><Bars data={byPrio.map(([k, v]) => ({ label: k, value: v }))} color={t.verm} /></Card></Reveal>
+      </div>
+      <Reveal><SectionLabel color={t.verm}>help desk</SectionLabel></Reveal>
       {loading ? <Spinner /> : rows.length === 0 ? <Card><EmptyState icon={<Inbox size={32} />} title="Inbox zero." hint="Tickets submitted from /support land here." /></Card> :
         <Card className="grid grid-cols-1 overflow-hidden lg:grid-cols-[340px_1fr]" style={{ minHeight: 520 }}>
-          {/* list */}
-          <div className="max-h-[70vh] overflow-y-auto border-b lg:border-b-0 lg:border-r" style={{ borderColor: t.border }}>
+          <div className="adm-scroll max-h-[70vh] overflow-y-auto border-b-[3px] lg:border-b-0 lg:border-r-[3px]" style={{ borderColor: t.border }}>
             {rows.map((r) => (
-              <button key={r.id} onClick={() => { setSel(r); setReply(r.admin_reply || ""); }} className="flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors" style={{ borderColor: t.border, background: open?.id === r.id ? t.surface2 : "transparent" }}>
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: PRIO[r.priority || "normal"] }} />
-                <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><span className="truncate text-sm font-semibold" style={{ color: t.text }}>{r.subject || "(no subject)"}</span><Pill color={statusColor(r.status)}>{r.status}</Pill></div>
-                  <div className="truncate font-mono text-[11px]" style={{ color: t.faint }}>{r.user_email}</div></div>
+              <button key={r.id} onClick={() => { setSel(r); setReply(r.admin_reply || ""); }} className="flex w-full items-start gap-3 border-b-2 px-4 py-3 text-left transition-colors" style={{ borderColor: t.border, background: open?.id === r.id ? t.surface2 : "transparent" }}>
+                <span className="mt-1 h-2.5 w-2.5 shrink-0" style={{ background: PRIO[r.priority || "normal"] }} />
+                <div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><span className="truncate fb text-sm font-semibold" style={{ color: t.text }}>{r.subject || "(no subject)"}</span><Pill color={statusColor(r.status)}>{r.status}</Pill></div>
+                  <div className="truncate fm text-[11px]" style={{ color: t.faint }}>{r.user_email}</div></div>
               </button>))}
           </div>
-          {/* conversation */}
           <div className="flex flex-col">
             {open ? (
               <>
-                <div className="flex-1 space-y-4 overflow-y-auto p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Pill color={statusColor(open.status)}>{open.status}</Pill>
-                    <Pill color={PRIO[open.priority || "normal"]}>{open.priority}</Pill>
-                    {open.category && <Pill>{open.category}</Pill>}
-                    <span className="font-mono text-[11px]" style={{ color: t.faint }}>{open.user_email} · {(open.created_at || "").slice(0, 10)}</span>
-                  </div>
-                  <div className="rounded-md border p-4" style={{ borderColor: t.border, background: t.bgAlt }}><div className="mb-1 font-mono text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>customer</div><p className="whitespace-pre-wrap text-sm" style={{ color: t.text }}>{open.message}</p></div>
-                  {open.admin_reply && <div className="rounded-md border p-4" style={{ borderColor: t.pass, background: t.surface }}><div className="mb-1 font-mono text-[10px] uppercase tracking-widest" style={{ color: t.pass }}>admin reply</div><p className="whitespace-pre-wrap text-sm" style={{ color: t.text }}>{open.admin_reply}</p></div>}
+                <div className="adm-scroll flex-1 space-y-4 overflow-y-auto p-5">
+                  <div className="flex flex-wrap items-center gap-2"><Pill color={statusColor(open.status)}>{open.status}</Pill><Pill color={PRIO[open.priority || "normal"]}>{open.priority}</Pill>{open.category && <Pill>{open.category}</Pill>}<span className="fm text-[11px]" style={{ color: t.faint }}>{open.user_email} · {(open.created_at || "").slice(0, 10)}</span></div>
+                  <div className="border-2 p-4" style={{ borderColor: t.border, background: t.inset }}><div className="mb-1 fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>customer</div><p className="whitespace-pre-wrap fb text-sm" style={{ color: t.text }}>{open.message}</p></div>
+                  {open.admin_reply && <div className="border-2 p-4" style={{ borderColor: t.green, background: t.surface }}><div className="mb-1 fm text-[10px] uppercase tracking-widest" style={{ color: t.green }}>admin reply</div><p className="whitespace-pre-wrap fb text-sm" style={{ color: t.text }}>{open.admin_reply}</p></div>}
                 </div>
-                <div className="space-y-3 border-t p-4" style={{ borderColor: t.border }}>
+                <div className="space-y-3 border-t-[3px] p-4" style={{ borderColor: t.border }}>
                   <div className="flex flex-wrap gap-2">
                     <Select value={open.status} onChange={(e) => patch({ status: e.target.value })} className="w-auto">{["open", "pending", "closed"].map((s) => <option key={s}>{s}</option>)}</Select>
                     <Select value={open.priority || "normal"} onChange={(e) => patch({ priority: e.target.value })} className="w-auto">{["low", "normal", "high", "urgent"].map((s) => <option key={s}>{s}</option>)}</Select>
@@ -416,64 +494,64 @@ export function BlogTab({ posts }: { posts: any[] }) {
     <div className="space-y-5">
       <div className="flex justify-between"><Reveal><SectionLabel>blog / SEO</SectionLabel></Reveal><Btn onClick={() => setAdd(true)}><Plus size={14} /> New post</Btn></div>
       {posts.length === 0 ? <Card><EmptyState icon={<FileText size={32} />} title="No posts yet." /></Card> :
-        <Table head={["Title", "Slug", "Status", "Date"]}>{posts.map((p) => <Row key={p.id}><Cell className="font-semibold">{p.title}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>/{p.slug}</Cell><Cell>{p.is_published ? <Pill color={t.pass}>live</Pill> : <Pill>draft</Pill>}</Cell><Cell className="font-mono text-[11px]" style={{ color: t.faint }}>{(p.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}
+        <Table head={["Title", "Slug", "Status", "Date"]}>{posts.map((p) => <Row key={p.id}><Cell className="font-semibold">{p.title}</Cell><Cell className="fm text-[11px]" style={{ color: t.faint }}>/{p.slug}</Cell><Cell>{p.is_published ? <Pill color={t.green}>live</Pill> : <Pill>draft</Pill>}</Cell><Cell className="fm text-[11px]" style={{ color: t.faint }}>{(p.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}
       <Modal open={add} onClose={() => setAdd(false)} title="New post" wide>
         <div className="space-y-4"><Field label="Title"><Input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></Field>
           <Field label="Content (HTML)"><TextArea rows={8} value={f.content} onChange={(e) => setF({ ...f, content: e.target.value })} /></Field>
-          <div className="flex items-center justify-between rounded-md border p-3" style={{ borderColor: t.border }}><span className="text-sm" style={{ color: t.text }}>Publish now</span><Switch on={f.is_published} onChange={(v) => setF({ ...f, is_published: v })} /></div>
+          <div className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><span className="fb text-sm" style={{ color: t.text }}>Publish now</span><Switch on={f.is_published} onChange={(v) => setF({ ...f, is_published: v })} /></div>
           <div className="flex justify-end gap-2"><Btn variant="ghost" onClick={() => setAdd(false)}>Cancel</Btn><Btn onClick={submit}>Save</Btn></div></div>
       </Modal>
     </div>
   );
 }
 
-/* ============================ SETTINGS (control room) ============================ */
+/* ============================ SETTINGS ============================ */
 export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSettings: any; featureFlags: any[]; overview: any }) {
   const { t } = useAdminTheme();
   const [site, setSite] = useState({ site_name: siteSettings?.site_name || "Cvyon", meta_title: siteSettings?.meta_title || "", meta_description: siteSettings?.meta_description || "", maintenance_mode: !!siteSettings?.maintenance_mode });
   const [billing, setBilling] = useState({ amount: 99, currency: "NGN" });
   const [aiLimit, setAiLimit] = useState(50);
-  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    api("/api/admin/config?read=1").catch(() => {}); // no-op read; values come from props/defaults
     fetch("/api/admin/settings-read").then((r) => r.ok ? r.json() : null).then((j) => {
       if (j?.billing) setBilling({ amount: j.billing.amount / 100, currency: j.billing.currency });
       if (j?.ai_budget_limit) setAiLimit(j.ai_budget_limit);
-      setLoaded(true);
-    }).catch(() => setLoaded(true));
+    }).catch(() => {});
   }, []);
   const saveSite = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "site_settings", value: site }) }); r.ok ? toast.success("Site settings saved") : toast.error(r.error); };
   const saveBilling = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "app_settings", key: "billing", value: { amount: Math.round(billing.amount * 100), currency: billing.currency } }) }); r.ok ? toast.success("Billing saved") : toast.error(r.error); };
   const saveAi = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "app_settings", key: "ai_budget_limit", value: Number(aiLimit) }) }); r.ok ? toast.success("AI budget saved") : toast.error(r.error); };
   const toggleFlag = async (key: string, v: boolean) => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "feature_flags", key, value: v }) }); if (r.ok) toast.success(`${key} ${v ? "on" : "off"}`); };
-  void loaded;
+  const spend = overview?.expensesThisMonth ?? 0; const ai = overview?.aiCostThisMonth ?? 0;
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <Reveal><Card className="p-6"><SectionLabel color={t.pass}>billing (recruiter subscription)</SectionLabel>
-        <p className="mb-4 text-sm" style={{ color: t.muted }}>Drives the Paystack charge and the price shown on the recruiter portal — they can't disagree.</p>
+    <div className="grid gap-5 lg:grid-cols-2">
+      <Reveal><Card className="p-5" accent={t.green}><SectionLabel color={t.green}>billing (recruiter subscription)</SectionLabel>
+        <p className="mb-4 fb text-sm" style={{ color: t.muted }}>Drives the Paystack charge and the price on the recruiter portal — they can't disagree.</p>
         <div className="grid grid-cols-2 gap-4"><Field label="Amount (major units)"><Input type="number" value={billing.amount} onChange={(e) => setBilling({ ...billing, amount: Number(e.target.value) })} /></Field>
           <Field label="Currency"><Select value={billing.currency} onChange={(e) => setBilling({ ...billing, currency: e.target.value })}>{["NGN", "USD", "GBP", "EUR", "KES", "ZAR", "GHS"].map((c) => <option key={c}>{c}</option>)}</Select></Field></div>
         <div className="mt-4 flex justify-end"><Btn onClick={saveBilling}>Save billing</Btn></div></Card></Reveal>
 
-      <Reveal delay={60}><Card className="p-6"><SectionLabel>site / branding</SectionLabel>
+      <Reveal delay={60}><Card className="p-5"><SectionLabel>site / branding</SectionLabel>
         <div className="space-y-4"><Field label="Site name"><Input value={site.site_name} onChange={(e) => setSite({ ...site, site_name: e.target.value })} /></Field>
           <Field label="Meta title"><Input value={site.meta_title} onChange={(e) => setSite({ ...site, meta_title: e.target.value })} /></Field>
           <Field label="Meta description"><TextArea rows={2} value={site.meta_description} onChange={(e) => setSite({ ...site, meta_description: e.target.value })} /></Field>
-          <div className="flex items-center justify-between rounded-md border p-3" style={{ borderColor: t.border }}><span className="text-sm" style={{ color: t.text }}>Maintenance mode</span><Switch on={site.maintenance_mode} onChange={(v) => setSite({ ...site, maintenance_mode: v })} /></div>
+          <div className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><span className="fb text-sm" style={{ color: t.text }}>Maintenance mode</span><Switch on={site.maintenance_mode} onChange={(v) => setSite({ ...site, maintenance_mode: v })} /></div>
           <div className="flex justify-end"><Btn onClick={saveSite}>Save site</Btn></div></div></Card></Reveal>
 
-      <Reveal delay={120}><Card className="p-6"><SectionLabel color={t.fail}>AI budget guard</SectionLabel>
-        <p className="mb-4 text-sm" style={{ color: t.muted }}>Spend this month: <b style={{ color: t.fail }}>{usd(overview?.aiCostThisMonth || 0)}</b>. Set a monthly ceiling the breaker enforces.</p>
+      <Reveal delay={120}><Card className="p-5" accent={t.verm}><SectionLabel color={t.verm}>AI budget guard</SectionLabel>
+        <div className="mb-4 flex items-center gap-4"><RadialGauge value={ai} max={Math.max(aiLimit, ai, 1)} color={t.verm} label="spend" size={92} suffix="$" /><div className="fb text-sm" style={{ color: t.muted }}>Spend this month <b style={{ color: t.verm }}>{usd(ai)}</b> of a <b style={{ color: t.text }}>${aiLimit}</b> ceiling the breaker enforces.</div></div>
         <Field label="Monthly limit (USD)"><Input type="number" value={aiLimit} onChange={(e) => setAiLimit(Number(e.target.value))} /></Field>
         <div className="mt-4 flex justify-end"><Btn onClick={saveAi}>Save limit</Btn></div></Card></Reveal>
 
-      <Reveal delay={180}><Card className="p-6"><SectionLabel color={t.cob}>feature flags</SectionLabel>
+      <Reveal delay={180}><Card className="p-5" accent={t.cob}><SectionLabel color={t.cob}>feature flags</SectionLabel>
         <div className="space-y-3">{(featureFlags || []).map((f: any) => (
-          <div key={f.key} className="flex items-center justify-between rounded-md border p-3" style={{ borderColor: t.border }}><div><div className="text-sm font-semibold" style={{ color: t.text }}>{f.key}</div><div className="text-xs" style={{ color: t.muted }}>{f.description}</div></div><Switch on={!!f.is_enabled} onChange={(v) => toggleFlag(f.key, v)} /></div>))}
-          {(!featureFlags || featureFlags.length === 0) && <p className="text-sm" style={{ color: t.faint }}>No flags.</p>}</div></Card></Reveal>
+          <div key={f.key} className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><div><div className="fb text-sm font-semibold" style={{ color: t.text }}>{f.key}</div><div className="fb text-xs" style={{ color: t.muted }}>{f.description}</div></div><Switch on={!!f.is_enabled} onChange={(v) => toggleFlag(f.key, v)} /></div>))}
+          {(!featureFlags || featureFlags.length === 0) && <p className="fb text-sm" style={{ color: t.faint }}>No flags.</p>}</div></Card></Reveal>
 
-      <Reveal delay={120} className="lg:col-span-2"><Card className="p-6" style={{ borderColor: t.gold }}><SectionLabel color={t.gold}>email / SMTP</SectionLabel>
-        <p className="text-sm" style={{ color: t.muted }}>Auth + transactional email send as <b style={{ color: t.text }}>Cvyon</b> via Brevo. Host <code>smtp-relay.brevo.com</code> · port <code>587</code> · sender <code>auth@cvyon.com</code> (must be a verified sender in Brevo). Configure in Supabase → Authentication → SMTP.</p></Card></Reveal>
+      <Reveal delay={120} className="lg:col-span-2"><Card className="p-5" accent={t.gold}><SectionLabel color={t.gold}>email / SMTP</SectionLabel>
+        <p className="fb text-sm" style={{ color: t.muted }}>Auth + transactional email send as <b style={{ color: t.text }}>Cvyon</b> via Brevo. Host <code>smtp-relay.brevo.com</code> · port <code>587</code> · sender <code>auth@cvyon.com</code> (verify in Brevo). Configure in Supabase → Authentication → SMTP.</p></Card></Reveal>
+
+      <Reveal delay={120} className="lg:col-span-2"><Card className="p-5"><SectionLabel>spend snapshot</SectionLabel>
+        <Bars data={[{ label: "AI credits", value: Math.round(ai) }, { label: "Other spend MTD", value: Math.max(0, Math.round(spend - ai)) }]} color={t.verm} /></Card></Reveal>
     </div>
   );
 }
