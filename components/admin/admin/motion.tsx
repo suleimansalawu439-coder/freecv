@@ -10,7 +10,7 @@ export const reduceMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* Linear 0..1 progress that starts when the element scrolls into view. */
-export function useDrawIn<T extends HTMLElement = HTMLDivElement>(duration = 900) {
+export function useDrawIn<T extends Element = HTMLElement>(duration = 900) {
   const ref = useRef<T>(null);
   const [p, setP] = useState(0);
   const started = useRef(false);
