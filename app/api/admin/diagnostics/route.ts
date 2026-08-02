@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase';
 import { verifyAdminToken } from '@/lib/auth';
 
@@ -79,6 +79,12 @@ export async function GET() {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
+    const headerList = await headers();
+    const clientIp =
+      headerList.get('x-forwarded-for')?.split(',')[0].trim() ||
+      headerList.get('x-real-ip') ||
+      '102.89.23.45';
+
     const res = await fetch(proxyUrl, {
       method: 'POST',
       headers: {
@@ -90,8 +96,9 @@ export async function GET() {
         keywords: 'software engineer',
         location: 'United States',
         locale_code: 'en_US',
-        user_ip: '8.8.8.8',       // Google DNS as test IP
-        user_agent: 'Mozilla/5.0 CvyonDiag/1.0',
+        user_ip: clientIp,
+        referer: 'https://www.cvyon.com',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         page: 1,
         page_size: 3,
       }),

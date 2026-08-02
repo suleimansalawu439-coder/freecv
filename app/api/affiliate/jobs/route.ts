@@ -73,7 +73,8 @@ export async function POST(req: Request) {
         keywords,
         location: countryName,          // <-- country, not the user's address
         locale_code: locale,            // <-- per-country locale, not en_US
-        user_ip: userIp || '8.8.8.8',   // <-- fallback to valid public IP if client is local
+        user_ip: userIp || '102.89.23.45',   // <-- fallback to valid public IP if client is localhost
+        referer: 'https://www.cvyon.com',
         user_agent: userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         page: body.page || 1,
         pagesize: 15,
