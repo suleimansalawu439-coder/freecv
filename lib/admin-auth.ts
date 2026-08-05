@@ -1,16 +1,34 @@
-import { cookies } from 'next/headers';
-import { verifyAdminToken } from '@/lib/auth'; // returns the admin payload or null/throws
+import { cookies, headers } from 'next/headers';
+import { verifyAdminToken } from '@/lib/auth';
 
+/**
+ * Requires admin authentication from cookie or Authorization header.
+ * Throws an Error with 'UNAUTHORIZED' if token is missing or invalid.
+ */
 export async function requireAdmin() {
-  const token = (await cookies()).get('admin_session')?.value;
+  const cookieStore = await cookies();
+  let token = cookieStore.get('admin_session')?.value;
+
+  // Fallback to Bearer token in Authorization header
+  if (!token) {
+    const reqHeaders = await headers();
+    const authHeader = reqHeaders.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.slice(7).trim();
+    }
+  }
+
   if (!token) throw new Error('UNAUTHORIZED');
-  let payload: any = null;
-  try { payload = await verifyAdminToken(token); } catch { payload = null; }
-  if (!payload) throw new Error('UNAUTHORIZED');
-  return payload as { id?: string; email?: string; role?: string };
+
+  const isValid = await verifyAdminToken(token);
+  if (!isValid) throw new Error('UNAUTHORIZED');
+
+  return { role: 'admin' as const, authorized: true };
 }
 
-// tiny helper so routes stay one-liners
-export function adminFail(status = 401) {
-  return Response.json({ error: 'Unauthorized' }, { status });
-}
+/**
+ * Returns a JSON Response with standard Unauthorized payload.
+ */
+export function adminFail(status = 401, message = 'Unauthorized') {
+  return Response.json({ error: message }, { status });
+}

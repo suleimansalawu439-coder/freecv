@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { GoogleGenAI } from '@google/genai';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 const CONSENT_VERSION = 'v1.0';
@@ -19,6 +20,9 @@ function completeness(d: any): number {
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = await checkRateLimit(request, { limit: 30, windowMs: 60_000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const data = await request.json();
     const email: string = data?.personalInfo?.email || '';

@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { requireAdmin, adminFail } from '@/lib/admin-auth';
+import { AdminConfigSchema, validatePayload } from '@/lib/validation';
 
 export async function PATCH(req: Request) {
   try { await requireAdmin(); } catch { return adminFail(); }
-  const { target, key, value, id } = await req.json();
+  const rawBody = await req.json().catch(() => ({}));
+  const validation = validatePayload(AdminConfigSchema, rawBody);
+  if (!validation.success) {
+    return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+  const { target, key, value, id } = validation.data;
   try {
     if (target === 'app_settings') {
       if (!key) return NextResponse.json({ error: 'key required' }, { status: 400 });

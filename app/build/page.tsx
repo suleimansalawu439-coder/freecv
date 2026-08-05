@@ -28,6 +28,7 @@ import { AuthModal } from '@/components/builder/AuthModal';
 
 import dynamic from 'next/dynamic';
 import { JobsModal } from '@/components/builder/JobsModal';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 const PDFPreview = dynamic(() => import('@/components/builder/PDFPreview'), { ssr: false });
 const PDFDownloadButton = dynamic(() => import('@/components/builder/PDFDownloadButton'), { ssr: false });
 
@@ -994,7 +995,9 @@ export default function FreeCVApp() {
             className="w-[816px] origin-top-left shrink-0 shadow-2xl print:shadow-none bg-white transition-transform print-safe-content"
             style={{ transform: isPreviewOpen && mobilePreviewMetrics.scale !== 1 ? `scale(${mobilePreviewMetrics.scale})` : undefined, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
           >
-            <HTMLPreview Tmpl={htmlTemplates[data.templateId as keyof typeof htmlTemplates]} data={data} />
+            <ErrorBoundary fallbackTitle="Resume Preview Error" fallbackMessage="Could not render the current template. Try selecting another template or verifying your text inputs.">
+              <HTMLPreview Tmpl={htmlTemplates[data.templateId as keyof typeof htmlTemplates]} data={data} />
+            </ErrorBoundary>
           </div>
         </div>
       </section>

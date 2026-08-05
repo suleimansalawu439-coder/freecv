@@ -77,7 +77,7 @@ export function ConsentManager() {
   }
 
   return (
-    <div className="fixed bottom-3 left-3 z-[400] print:hidden max-w-[280px] w-full">
+    <div className="fixed bottom-3 left-3 z-[400] print:hidden max-w-[280px] w-full" role="dialog" aria-label="Privacy and Data Preferences">
       <div className="bg-white/95 backdrop-blur-md text-gray-800 rounded-xl border border-gray-200 shadow-xl overflow-hidden animate-in slide-in-from-bottom-2 fade-in duration-300">
         <div className="p-3">
           <div className="flex justify-between items-center mb-2">
@@ -86,7 +86,11 @@ export function ConsentManager() {
               <h2 className="text-[11px] font-bold uppercase tracking-wider">Privacy & Data</h2>
             </div>
             {hasSeen && (
-              <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+              <button
+                onClick={() => setIsOpen(false)}
+                aria-label="Close privacy preferences"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              >
                 <X size={12} />
               </button>
             )}
@@ -96,9 +100,9 @@ export function ConsentManager() {
             We use your data for AI features and optionally connect you with recruiters. Manage your preferences.
           </p>
 
-          <div className="space-y-1.5 mb-3">
+          <div className="space-y-1.5 mb-3" role="group" aria-label="Consent Options">
             {/* Essential & AI */}
-            <div className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50">
+            <div className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50" aria-disabled="true">
               <div className="w-3.5 h-3.5 rounded bg-gray-300 flex items-center justify-center text-white">
                 <Check size={8} />
               </div>
@@ -106,7 +110,19 @@ export function ConsentManager() {
             </div>
 
             {/* Talent Pool */}
-            <div className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}>
+            <div
+              role="checkbox"
+              aria-checked={data.consents.recruiterShare}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare });
+                }
+              }}
+              className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-[#FF4326]"
+              onClick={() => setConsents({ ...data.consents, recruiterShare: !data.consents.recruiterShare })}
+            >
               <div className={cn("w-3.5 h-3.5 rounded flex items-center justify-center transition-colors", data.consents.recruiterShare ? 'bg-[#FF4326] text-white' : 'border border-gray-300')}>
                 {data.consents.recruiterShare && <Check size={8} />}
               </div>
@@ -114,7 +130,19 @@ export function ConsentManager() {
             </div>
 
             {/* Analytics */}
-            <div className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => setConsents({ ...data.consents, analytics: !data.consents.analytics })}>
+            <div
+              role="checkbox"
+              aria-checked={data.consents.analytics}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  setConsents({ ...data.consents, analytics: !data.consents.analytics });
+                }
+              }}
+              className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-[#141312]"
+              onClick={() => setConsents({ ...data.consents, analytics: !data.consents.analytics })}
+            >
               <div className={cn("w-3.5 h-3.5 rounded flex items-center justify-center transition-colors", data.consents.analytics ? 'bg-[#141312] text-white' : 'border border-gray-300')}>
                 {data.consents.analytics && <Check size={8} />}
               </div>

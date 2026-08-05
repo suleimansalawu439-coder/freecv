@@ -104,9 +104,57 @@ export function sanitizeResumeData(data: any): any {
         role: sanitizeText(exp.role),
         description: sanitizeHtml(exp.description)
       })),
-      // ... same for others, but this covers the main vectors
     };
   } catch (error) {
     throw error;
   }
 }
+
+// API Request Validation Schemas
+export const JobClickTrackSchema = z.object({
+  job_url: z.string().min(1, 'job_url is required').max(2048),
+  job_title: z.string().max(255).optional(),
+  company: z.string().max(255).optional(),
+  location: z.string().max(255).optional(),
+  country: z.string().max(10).optional(),
+  cpc_value: z.number().nonnegative().optional(),
+  user_agent: z.string().max(512).optional(),
+});
+
+export const AdminConfigSchema = z.object({
+  target: z.enum(['app_settings', 'site_settings', 'feature_flags']),
+  key: z.string().max(100).optional(),
+  value: z.any().optional(),
+  id: z.number().int().positive().optional(),
+});
+
+export const ExpenseCreateSchema = z.object({
+  description: z.string().min(1).max(255),
+  amount_cents: z.number().int().positive(),
+  currency: z.string().length(3).default('USD'),
+  category: z.string().min(1).max(50),
+  incurred_at: z.string().datetime().optional(),
+});
+
+export const SupportTicketSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+  subject: z.string().min(1).max(200),
+  message: z.string().min(5).max(5000),
+});
+
+/**
+ * Validates any data against a Zod schema, returning a clean typed response or formatted error message.
+ */
+export function validatePayload<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown
+): { success: true; data: T } | { success: false; error: string } {
+  const res = schema.safeParse(data);
+  if (res.success) {
+    return { success: true, data: res.data };
+  }
+  const firstError = res.error.issues?.[0]?.message || 'Invalid payload data';
+  return { success: false, error: firstError };
+}
+

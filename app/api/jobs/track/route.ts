@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { JobClickTrackSchema, validatePayload } from "@/lib/validation";
 
 const CPC_CENTS: Record<string, number> = {
   US: 65, GB: 55, CA: 50, AU: 50, IE: 48, NL: 45, DE: 45, SG: 45, FR: 40, AE: 40,
@@ -8,8 +10,16 @@ const CPC_CENTS: Record<string, number> = {
 const DEFAULT_CPC = 12;
 
 export async function POST(req: NextRequest) {
+  const rateLimitResponse = await checkRateLimit(req, { limit: 60, windowMs: 60_000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
-    const body = await req.json().catch(() => ({}));
+    const rawBody = await req.json().catch(() => ({}));
+    const validation = validatePayload(JobClickTrackSchema, rawBody);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    const body = validation.data;
     const { job_url, job_title, company, location, user_agent } = body;
 
     if (!job_url) {
