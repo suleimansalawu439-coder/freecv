@@ -32,6 +32,7 @@ const AuthModal = dynamic(() => import('@/components/builder/AuthModal').then(m 
 const JobsModal = dynamic(() => import('@/components/builder/JobsModal').then(m => m.JobsModal), { ssr: false });
 const PDFPreview = dynamic(() => import('@/components/builder/PDFPreview'), { ssr: false });
 const PDFDownloadButton = dynamic(() => import('@/components/builder/PDFDownloadButton'), { ssr: false });
+const LiveAtsScore = dynamic(() => import('@/components/builder/LiveAtsScore').then(m => m.LiveAtsScore), { ssr: false });
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -474,28 +475,38 @@ export default function FreeCVApp() {
       <section className="w-full lg:w-[45%] border-r-[3px] border-[#141312] print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative bg-white">
         <div className="max-w-xl mx-auto pb-24 lg:pb-0">
 
-          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
+          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <div className="flex items-center gap-2">
                 <Image src="/logo-dark-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
               </div>
-              <p className="fm text-[10px] font-bold uppercase tracking-[0.2em] mt-1 text-[#141312]/50">Premium & Forever Free</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">Premium & Forever Free</p>
+                <span className="text-[#141312]/30">•</span>
+                <span className="flex items-center gap-1 text-[10px] fm font-semibold text-[#10B981]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" /> Auto-saved
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => useResumeStore.temporal.getState().undo()} className="p-2 border-2 border-[#141312] bg-white hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors text-[#141312]" title="Undo (Ctrl+Z)">
-                <Undo2 size={16} />
-              </button>
-              <button onClick={() => useResumeStore.temporal.getState().redo()} className="p-2 border-2 border-[#141312] bg-white hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors text-[#141312]" title="Redo (Ctrl+Y)">
-                <Redo2 size={16} />
-              </button>
-              <button onClick={handleDownload} className="group flex items-center gap-2 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-4 py-2.5 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
+            <div className="flex flex-wrap items-center gap-2">
+              <LiveAtsScore />
+              <div className="flex items-center gap-1 border-l-2 border-[#141312]/20 pl-2">
+                <button onClick={() => useResumeStore.temporal.getState().undo()} className="p-2 border-2 border-[#141312] bg-white hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors text-[#141312]" title="Undo (Ctrl+Z)">
+                  <Undo2 size={16} />
+                </button>
+                <button onClick={() => useResumeStore.temporal.getState().redo()} className="p-2 border-2 border-[#141312] bg-white hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors text-[#141312]" title="Redo (Ctrl+Y)">
+                  <Redo2 size={16} />
+                </button>
+              </div>
+              <button onClick={handleDownload} className="group flex items-center gap-2 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-2 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
                 <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> PDF
               </button>
-              <button onClick={handleDocxExport} className="hidden lg:flex group items-center gap-2 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-4 py-2.5 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
+              <button onClick={handleDocxExport} className="flex group items-center gap-2 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-2 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all" title="Download Word Document">
                 <FileText size={14} className="group-hover:-translate-y-0.5 transition-transform" /> DOCX
               </button>
             </div>
           </header>
+
 
           {publishedUrl && (
             <div className="mb-8 p-4 bg-white border-[3px] border-[#0E8A4B] hs-sm flex items-center justify-between">
@@ -970,22 +981,26 @@ export default function FreeCVApp() {
 
         {/* Mobile Modal Actions */}
         {isPreviewOpen && (
-          <div className="fixed bottom-0 left-0 w-full bg-white p-4 flex gap-2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 lg:hidden print:hidden border-t-[3px] border-[#141312]">
-            <button onClick={() => setIsPreviewOpen(false)} className="flex-1 bg-white border-2 border-[#141312] hs-sm text-[#141312] py-4 fm text-[11px] font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:translate-y-[2px] active:shadow-none transition-all">
-              <X size={16} /> Edit
+          <div className="fixed bottom-0 left-0 w-full bg-white p-3 flex gap-1.5 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 lg:hidden print:hidden border-t-[3px] border-[#141312]">
+            <button onClick={() => setIsPreviewOpen(false)} className="bg-white border-2 border-[#141312] hs-sm text-[#141312] px-3 py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
+              <X size={14} /> Edit
             </button>
-            <button onClick={() => setMobileZoom(!mobileZoom)} className="flex-1 bg-white border-2 border-[#141312] hs-sm text-[#141312] py-4 fm text-[11px] font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:translate-y-[2px] active:shadow-none transition-all">
-              {mobileZoom ? <ZoomOut size={16} /> : <ZoomIn size={16} />} Zoom
+            <button onClick={() => setMobileZoom(!mobileZoom)} className="bg-white border-2 border-[#141312] hs-sm text-[#141312] px-3 py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
+              {mobileZoom ? <ZoomOut size={14} /> : <ZoomIn size={14} />} Zoom
             </button>
             <PDFDownloadButton
               TemplateComponent={SelectedTemplate}
               data={data}
               themeColor={data.theme?.color || '#2563eb'}
               onDownloadComplete={() => setIsJobsModalOpen(true)}
-              className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-4 fm text-[11px] font-bold uppercase tracking-widest flex justify-center items-center gap-2 active:translate-y-[2px] active:shadow-none transition-all"
+              className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all"
             />
+            <button onClick={handleDocxExport} className="bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
+              <FileText size={14} /> DOCX
+            </button>
           </div>
         )}
+
 
         <div
           className={cn("preview-scale-frame shrink-0 transition-all print:block", isPreviewOpen ? "mb-32 mt-8 lg:mt-4 mx-auto" : "mx-auto lg:mx-0")}

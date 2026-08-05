@@ -32,6 +32,8 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [country, setCountry] = useState<string>("your region");
   const [empty, setEmpty] = useState(false);
   const [errored, setErrored] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   // escape-to-close + body scroll lock while open
@@ -44,29 +46,40 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [isOpen, onClose]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setLoading(true); setEmpty(false); setErrored(false); setJobs([]);
+  const fetchJobs = (queryOverride?: string) => {
+    setLoading(true); setEmpty(false); setErrored(false);
     const skills = (data.skills || []).map((s) => s.name).filter(Boolean);
     const jobTitle = data.personalInfo.jobTitle || "";
-    trackEvent("jobs_modal_opened", data.templateId);
 
-    // NOTE: we send NO location. The server derives the candidate's country
-    // from the Vercel geo header and searches CareerJet by country — never by
-    // the user's town (which returned ghost jobs before).
     fetch("/api/affiliate/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skills, jobTitle }),
+      body: JSON.stringify({
+        skills,
+        jobTitle,
+        query: queryOverride !== undefined ? queryOverride : searchQuery
+      }),
     })
       .then((r) => r.json())
       .then((res) => {
         setCountry(res?.searchCountry || "your region");
-        if (res?.success && Array.isArray(res.data) && res.data.length) setJobs(res.data);
-        else setEmpty(true);
+        if (Array.isArray(res?.suggestions)) setSuggestions(res.suggestions);
+        if (res?.success && Array.isArray(res.data) && res.data.length) {
+          setJobs(res.data);
+        } else {
+          setJobs([]);
+          setEmpty(true);
+        }
       })
       .catch(() => setErrored(true))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setSearchQuery("");
+    trackEvent("jobs_modal_opened", data.templateId);
+    fetchJobs("");
   }, [isOpen, data.skills, data.personalInfo.jobTitle, data.templateId]);
 
   const handleJobClick = (job: Job) => {
@@ -122,7 +135,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             </div>
             <h2 className="fd mt-1 flex items-center gap-2 truncate text-xl tracking-tight sm:text-2xl">
               <Globe2 size={18} className="shrink-0 text-[#FF4326]" />
-              {loading ? "Finding roles…" : empty || errored ? "No live roles right now" : `Roles in ${country}`}
+              {loading ? "Finding roles…" : empty || errored ? "Explore roles" : `Roles in ${country}`}
             </h2>
           </div>
           <button
@@ -134,8 +147,26 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           </button>
         </div>
 
+        {/* search bar */}
+        <div className="border-b-2 border-[#141312] bg-white p-3 flex gap-2">
+          <input
+            type="text"
+            placeholder={`Search roles in ${country}...`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") fetchJobs(); }}
+            className="flex-1 px-3 py-1.5 border border-[#141312] text-xs fm focus:outline-none focus:ring-1 focus:ring-[#2233FF]"
+          />
+          <button
+            onClick={() => fetchJobs()}
+            className="px-4 py-1.5 bg-[#141312] text-white fm text-xs font-bold uppercase tracking-wider hover:bg-[#2233FF] transition-colors"
+          >
+            Search
+          </button>
+        </div>
+
         {/* body */}
-        <div className="max-h-[calc(90vh-92px)] space-y-4 overflow-y-auto p-5 sm:p-6">
+        <div className="max-h-[calc(90vh-140px)] space-y-4 overflow-y-auto p-5 sm:p-6">
           {loading && (
             <div className="flex flex-col items-center gap-3 py-16 text-[#141312]/60">
               <Loader2 size={30} className="animate-spin text-[#2233FF]" />
@@ -144,14 +175,31 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           )}
 
           {!loading && (empty || errored) && (
-            <div className="border-[3px] border-dashed border-[#141312]/35 bg-white/40 py-16 text-center">
+            <div className="border-[3px] border-dashed border-[#141312]/35 bg-white/40 p-6 text-center">
               <Briefcase size={34} className="mx-auto mb-3 text-[#141312]/25" />
-              <p className="fh text-lg font-extrabold">No live roles in {country} right now.</p>
-              <p className="mx-auto mt-2 max-w-xs text-sm text-[#141312]/60">
-                New postings land daily. Broaden your title in the builder and check back soon.
+              <p className="fh text-lg font-extrabold">No exact roles for this query right now.</p>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-[#141312]/60 mb-4">
+                Try searching one of these popular roles in {country}:
               </p>
+              {suggestions.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 max-w-md mx-auto">
+                  {suggestions.map((sug, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSearchQuery(sug);
+                        fetchJobs(sug);
+                      }}
+                      className="px-3 py-1.5 bg-white border border-[#141312] text-xs font-bold fm hover:bg-[#2233FF] hover:text-white transition-colors hs-sm active:translate-y-0.5"
+                    >
+                      + {sug}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
+
 
           {!loading && jobs.map((job, i) => {
             const match = normMatch(job.match);

@@ -55,14 +55,24 @@ export async function POST(req: Request) {
       '';
     const userAgent = req.headers.get('user-agent') || '';
 
-    // Clean up keywords: use job title + at most 1 top skill to get maximum high-relevance matches
+    // Clean up keywords: use custom search query if provided, or job title + top skill
+    const customQuery = (body.query || '').trim();
     const cleanTitle = jobTitle.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim();
     const primarySkill = skills[0] ? skills[0].replace(/[^\w\s-]/g, '').trim() : '';
-    const keywords = [cleanTitle, primarySkill].filter(Boolean).join(' ').trim() || cleanTitle || 'Developer';
+    const keywords = customQuery || [cleanTitle, primarySkill].filter(Boolean).join(' ').trim() || cleanTitle || 'Developer';
+
+    // Popular suggestions for empty fallback
+    const suggestions = ['Software Engineer', 'Product Manager', 'Data Analyst', 'UI/UX Designer', 'Accountant', 'Marketing Specialist', 'Sales Representative'];
 
     if (!PROXY_SECRET) {
       // misconfiguration: don't silently show fake jobs
-      return NextResponse.json({ success: false, data: [], error: 'proxy_secret_missing', searchCountry: countryName || 'your region' }, { status: 500 });
+      return NextResponse.json({
+        success: false,
+        data: [],
+        error: 'proxy_secret_missing',
+        searchCountry: countryName || 'your region',
+        suggestions
+      }, { status: 500 });
     }
 
     const response = await fetch(PROXY_URL, {
@@ -83,20 +93,28 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ success: false, data: [], error: 'proxy_http_' + response.status, searchCountry: countryName || 'your region' }, { status: 502 });
+      return NextResponse.json({
+        success: false,
+        data: [],
+        error: 'proxy_http_' + response.status,
+        searchCountry: countryName || 'your region',
+        suggestions
+      }, { status: 502 });
     }
 
     const result = await response.json().catch(() => null);
     if (!result || result.type !== 'JOBS' || !Array.isArray(result.jobs) || result.jobs.length === 0) {
-      // honest empty state — NO fake TechCorp/InnovateX jobs, NO user address
+      // honest empty state with suggestions
       return NextResponse.json({
         success: true,
         data: [],
         searchCountry: countryName || 'your region',
         total: 0,
         note: result?.type === 'LOCATIONS' ? 'location_ambiguous' : 'no_live_roles',
+        suggestions
       });
     }
+
 
     const data = result.jobs.slice(0, 5).map((j: any) => ({
       id: urlId(j.url || String(Math.random())),

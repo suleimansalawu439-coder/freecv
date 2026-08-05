@@ -1,30 +1,18 @@
 import { NextResponse } from 'next/server';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 import { trackEvent } from '@/lib/analytics';
-import { Redis } from '@upstash/redis';
-
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
   try {
-    // 1. Rate Limiting (Strict 5 per hour per IP)
-    const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rateLimitKey = `ratelimit:coverletter:${ip}`;
-    const requests = await redis.incr(rateLimitKey);
-    
-    if (requests === 1) {
-      await redis.expire(rateLimitKey, 3600);
-    }
-    
-    if (requests > 5) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again in an hour.' },
-        { status: 429 }
-      );
-    }
+    // 1. Rate Limiting (Strict 5 per hour per IP) with graceful in-memory fallback
+    const rateLimit = await checkRateLimit(req, {
+      limit: 5,
+      windowMs: 3600_000,
+      identifier: 'ip'
+    });
+    if (rateLimit) return rateLimit;
+
 
     // 2. Parse Request
     const { jobDescription, resumeText, tone = 'professional' } = await req.json();

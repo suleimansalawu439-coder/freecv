@@ -14,17 +14,52 @@ export async function GET(req: Request) {
     if (!(rec.subscriptions || []).some((s: any) => s.status === 'active')) return NextResponse.json({ error: 'No active subscription' }, { status: 402 });
 
     const url = new URL(req.url);
-    const q = url.searchParams.get('q') || '';
+    const q = (url.searchParams.get('q') || '').trim();
     const country = url.searchParams.get('country') || '';
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+    const pageSize = Math.min(100, Math.max(1, parseInt(url.searchParams.get('pageSize') || '50', 10)));
+    const offset = (page - 1) * pageSize;
 
-    let rq = supabaseAdmin.from('candidate_profiles').select('*, candidates(*)').eq('consent_recruiter_share', true);
-    if (q) rq = rq.ilike('current_title', `%${q}%`);
+    let rq = supabaseAdmin.from('candidate_profiles').select('*, candidates(*)', { count: 'exact' }).eq('consent_recruiter_share', true);
+    
+    if (q) {
+      // Use PostgreSQL Full-Text Search on search_vector if formatted query is valid
+      const terms = q.replace(/[^\w\s]/g, '').trim().split(/\s+/).filter(Boolean);
+      if (terms.length > 0) {
+        const ftsQuery = terms.join(' & ');
+        rq = rq.textSearch('search_vector', ftsQuery, { config: 'english' });
+      } else {
+        rq = rq.ilike('current_title', `%${q}%`);
+      }
+    }
+    
     if (country) rq = rq.eq('country', country);
-    rq = rq.order('completeness_score', { ascending: false, nullsFirst: false }).limit(60);
+    rq = rq.order('completeness_score', { ascending: false, nullsFirst: false }).range(offset, offset + pageSize - 1);
 
-    const { data, error } = await rq;
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ candidates: data || [] });
+    const { data, count, error } = await rq;
+    if (error) {
+      // Graceful fallback if search_vector index is still warming or has a syntax issue
+      const fallback = await supabaseAdmin.from('candidate_profiles')
+        .select('*, candidates(*)', { count: 'exact' })
+        .eq('consent_recruiter_share', true)
+        .ilike('current_title', `%${q}%`)
+        .order('completeness_score', { ascending: false, nullsFirst: false })
+        .range(offset, offset + pageSize - 1);
+      return NextResponse.json({
+        candidates: fallback.data || [],
+        total: fallback.count || 0,
+        page,
+        pageSize
+      });
+    }
+
+    return NextResponse.json({
+      candidates: data || [],
+      total: count || 0,
+      page,
+      pageSize
+    });
+
   } catch (e: any) {
     console.error('recruiter/search error', e);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

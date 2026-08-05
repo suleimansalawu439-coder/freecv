@@ -104,8 +104,13 @@ if (process.env.NODE_ENV !== 'production') {
 /** True when supabaseAdmin is connected to a real database, false when using mock */
 export const isSupabaseConfigured = isRealAdmin;
 
-// Warn loudly on server-side when using mock clients
+// Warn loudly on server-side when using mock clients or throw in production runtime
 if (typeof window === 'undefined' && !isRealAdmin) {
-  console.warn('\n⚠️  [supabase] RUNNING WITH MOCK CLIENT — no database writes will persist!');
-  console.warn('   Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env.\n');
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+    console.error('CRITICAL: Supabase service role key or URL is missing in production!');
+  } else {
+    console.warn('\n⚠️  [supabase] RUNNING WITH MOCK CLIENT — no database writes will persist!');
+    console.warn('   Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env.\n');
+  }
 }
+

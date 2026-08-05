@@ -152,17 +152,32 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   const [q, setQ] = useState("");
   const [country, setCountry] = useState("");
   const [detail, setDetail] = useState<any>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const countries = useMemo(() => Array.from(new Set(candidates.map((c) => c.country).filter(Boolean))).sort() as string[], [candidates]);
   
-  const filtered = useMemo(() => candidates.filter((c) => {
-    const matchCountry = !country || c.country === country;
-    const term = `${c.full_name || ''} ${c.current_title || ''} ${c.email || ''}`.toLowerCase();
-    const matchQuery = !q || term.includes(q.toLowerCase());
-    return matchCountry && matchQuery;
-  }), [candidates, q, country]);
+  const filtered = useMemo(() => {
+    return candidates.filter((c) => {
+      const matchCountry = !country || c.country === country;
+      const skillsStr = Array.isArray(c.skills) ? c.skills.map((s: any) => typeof s === 'string' ? s : s?.name || '').join(' ') : '';
+      const term = `${c.full_name || ''} ${c.current_title || ''} ${c.email || ''} ${skillsStr}`.toLowerCase();
+      const matchQuery = !q || q.toLowerCase().split(/\s+/).every(w => term.includes(w));
+      return matchCountry && matchQuery;
+    });
+  }, [candidates, q, country]);
+
+  // Reset page to 1 on filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [q, country, pageSize]);
 
   const consented = candidates.filter((c) => c.consent_recruiter_share).length;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginatedList = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
 
   const exportCSV = () => {
     const rows = [
@@ -206,7 +221,7 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
       <Card className="flex flex-col gap-3 p-4 sm:flex-row">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate email, name, or job title" className="!pl-9" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate email, name, job title, or skills" className="!pl-9" />
         </div>
         <Select value={country} onChange={(e) => setCountry(e.target.value)} className="sm:w-52">
           <option value="">All countries</option>
@@ -217,23 +232,49 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
       {filtered.length === 0 ? (
         <Card><EmptyState icon={<Users size={32} />} title="No candidates match your search filter." hint="Candidates who create or download a CV appear here automatically." /></Card>
       ) : (
-        <Table head={["Candidate", "Title", "Country", "Exp", "Score", "Consent", "Opted In"]}>
-          {filtered.slice(0, 300).map((c) => (
-            <Row key={c.id || c.email} onClick={() => setDetail(c)}>
-              <Cell>
-                <div className="font-semibold" style={{ color: t.text }}>{c.full_name || "Anonymous Candidate"}</div>
-                <div className="fm text-[11px]" style={{ color: t.faint }}>{c.email || "No email"}</div>
-              </Cell>
-              <Cell>{c.current_title || "—"}</Cell>
-              <Cell>{c.country || "—"}</Cell>
-              <Cell className="fm text-[12px]">{c.experience_years ? `${c.experience_years}y` : "—"}</Cell>
-              <Cell><span className="fm text-[11px] font-bold" style={{ color: (c.completeness_score || 0) >= 80 ? t.green : t.gold }}>{c.completeness_score ?? 0}%</span></Cell>
-              <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell>
-              <Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.opted_in_at || c.created_at || "").slice(0, 10) || "—"}</span></Cell>
-            </Row>
-          ))}
-        </Table>
+        <>
+          <Table head={["Candidate", "Title", "Country", "Exp", "Score", "Consent", "Opted In"]}>
+            {paginatedList.map((c) => (
+              <Row key={c.id || c.email} onClick={() => setDetail(c)}>
+                <Cell>
+                  <div className="font-semibold" style={{ color: t.text }}>{c.full_name || "Anonymous Candidate"}</div>
+                  <div className="fm text-[11px]" style={{ color: t.faint }}>{c.email || "No email"}</div>
+                </Cell>
+                <Cell>{c.current_title || "—"}</Cell>
+                <Cell>{c.country || "—"}</Cell>
+                <Cell className="fm text-[12px]">{c.experience_years ? `${c.experience_years}y` : "—"}</Cell>
+                <Cell><span className="fm text-[11px] font-bold" style={{ color: (c.completeness_score || 0) >= 80 ? t.green : t.gold }}>{c.completeness_score ?? 0}%</span></Cell>
+                <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell>
+                <Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.opted_in_at || c.created_at || "").slice(0, 10) || "—"}</span></Cell>
+              </Row>
+            ))}
+          </Table>
+
+          {/* Pagination Toolbar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <div className="fm text-xs" style={{ color: t.muted }}>
+              Showing {Math.min((page - 1) * pageSize + 1, filtered.length)}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} candidates
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={String(pageSize)} onChange={(e) => setPageSize(Number(e.target.value))} className="w-24 text-xs py-1">
+                <option value="25">25 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </Select>
+              <Btn variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="text-xs py-1 px-2.5">
+                <ArrowLeft size={13} /> Prev
+              </Btn>
+              <span className="fm text-xs font-bold px-1" style={{ color: t.text }}>
+                {page} / {totalPages}
+              </span>
+              <Btn variant="ghost" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="text-xs py-1 px-2.5">
+                Next <ArrowRight size={13} />
+              </Btn>
+            </div>
+          </div>
+        </>
       )}
+
 
       <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.full_name || detail?.email || "Candidate Details"}>
         {detail && (

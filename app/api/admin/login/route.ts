@@ -1,17 +1,34 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import crypto from 'crypto';
 import { signAdminToken } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    // 1. Strict Brute Force Protection (5 attempts per minute per IP)
+    const rateLimit = await checkRateLimit(request, {
+      limit: 5,
+      windowMs: 60_000,
+      identifier: 'ip'
+    });
+    if (rateLimit) return rateLimit;
+
+    const { password } = await request.json().catch(() => ({}));
     const adminPassword = process.env.ADMIN_PASSWORD;
 
     if (!adminPassword) {
       return NextResponse.json({ success: false, error: 'Server misconfiguration: missing ADMIN_PASSWORD' }, { status: 500 });
     }
 
-    if (password === adminPassword) {
+    // 2. Timing-safe password comparison
+    const passwordBuffer = Buffer.from(String(password || ''));
+    const adminPasswordBuffer = Buffer.from(adminPassword);
+
+    const isMatch = passwordBuffer.length === adminPasswordBuffer.length &&
+      crypto.timingSafeEqual(passwordBuffer, adminPasswordBuffer);
+
+    if (isMatch) {
       const token = await signAdminToken();
       
       const cookieStore = await cookies();
@@ -29,3 +46,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }
 }
+
