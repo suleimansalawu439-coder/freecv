@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
@@ -39,19 +39,19 @@ const mockClient = (table: string) => {
     }
   };
 
-  const chainable: Record<string, unknown> = {
+  const chainable: any = {
     eq: () => chainable,
     order: () => chainable,
     limit: () => chainable,
     single: () => ({
-      then: (resolve: (val: { data: Record<string, unknown> | null, error: null }) => void) => resolve({ data: getMockData()[0] || null, error: null })
+      then: (resolve: (val: { data: any, error: null }) => void) => resolve({ data: getMockData()[0] || null, error: null })
     }),
-    then: (resolve: (val: { data: Record<string, unknown>[], error: null }) => void) => resolve({ data: getMockData(), error: null }),
+    then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: getMockData(), error: null }),
     catch: (resolve: (err: unknown) => void) => resolve(null)
   };
 
   return {
-    insert: async (data: Record<string, unknown>) => {
+    insert: async (data: any) => {
       console.warn(`[Supabase Mock] Insert into ${table}:`, data);
       return { data: null, error: null };
     },
@@ -64,14 +64,14 @@ const mockClient = (table: string) => {
 
 // Global singleton references to prevent client connection churn in serverless environments
 const globalForSupabase = globalThis as unknown as {
-  supabaseClient?: ReturnType<typeof createClient>;
-  supabaseAdminClient?: ReturnType<typeof createClient>;
+  supabaseClient?: SupabaseClient<any>;
+  supabaseAdminClient?: SupabaseClient<any>;
 };
 
 // Client for public inserts
-export const supabase = globalForSupabase.supabaseClient || (
+export const supabase: SupabaseClient<any> = globalForSupabase.supabaseClient || (
   supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient<any>(supabaseUrl, supabaseAnonKey)
     : { 
         from: mockClient,
         auth: {
@@ -80,20 +80,20 @@ export const supabase = globalForSupabase.supabaseClient || (
           signInWithOAuth: async () => ({ data: null, error: null }),
           signOut: async () => ({ error: null })
         }
-      } as unknown as ReturnType<typeof createClient>
+      } as unknown as SupabaseClient<any>
 );
 
 // Server-side admin client to bypass RLS
 const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
-export const supabaseAdmin = globalForSupabase.supabaseAdminClient || (
+export const supabaseAdmin: SupabaseClient<any> = globalForSupabase.supabaseAdminClient || (
   isRealAdmin
-    ? createClient(supabaseUrl, supabaseServiceKey, {
+    ? createClient<any>(supabaseUrl, supabaseServiceKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false
         }
       })
-    : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as ReturnType<typeof createClient>
+    : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as SupabaseClient<any>
 );
 
 if (process.env.NODE_ENV !== 'production') {

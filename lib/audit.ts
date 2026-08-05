@@ -21,7 +21,7 @@ export async function logAdminAction(entry: AuditLogEntry): Promise<void> {
     metadata: entry.metadata,
   });
 
-  if (!isSupabaseConfigured()) return;
+  if (!isSupabaseConfigured) return;
 
   try {
     // Attempt insert into audit_logs table if configured
@@ -49,7 +49,7 @@ export async function softDeleteRecord(
   id: string | number,
   actorEmail?: string
 ) {
-  if (!isSupabaseConfigured()) return { success: false, error: 'Database unconfigured' };
+  if (!isSupabaseConfigured) return { success: false, error: 'Database unconfigured' };
 
   const { data, error } = await supabaseAdmin
     .from(tableName)
