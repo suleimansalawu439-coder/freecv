@@ -1,0 +1,2683 @@
+
+===== FILE: components/templates/MinimalistSplit.tsx (10772 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+const PRIMARY_COLOR = '#2563EB';
+const SIDEBAR_BG = '#1E293B';
+
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+  },
+  sidebar: {
+    width: '35%',
+    backgroundColor: SIDEBAR_BG,
+    padding: 24,
+    color: '#FFFFFF',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+  sidebarMain: {
+    flexDirection: 'column',
+  },
+  avatarContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    lineHeight: 1.1,
+  },
+  jobTitle: {
+    fontSize: 10,
+    color: '#E2E8F0',
+    marginBottom: 20,
+  },
+  contactGroup: {
+    marginBottom: 20,
+    gap: 6,
+  },
+  contactItem: {
+    fontSize: 8.5,
+    color: '#E2E8F0',
+  },
+  sidebarSectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  skillsList: {
+    flexDirection: 'column',
+    gap: 6,
+  },
+  skillCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  skillText: {
+    fontSize: 8.5,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  mainContent: {
+    width: '65%',
+    padding: 24,
+    flexDirection: 'column',
+  },
+  section: {
+    marginBottom: 18,
+  },
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  summaryText: {
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: '#374151',
+  },
+  experienceItem: {
+    marginBottom: 12,
+  },
+  itemHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 2,
+  },
+  roleTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  dateText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+  },
+  companyName: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: PRIMARY_COLOR,
+    marginBottom: 4,
+  },
+  bulletList: {
+    marginTop: 4,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 10,
+    fontSize: 8,
+    color: '#4B5563',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 8.5,
+    lineHeight: 1.4,
+    color: '#4B5563',
+  },
+  educationItem: {
+    marginBottom: 8,
+  },
+  degreeText: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  schoolText: {
+    fontSize: 8.5,
+    color: '#4B5563',
+  },
+  gradYearText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
+  refGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  refCard: {
+    width: '48%',
+    borderLeftWidth: 2,
+    borderLeftColor: PRIMARY_COLOR,
+    paddingLeft: 8,
+    marginBottom: 8,
+  },
+  refName: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  refTitle: {
+    fontSize: 8,
+    color: '#4B5563',
+    marginBottom: 2,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#6B7280',
+  },
+  customItem: {
+    marginBottom: 8,
+  },
+  customTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  customSubtitle: {
+    fontSize: 8.5,
+    fontStyle: 'italic',
+    color: '#4B5563',
+  },
+  customDescription: {
+    fontSize: 8.5,
+    color: '#4B5563',
+    marginTop: 2,
+    lineHeight: 1.4,
+  },
+});
+
+export default function MinimalistSplit({ data }: { data: ResumeData }) {
+  const initial = data.personalInfo.fullName?.charAt(0) || '';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Left Sidebar */}
+        <View style={styles.sidebar}>
+          <View style={styles.sidebarMain}>
+            <View>
+              {initial ? (
+                <View style={styles.avatarContainer}>
+                  <Text style={styles.avatarText}>{initial}</Text>
+                </View>
+              ) : null}
+              {data.personalInfo.fullName ? (
+                <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+              ) : null}
+              {data.personalInfo.jobTitle ? (
+                <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+              ) : null}
+            </View>
+
+            <View style={styles.contactGroup}>
+              {data.personalInfo.email ? (
+                <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
+              ) : null}
+              {data.personalInfo.phone ? (
+                <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>
+              ) : null}
+              {data.personalInfo.location ? (
+                <Text style={styles.contactItem}>{data.personalInfo.location}</Text>
+              ) : null}
+              {data.personalInfo.website ? (
+                <Link style={styles.contactItem} src={data.personalInfo.website}>
+                  {data.personalInfo.website}
+                </Link>
+              ) : null}
+            </View>
+
+            {data.skills && data.skills.length > 0 && (
+              <View>
+                <Text style={styles.sidebarSectionTitle}>Skills</Text>
+                <View style={styles.skillsList}>
+                  {data.skills.map((skill) => (
+                    <View key={skill.id} style={styles.skillCard}>
+                      <Text style={styles.skillText}>{skill.name}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Right Main Content */}
+        <View style={styles.mainContent}>
+          {data.summary ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Profile</Text>
+              <Text style={styles.summaryText}>{data.summary}</Text>
+            </View>
+          ) : null}
+
+          {data.experience && data.experience.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Experience</Text>
+              {data.experience.map((exp) => (
+                <View key={exp.id} style={styles.experienceItem}>
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={styles.roleTitle}>{exp.role}</Text>
+                    <Text style={styles.dateText}>
+                      {exp.startDate} - {exp.endDate}
+                    </Text>
+                  </View>
+                  <Text style={styles.companyName}>{exp.company}</Text>
+                  {exp.description ? (
+                    <View style={styles.bulletList}>
+                      {exp.description
+                        .split('\n')
+                        .filter(Boolean)
+                        .map((line, i) => (
+                          <View key={i} style={styles.bulletRow}>
+                            <Text style={styles.bulletDot}>•</Text>
+                            <Text style={styles.bulletText}>{line}</Text>
+                          </View>
+                        ))}
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {data.education && data.education.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Education</Text>
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.educationItem}>
+                  <Text style={styles.degreeText}>{edu.degree}</Text>
+                  <Text style={styles.schoolText}>{edu.school}</Text>
+                  {edu.graduationYear ? (
+                    <Text style={styles.gradYearText}>{edu.graduationYear}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {data.showReferences && data.references && data.references.length > 0 && (
+            <View style={styles.section} wrap={false}>
+              <Text style={styles.sectionTitle}>References</Text>
+              <View style={styles.refGrid}>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={styles.refCard}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refTitle}>
+                      {ref.title} @ {ref.company}
+                    </Text>
+                    {ref.contact ? (
+                      <Text style={styles.refContact}>{ref.contact}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {data.customSections &&
+            data.customSections.length > 0 &&
+            data.customSections.map((section) =>
+              section.items && section.items.length > 0 ? (
+                <View key={section.id} style={styles.section}>
+                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  {section.items.map((item) => (
+                    <View key={item.id} style={styles.customItem}>
+                      <View style={styles.itemHeaderRow}>
+                        <View>
+                          <Text style={styles.customTitle}>{item.title}</Text>
+                          {item.subtitle ? (
+                            <Text style={styles.customSubtitle}>{item.subtitle}</Text>
+                          ) : null}
+                        </View>
+                        {item.date ? (
+                          <Text style={styles.dateText}>{item.date}</Text>
+                        ) : null}
+                      </View>
+                      {item.description ? (
+                        <Text style={styles.customDescription}>{item.description}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ) : null
+            )}
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/ModernGradient.tsx (13012 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 30,
+    fontFamily: 'Helvetica',
+    fontSize: 10,
+    color: '#374151',
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    marginRight: 16,
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  avatarFallback: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarFallbackText: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  headerTextContainer: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  jobTitle: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+  },
+  summaryCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+  },
+  summaryText: {
+    fontSize: 9.5,
+    lineHeight: 1.4,
+    color: '#374151',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  sectionIconText: {
+    color: '#ffffff',
+    fontSize: 10,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  experienceSection: {
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  role: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  company: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  dateBadge: {
+    fontSize: 8,
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    fontWeight: 'bold',
+  },
+  bulletList: {
+    marginTop: 4,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 10,
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 8.5,
+    color: '#4b5563',
+    lineHeight: 1.3,
+  },
+  twoColumnLayout: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  column: {
+    flex: 1,
+  },
+  skillCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 8,
+  },
+  skillName: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  skillTrack: {
+    height: 5,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  skillBar: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  eduDegree: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  eduSchool: {
+    fontSize: 8.5,
+    color: '#4b5563',
+  },
+  eduDate: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 2,
+  },
+  itemTitle: {
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  itemSubtitle: {
+    fontSize: 8.5,
+    color: '#4b5563',
+    marginBottom: 4,
+  },
+  itemDescription: {
+    fontSize: 8.5,
+    color: '#374151',
+    lineHeight: 1.3,
+  },
+  contactCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 12,
+  },
+  contactRow: {
+    fontSize: 8.5,
+    marginBottom: 4,
+  },
+  contactLabel: {
+    fontWeight: 'bold',
+    color: '#374151',
+  },
+  contactValue: {
+    color: '#4b5563',
+  },
+});
+
+export default function ModernGradient({ data }: TemplateProps) {
+  const c = data.theme?.color || '#4f46e5';
+
+  const initials = data.personalInfo.fullName
+    ? data.personalInfo.fullName.split(' ').map((n) => n[0]).join('')
+    : '';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: c }]}>
+          <View style={styles.avatarContainer}>
+            {data.personalInfo.profilePicture ? (
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image src={data.personalInfo.profilePicture} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarFallbackText}>{initials}</Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+            <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          </View>
+        </View>
+
+        {/* Summary */}
+        {data.summary ? (
+          <View style={[styles.summaryCard, { borderLeftColor: c }]}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        ) : null}
+
+        {/* Experience Section (Full Width) */}
+        {data.experience && data.experience.length > 0 && (
+          <View style={styles.experienceSection}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                <Text style={styles.sectionIconText}>💼</Text>
+              </View>
+              <Text style={styles.sectionTitle}>Work Experience</Text>
+            </View>
+
+            {data.experience.map((exp) => (
+              <View key={exp.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View>
+                    <Text style={styles.role}>{exp.role}</Text>
+                    <Text style={[styles.company, { color: c }]}>{exp.company}</Text>
+                  </View>
+                  <Text style={[styles.dateBadge, { color: c }]}>
+                    {exp.startDate} - {exp.endDate}
+                  </Text>
+                </View>
+                <View style={styles.bulletList}>
+                  {exp.description
+                    .split('\n')
+                    .filter((l) => l.trim())
+                    .map((line, j) => (
+                      <View key={j} style={styles.bulletRow}>
+                        <Text style={[styles.bulletDot, { color: c }]}>•</Text>
+                        <Text style={styles.bulletText}>{line.trim()}</Text>
+                      </View>
+                    ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Two-Column Grid: Left (Skills) & Right (Education, Custom, Contact) */}
+        <View style={styles.twoColumnLayout}>
+          {/* Left Column */}
+          <View style={styles.column}>
+            {data.skills && data.skills.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                    <Text style={styles.sectionIconText}>🛠</Text>
+                  </View>
+                  <Text style={styles.sectionTitle}>Skills</Text>
+                </View>
+                {data.skills.map((s, i) => (
+                  <View key={s.id} style={styles.skillCard}>
+                    <Text style={styles.skillName}>{s.name}</Text>
+                    <View style={styles.skillTrack}>
+                      <View
+                        style={[
+                          styles.skillBar,
+                          {
+                            width: `${Math.max(50, 80 + (i % 3) * 7)}%`,
+                            backgroundColor: c,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Right Column */}
+          <View style={styles.column}>
+            {/* Education */}
+            {data.education && data.education.length > 0 && (
+              <View style={{ marginBottom: 16 }}>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                    <Text style={styles.sectionIconText}>🎓</Text>
+                  </View>
+                  <Text style={styles.sectionTitle}>Education</Text>
+                </View>
+                {data.education.map((edu) => (
+                  <View key={edu.id} style={styles.card}>
+                    <Text style={styles.eduDegree}>{edu.degree}</Text>
+                    <Text style={styles.eduSchool}>{edu.school}</Text>
+                    <Text style={[styles.eduDate, { color: c }]}>{edu.graduationYear}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Custom Sections */}
+            {data.customSections &&
+              data.customSections.map(
+                (section) =>
+                  section.items &&
+                  section.items.length > 0 && (
+                    <View key={section.id} style={{ marginBottom: 16 }}>
+                      <View style={styles.sectionHeader}>
+                        <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                          <Text style={styles.sectionIconText}>✨</Text>
+                        </View>
+                        <Text style={styles.sectionTitle}>{section.title}</Text>
+                      </View>
+                      {section.items.map((item) => (
+                        <View key={item.id} style={styles.card}>
+                          <View style={styles.itemHeader}>
+                            <Text style={styles.itemTitle}>{item.title}</Text>
+                            {item.date && (
+                              <Text style={[styles.eduDate, { color: c }]}>{item.date}</Text>
+                            )}
+                          </View>
+                          {item.subtitle && (
+                            <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                          )}
+                          {item.description && (
+                            <Text style={styles.itemDescription}>{item.description}</Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )
+              )}
+
+            {/* Contact */}
+            <View>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                  <Text style={styles.sectionIconText}>📬</Text>
+                </View>
+                <Text style={styles.sectionTitle}>Contact</Text>
+              </View>
+              <View style={styles.contactCard}>
+                {data.personalInfo.email && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Email: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.email}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.phone && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Phone: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.phone}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.location && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Location: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.location}</Text>
+                  </Text>
+                )}
+                {data.personalInfo.website && (
+                  <Text style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Website: </Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.website}</Text>
+                  </Text>
+                )}
+              </View>
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/SwissDesign.tsx (10710 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontFamily: 'Helvetica',
+    backgroundColor: '#FFFFFF',
+    fontSize: 9,
+    color: '#111827',
+  },
+  grid: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  header: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#111827',
+    paddingBottom: 20,
+    marginBottom: 20,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  fullName: {
+    fontSize: 32,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+    marginBottom: 10,
+    color: '#000000',
+  },
+  jobTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  colorBar: {
+    width: 40,
+    height: 3,
+  },
+  jobTitle: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    color: '#111827',
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    objectFit: 'cover',
+  },
+  leftColumn: {
+    width: '33%',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  rightColumn: {
+    width: '67%',
+    flexDirection: 'column',
+  },
+  sectionHeader: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    color: '#9CA3AF',
+    marginBottom: 12,
+  },
+  contactGroup: {
+    flexDirection: 'column',
+    gap: 10,
+  },
+  contactItem: {
+    flexDirection: 'column',
+  },
+  contactLabel: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#9CA3AF',
+    marginBottom: 2,
+  },
+  contactValue: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: '#111827',
+  },
+  skillsGroup: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  skillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  skillDot: {
+    width: 5,
+    height: 5,
+  },
+  skillName: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: '#111827',
+  },
+  educationItem: {
+    marginBottom: 10,
+  },
+  degree: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    color: '#111827',
+  },
+  school: {
+    fontSize: 8,
+    color: '#4B5563',
+    marginTop: 2,
+  },
+  gradYear: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    marginTop: 2,
+  },
+  timelineGroup: {
+    flexDirection: 'column',
+  },
+  timelineItem: {
+    position: 'relative',
+    paddingLeft: 16,
+    borderLeftWidth: 1.5,
+    borderLeftColor: '#E5E7EB',
+    paddingBottom: 20,
+  },
+  timelineDot: {
+    position: 'absolute',
+    left: -5,
+    top: 0,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+  },
+  expHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  role: {
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    color: '#111827',
+  },
+  dateBadge: {
+    fontSize: 7,
+    fontFamily: 'Helvetica-Bold',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    color: '#111827',
+  },
+  company: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: '#4B5563',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  bulletList: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  bulletText: {
+    fontSize: 8.5,
+    color: '#374151',
+    lineHeight: 1.4,
+  },
+  summaryContainer: {
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: '#F9FAFB',
+  },
+  summaryText: {
+    fontSize: 8.5,
+    color: '#374151',
+    lineHeight: 1.4,
+  },
+  customSection: {
+    marginTop: 16,
+  },
+});
+
+export default function SwissDesign({ data }: TemplateProps) {
+  const c = data.theme?.color || '#dc2626';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
+              <View style={styles.jobTitleContainer}>
+                <View style={[styles.colorBar, { backgroundColor: c }]} />
+                <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+              </View>
+            </View>
+            {data.personalInfo.profilePicture && (
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image src={data.personalInfo.profilePicture} style={styles.profileImage} />
+            )}
+          </View>
+        </View>
+
+        <View style={styles.grid}>
+          <View style={styles.leftColumn}>
+            <View>
+              <Text style={styles.sectionHeader}>01. Contact</Text>
+              <View style={styles.contactGroup}>
+                {data.personalInfo.email && (
+                  <View style={styles.contactItem}>
+                    <Text style={styles.contactLabel}>Email</Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.email}</Text>
+                  </View>
+                )}
+                {data.personalInfo.phone && (
+                  <View style={styles.contactItem}>
+                    <Text style={styles.contactLabel}>Phone</Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.phone}</Text>
+                  </View>
+                )}
+                {data.personalInfo.location && (
+                  <View style={styles.contactItem}>
+                    <Text style={styles.contactLabel}>Location</Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.location}</Text>
+                  </View>
+                )}
+                {data.personalInfo.website && (
+                  <View style={styles.contactItem}>
+                    <Text style={styles.contactLabel}>Website</Text>
+                    <Text style={styles.contactValue}>{data.personalInfo.website}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {data.skills && data.skills.length > 0 && (
+              <View>
+                <Text style={styles.sectionHeader}>02. Skills</Text>
+                <View style={styles.skillsGroup}>
+                  {data.skills.map(s => (
+                    <View key={s.id} style={styles.skillRow}>
+                      <View style={[styles.skillDot, { backgroundColor: c }]} />
+                      <Text style={styles.skillName}>{s.name}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.education && data.education.length > 0 && (
+              <View>
+                <Text style={styles.sectionHeader}>03. Education</Text>
+                {data.education.map(edu => (
+                  <View key={edu.id} style={styles.educationItem}>
+                    <Text style={styles.degree}>{edu.degree}</Text>
+                    <Text style={styles.school}>{edu.school}</Text>
+                    <Text style={[styles.gradYear, { color: c }]}>{edu.graduationYear}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          <View style={styles.rightColumn}>
+            {data.experience && data.experience.length > 0 && (
+              <View>
+                <Text style={styles.sectionHeader}>04. Experience</Text>
+                <View style={styles.timelineGroup}>
+                  {data.experience.map(exp => (
+                    <View key={exp.id} style={styles.timelineItem}>
+                      <View style={[styles.timelineDot, { borderColor: c }]} />
+                      <View style={styles.expHeader}>
+                        <Text style={styles.role}>{exp.role}</Text>
+                        <Text style={styles.dateBadge}>
+                          {exp.startDate} - {exp.endDate}
+                        </Text>
+                      </View>
+                      <Text style={styles.company}>{exp.company}</Text>
+                      <View style={styles.bulletList}>
+                        {exp.description
+                          .split('\n')
+                          .filter(l => l.trim())
+                          .map((line, j) => (
+                            <Text key={j} style={styles.bulletText}>
+                              {line}
+                            </Text>
+                          ))}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.summary && (
+              <View style={styles.summaryContainer}>
+                <Text style={styles.sectionHeader}>Profile</Text>
+                <Text style={styles.summaryText}>{data.summary}</Text>
+              </View>
+            )}
+
+            {data.customSections &&
+              data.customSections.map(
+                section =>
+                  section.items &&
+                  section.items.length > 0 && (
+                    <View key={section.id} style={styles.customSection}>
+                      <Text style={styles.sectionHeader}>{section.title}</Text>
+                      <View style={styles.timelineGroup}>
+                        {section.items.map(item => (
+                          <View key={item.id} style={styles.timelineItem}>
+                            <View style={[styles.timelineDot, { borderColor: c }]} />
+                            <View style={styles.expHeader}>
+                              <Text style={styles.role}>{item.title}</Text>
+                              {item.date && <Text style={styles.dateBadge}>{item.date}</Text>}
+                            </View>
+                            {item.subtitle && <Text style={styles.company}>{item.subtitle}</Text>}
+                            {item.description && (
+                              <Text style={styles.bulletText}>{item.description}</Text>
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )
+              )}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/SwissGrid.tsx (9820 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 36,
+    backgroundColor: '#f4f4f4',
+    color: '#1a1a1a',
+    fontFamily: 'Helvetica',
+  },
+  topBorder: {
+    height: 12,
+    marginTop: -36,
+    marginHorizontal: -36,
+    marginBottom: 24,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  name: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    letterSpacing: -1,
+    marginBottom: 4,
+    color: '#1a1a1a',
+  },
+  jobTitle: {
+    fontSize: 14,
+    fontWeight: 'medium',
+    color: '#6b7280',
+  },
+  mainGrid: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  leftCol: {
+    width: '33%',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  rightCol: {
+    width: '67%',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  section: {
+    marginBottom: 4,
+  },
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#000000',
+    paddingBottom: 2,
+  },
+  contactList: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  contactItem: {
+    fontSize: 9,
+    fontWeight: 'medium',
+    color: '#1a1a1a',
+  },
+  eduList: {
+    flexDirection: 'column',
+    gap: 10,
+  },
+  eduItem: {
+    flexDirection: 'column',
+  },
+  eduDegree: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  eduSchool: {
+    fontSize: 9,
+    color: '#4b5563',
+  },
+  eduYear: {
+    fontSize: 8,
+    color: '#9ca3af',
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  skillBadge: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  summaryText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    fontWeight: 'medium',
+    color: '#1a1a1a',
+  },
+  expList: {
+    flexDirection: 'column',
+    gap: 14,
+  },
+  expItem: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  expDateCol: {
+    width: '25%',
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    paddingTop: 1,
+  },
+  expContentCol: {
+    width: '75%',
+  },
+  expRole: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  expCompany: {
+    fontSize: 9,
+    fontWeight: 'medium',
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  expDesc: {
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: '#374151',
+  },
+  refGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  refCard: {
+    width: '48%',
+    borderLeftWidth: 2,
+    paddingLeft: 8,
+  },
+  refName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  refTitle: {
+    fontSize: 8,
+    color: '#4b5563',
+    fontWeight: 'medium',
+    marginBottom: 2,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#6b7280',
+  },
+  customSectionItem: {
+    marginBottom: 8,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  customTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  customSubtitle: {
+    fontSize: 9,
+    fontStyle: 'italic',
+    color: '#4b5563',
+  },
+  customDate: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  customDesc: {
+    fontSize: 8.5,
+    lineHeight: 1.4,
+    color: '#374151',
+    marginTop: 2,
+  },
+});
+
+export default function SwissGrid({ data }: TemplateProps) {
+  const themeColor = data.theme?.color || '#2563eb';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={[styles.topBorder, { backgroundColor: themeColor }]} />
+
+        <View style={styles.header}>
+          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+        </View>
+
+        <View style={styles.mainGrid}>
+          {/* Left Column */}
+          <View style={styles.leftCol}>
+            <View style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: themeColor }]}>Contact</Text>
+              <View style={styles.contactList}>
+                {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
+                {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
+                {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
+              </View>
+            </View>
+
+            {data.education && data.education.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
+                <View style={styles.eduList}>
+                  {data.education.map((edu) => (
+                    <View key={edu.id} style={styles.eduItem}>
+                      <Text style={styles.eduDegree}>{edu.degree}</Text>
+                      <Text style={styles.eduSchool}>{edu.school}</Text>
+                      {edu.graduationYear && <Text style={styles.eduYear}>{edu.graduationYear}</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.skills && data.skills.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Expertise</Text>
+                <View style={styles.skillsContainer}>
+                  {data.skills.map((skill) => (
+                    <Text key={skill.id} style={styles.skillBadge}>
+                      {skill.name}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+
+          {/* Right Column */}
+          <View style={styles.rightCol}>
+            {data.summary && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Profile</Text>
+                <Text style={styles.summaryText}>{data.summary}</Text>
+              </View>
+            )}
+
+            {data.experience && data.experience.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
+                <View style={styles.expList}>
+                  {data.experience.map((exp) => (
+                    <View key={exp.id} style={styles.expItem}>
+                      <View style={styles.expDateCol}>
+                        <Text>{exp.startDate}</Text>
+                        <Text>{exp.endDate}</Text>
+                      </View>
+                      <View style={styles.expContentCol}>
+                        <Text style={styles.expRole}>{exp.role}</Text>
+                        <Text style={styles.expCompany}>{exp.company}</Text>
+                        {exp.description && <Text style={styles.expDesc}>{exp.description}</Text>}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.showReferences && data.references && data.references.length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
+                <View style={styles.refGrid}>
+                  {data.references.map((ref) => (
+                    <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
+                      <Text style={styles.refName}>{ref.name}</Text>
+                      <Text style={styles.refTitle}>
+                        {ref.title} {ref.company ? `@ ${ref.company}` : ''}
+                      </Text>
+                      {ref.contact && <Text style={styles.refContact}>{ref.contact}</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {data.customSections &&
+              data.customSections.map(
+                (section) =>
+                  section.items &&
+                  section.items.length > 0 && (
+                    <View key={section.id} style={styles.section}>
+                      <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
+                      <View style={{ gap: 8 }}>
+                        {section.items.map((item) => (
+                          <View key={item.id} style={styles.customSectionItem}>
+                            <View style={styles.customHeader}>
+                              <View>
+                                <Text style={styles.customTitle}>{item.title}</Text>
+                                {item.subtitle && <Text style={styles.customSubtitle}>{item.subtitle}</Text>}
+                              </View>
+                              {item.date && <Text style={styles.customDate}>{item.date}</Text>}
+                            </View>
+                            {item.description && <Text style={styles.customDesc}>{item.description}</Text>}
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )
+              )}
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/SwissMinimal.tsx (10916 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 54,
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'Helvetica',
+    color: '#111827',
+  },
+  header: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    paddingBottom: 24,
+    marginBottom: 24,
+  },
+  fullName: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+    color: '#111827',
+    lineHeight: 1.0,
+  },
+  jobTitle: {
+    fontSize: 10,
+    fontWeight: 'medium',
+    color: '#9CA3AF',
+    letterSpacing: 0.5,
+    marginTop: 6,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 10,
+  },
+  contactItem: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    color: '#9CA3AF',
+  },
+  summary: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: '#4B5563',
+    borderLeftWidth: 2,
+    borderLeftColor: '#E5E7EB',
+    paddingLeft: 16,
+    marginBottom: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 2.4,
+    color: '#D1D5DB',
+    marginBottom: 14,
+  },
+  experienceItem: {
+    marginBottom: 16,
+  },
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  role: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  date: {
+    fontSize: 7.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#9CA3AF',
+  },
+  company: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#9CA3AF',
+    marginBottom: 6,
+  },
+  bulletList: {
+    marginTop: 2,
+  },
+  bulletItem: {
+    flexDirection: 'row',
+    marginBottom: 3,
+  },
+  bulletDot: {
+    width: 8,
+    fontSize: 9,
+    color: '#D1D5DB',
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 9,
+    color: '#4B5563',
+    lineHeight: 1.4,
+  },
+  gridTwoCol: {
+    flexDirection: 'row',
+    gap: 32,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 24,
+  },
+  col: {
+    flex: 1,
+  },
+  eduItem: {
+    marginBottom: 10,
+  },
+  eduDegree: {
+    fontSize: 10.5,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  eduSub: {
+    fontSize: 8,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  skillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  skillTag: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    color: '#6B7280',
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  dividerSection: {
+    marginTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 24,
+  },
+  cardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  card: {
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    padding: 10,
+    borderRadius: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  cardTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  cardLink: {
+    fontSize: 7.5,
+    color: '#9CA3AF',
+  },
+  cardDesc: {
+    fontSize: 8.5,
+    color: '#4B5563',
+    lineHeight: 1.3,
+  },
+  refCard: {
+    width: '48%',
+    marginBottom: 8,
+  },
+  refName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  refTitle: {
+    fontSize: 8.5,
+    color: '#6B7280',
+    marginTop: 1,
+  },
+  refContact: {
+    fontSize: 8,
+    color: '#9CA3AF',
+    marginTop: 1,
+  },
+  customItem: {
+    marginBottom: 10,
+  },
+  customSubtitle: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    color: '#4B5563',
+  },
+  customDesc: {
+    fontSize: 9.5,
+    color: '#4B5563',
+    marginTop: 2,
+    lineHeight: 1.4,
+  },
+});
+
+export default function SwissMinimal({ data }: TemplateProps) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
+          {data.personalInfo.jobTitle ? (
+            <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          ) : null}
+          <View style={styles.contactRow}>
+            {data.personalInfo.email ? (
+              <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
+            ) : null}
+            {data.personalInfo.phone ? (
+              <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>
+            ) : null}
+            {data.personalInfo.location ? (
+              <Text style={styles.contactItem}>{data.personalInfo.location}</Text>
+            ) : null}
+            {data.personalInfo.website ? (
+              <Text style={styles.contactItem}>{data.personalInfo.website}</Text>
+            ) : null}
+          </View>
+        </View>
+
+        {data.summary ? (
+          <Text style={styles.summary}>{data.summary}</Text>
+        ) : null}
+
+        {data.experience && data.experience.length > 0 ? (
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>Experience</Text>
+            {data.experience.map((exp) => (
+              <View key={exp.id} style={styles.experienceItem}>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.role}>{exp.role}</Text>
+                  <Text style={styles.date}>
+                    {exp.startDate} – {exp.endDate}
+                  </Text>
+                </View>
+                <Text style={styles.company}>{exp.company}</Text>
+                {exp.description ? (
+                  <View style={styles.bulletList}>
+                    {exp.description
+                      .split('\n')
+                      .filter((l) => l.trim())
+                      .map((line, i) => (
+                        <View key={i} style={styles.bulletItem}>
+                          <Text style={styles.bulletDot}>•</Text>
+                          <Text style={styles.bulletText}>{line}</Text>
+                        </View>
+                      ))}
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.gridTwoCol}>
+          {data.education && data.education.length > 0 ? (
+            <View style={styles.col}>
+              <Text style={styles.sectionHeader}>Education</Text>
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.eduItem}>
+                  <Text style={styles.eduDegree}>{edu.degree}</Text>
+                  <Text style={styles.eduSub}>
+                    {edu.school}, {edu.graduationYear}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          {data.skills && data.skills.length > 0 ? (
+            <View style={styles.col}>
+              <Text style={styles.sectionHeader}>Skills</Text>
+              <View style={styles.skillsWrap}>
+                {data.skills.map((s) => (
+                  <Text key={s.id} style={styles.skillTag}>
+                    {s.name}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
+        </View>
+
+        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          <View style={styles.dividerSection}>
+            <Text style={styles.sectionHeader}>Projects</Text>
+            <View style={styles.cardsGrid}>
+              {data.projects.map((proj) => (
+                <View key={proj.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>{proj.name}</Text>
+                    {proj.link ? (
+                      <Text style={styles.cardLink}>{proj.link}</Text>
+                    ) : null}
+                  </View>
+                  {proj.description ? (
+                    <Text style={styles.cardDesc}>{proj.description}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {data.showReferences && data.references && data.references.length > 0 ? (
+          <View style={styles.dividerSection}>
+            <Text style={styles.sectionHeader}>References</Text>
+            <View style={styles.cardsGrid}>
+              {data.references.map((ref) => (
+                <View key={ref.id} style={styles.refCard}>
+                  <Text style={styles.refName}>{ref.name}</Text>
+                  <Text style={styles.refTitle}>
+                    {ref.title} @ {ref.company}
+                  </Text>
+                  <Text style={styles.refContact}>{ref.contact}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {data.customSections && data.customSections.length > 0
+          ? data.customSections.map((section) =>
+              section.items && section.items.length > 0 ? (
+                <View key={section.id} style={styles.dividerSection}>
+                  <Text style={styles.sectionHeader}>{section.title}</Text>
+                  <View>
+                    {section.items.map((item) => (
+                      <View key={item.id} style={styles.customItem}>
+                        <View style={styles.rowBetween}>
+                          <View>
+                            <Text style={styles.role}>{item.title}</Text>
+                            {item.subtitle ? (
+                              <Text style={styles.customSubtitle}>
+                                {item.subtitle}
+                              </Text>
+                            ) : null}
+                          </View>
+                          {item.date ? (
+                            <Text style={styles.date}>{item.date}</Text>
+                          ) : null}
+                        </View>
+                        {item.description ? (
+                          <Text style={styles.customDesc}>
+                            {item.description}
+                          </Text>
+                        ) : null}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ) : null
+            )
+          : null}
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/TechPro.tsx (11705 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 36,
+    fontFamily: 'Courier',
+    fontSize: 9,
+    color: '#111827',
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#111827',
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  fullName: {
+    fontSize: 22,
+    fontFamily: 'Courier-Bold',
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  jobTitle: {
+    fontSize: 10,
+    fontFamily: 'Courier-Bold',
+    color: '#4B5563',
+    marginBottom: 10,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  contactItem: {
+    fontSize: 8.5,
+    color: '#111827',
+  },
+  summaryBox: {
+    backgroundColor: '#F9FAFB',
+    padding: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#111827',
+    marginBottom: 16,
+  },
+  summaryText: {
+    fontSize: 9,
+    lineHeight: 1.4,
+    color: '#111827',
+  },
+  section: {
+    marginBottom: 16,
+  },
+  badgeTitle: {
+    backgroundColor: '#111827',
+    color: '#FFFFFF',
+    fontFamily: 'Courier-Bold',
+    fontSize: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  expItem: {
+    marginBottom: 12,
+  },
+  expHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 4,
+  },
+  expRoleCompany: {
+    fontSize: 9.5,
+    fontFamily: 'Courier-Bold',
+    color: '#111827',
+    flex: 1,
+  },
+  expDates: {
+    fontSize: 8,
+    fontFamily: 'Courier-Bold',
+    color: '#6B7280',
+    marginLeft: 8,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    marginTop: 2,
+    alignItems: 'flex-start',
+  },
+  bulletSymbol: {
+    fontSize: 9,
+    color: '#9CA3AF',
+    marginRight: 6,
+  },
+  bulletText: {
+    fontSize: 8.5,
+    color: '#374151',
+    flex: 1,
+    lineHeight: 1.3,
+  },
+  projectItem: {
+    marginBottom: 10,
+  },
+  projectNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  projectName: {
+    fontSize: 9.5,
+    fontFamily: 'Courier-Bold',
+    color: '#111827',
+  },
+  projectLink: {
+    fontSize: 8,
+    color: '#2563EB',
+    marginLeft: 6,
+  },
+  projectDesc: {
+    fontSize: 8.5,
+    color: '#374151',
+    lineHeight: 1.3,
+  },
+  columnsContainer: {
+    flexDirection: 'row',
+    gap: 20,
+    borderTopWidth: 2,
+    borderTopColor: '#E5E7EB',
+    paddingTop: 16,
+    marginTop: 'auto',
+  },
+  column: {
+    flex: 1,
+  },
+  eduItem: {
+    marginBottom: 8,
+  },
+  eduDegree: {
+    fontSize: 9,
+    fontFamily: 'Courier-Bold',
+    color: '#111827',
+  },
+  eduSchool: {
+    fontSize: 8,
+    color: '#4B5563',
+    marginTop: 2,
+  },
+  certItem: {
+    marginBottom: 6,
+  },
+  certName: {
+    fontSize: 9,
+    fontFamily: 'Courier-Bold',
+    color: '#111827',
+  },
+  certDetails: {
+    fontSize: 8,
+    color: '#4B5563',
+  },
+  refItem: {
+    marginBottom: 6,
+  },
+  refName: {
+    fontSize: 9,
+    fontFamily: 'Courier-Bold',
+    color: '#111827',
+  },
+  refDetails: {
+    fontSize: 8,
+    color: '#4B5563',
+  },
+  skillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  skillBadge: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    fontSize: 8,
+    color: '#111827',
+  },
+  customSection: {
+    marginBottom: 12,
+  },
+  customTitle: {
+    fontSize: 10,
+    fontFamily: 'Courier-Bold',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    marginBottom: 6,
+    paddingBottom: 2,
+  },
+  customItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  customItemTitle: {
+    fontSize: 9,
+    fontFamily: 'Courier-Bold',
+  },
+  customItemSubtitle: {
+    fontSize: 8,
+    fontStyle: 'italic',
+  },
+  customItemDate: {
+    fontSize: 8,
+    fontFamily: 'Courier-Bold',
+  },
+  customItemDesc: {
+    fontSize: 8.5,
+    marginTop: 2,
+    color: '#374151',
+  },
+});
+
+export default function TechPro({ data }: TemplateProps) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.fullName}>
+            {'< '}{data.personalInfo.fullName}{' />'}
+          </Text>
+          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          <View style={styles.contactRow}>
+            {data.personalInfo.email && (
+              <Text style={styles.contactItem}>{'>'} email: {data.personalInfo.email}</Text>
+            )}
+            {data.personalInfo.phone && (
+              <Text style={styles.contactItem}>{'>'} tel: {data.personalInfo.phone}</Text>
+            )}
+            {data.personalInfo.location && (
+              <Text style={styles.contactItem}>{'>'} loc: {data.personalInfo.location}</Text>
+            )}
+            {data.personalInfo.website && (
+              <Text style={styles.contactItem}>{'>'} web: {data.personalInfo.website}</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Summary */}
+        {data.summary && (
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        )}
+
+        {/* Experience */}
+        {data.experience.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.badgeTitle}>{'[ EXPERIENCE ]'}</Text>
+            {data.experience.map((exp) => (
+              <View key={exp.id} style={styles.expItem}>
+                <View style={styles.expHeader}>
+                  <Text style={styles.expRoleCompany}>
+                    {exp.role} @ {exp.company}
+                  </Text>
+                  <Text style={styles.expDates}>
+                    [{exp.startDate} .. {exp.endDate}]
+                  </Text>
+                </View>
+                {exp.description
+                  .split('\n')
+                  .filter((l) => l.trim())
+                  .map((line, i) => (
+                    <View key={i} style={styles.bulletRow}>
+                      <Text style={styles.bulletSymbol}>$</Text>
+                      <Text style={styles.bulletText}>{line}</Text>
+                    </View>
+                  ))}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Projects */}
+        {data.showProjects && data.projects.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.badgeTitle}>{'[ PROJECTS ]'}</Text>
+            {data.projects.map((proj) => (
+              <View key={proj.id} style={styles.projectItem}>
+                <View style={styles.projectNameRow}>
+                  <Text style={styles.projectName}>{proj.name}</Text>
+                  {proj.link && (
+                    <Link src={proj.link} style={styles.projectLink}>
+                      [{proj.link}]
+                    </Link>
+                  )}
+                </View>
+                <Text style={styles.projectDesc}>&gt; {proj.description}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Bottom Columns */}
+        <View style={styles.columnsContainer}>
+          {/* Left Column */}
+          <View style={styles.column}>
+            {/* Education */}
+            {data.education.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.badgeTitle}>{'[ EDUCATION ]'}</Text>
+                {data.education.map((edu) => (
+                  <View key={edu.id} style={styles.eduItem}>
+                    <Text style={styles.eduDegree}>{edu.degree}</Text>
+                    <Text style={styles.eduSchool}>
+                      {edu.school} [{edu.graduationYear}]
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Certifications */}
+            {data.showCertifications && data.certifications.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.badgeTitle}>{'[ CERTIFICATIONS ]'}</Text>
+                {data.certifications.map((cert) => (
+                  <View key={cert.id} style={styles.certItem}>
+                    <Text style={styles.certName}>{cert.name}</Text>
+                    <Text style={styles.certDetails}>
+                      {cert.issuer} {'//'} {cert.date}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* References */}
+            {data.showReferences && data.references.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.badgeTitle}>{'[ REFERENCES ]'}</Text>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={styles.refItem}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refDetails}>
+                      {ref.title} at {ref.company} {'//'} {ref.contact}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Custom Sections */}
+            {data.customSections &&
+              data.customSections.length > 0 &&
+              data.customSections.map(
+                (section) =>
+                  section.items.length > 0 && (
+                    <View key={section.id} style={styles.customSection}>
+                      <Text style={styles.customTitle}>{section.title}</Text>
+                      {section.items.map((item) => (
+                        <View key={item.id} style={{ marginBottom: 6 }}>
+                          <View style={styles.customItemHeader}>
+                            <View>
+                              <Text style={styles.customItemTitle}>{item.title}</Text>
+                              {item.subtitle && (
+                                <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>
+                              )}
+                            </View>
+                            {item.date && (
+                              <Text style={styles.customItemDate}>{item.date}</Text>
+                            )}
+                          </View>
+                          {item.description && (
+                            <Text style={styles.customItemDesc}>{item.description}</Text>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )
+              )}
+          </View>
+
+          {/* Right Column */}
+          <View style={styles.column}>
+            {/* Skills */}
+            {data.skills.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.badgeTitle}>{'[ SKILLS ]'}</Text>
+                <View style={styles.skillsContainer}>
+                  {data.skills.map((s) => (
+                    <Text key={s.id} style={styles.skillBadge}>
+                      {s.name}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
+      </Page>
+    </Document>
+  );
+}
+
+===== FILE: components/templates/TypographyFirst.tsx (11019 bytes) =====
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
+import { ResumeData } from '@/store/useResumeStore';
+
+interface TemplateProps {
+  data: ResumeData;
+}
+
+const styles = StyleSheet.create({
+  page: {
+    padding: 40,
+    fontFamily: 'Times-Roman',
+    backgroundColor: '#FFFFFF',
+    color: '#000000',
+    fontSize: 10,
+    lineHeight: 1.4,
+  },
+  header: {
+    marginBottom: 28,
+    alignItems: 'center',
+  },
+  name: {
+    fontSize: 32,
+    fontFamily: 'Times-Italic',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  jobTitle: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  contactRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  contactText: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#4B5563',
+  },
+  summaryContainer: {
+    marginBottom: 28,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#000000',
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+  },
+  summaryText: {
+    fontSize: 11,
+    textAlign: 'center',
+    fontFamily: 'Times-Roman',
+    lineHeight: 1.5,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Times-Italic',
+    marginBottom: 16,
+  },
+  grid2Col: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  colLeft: {
+    width: '28%',
+    paddingRight: 12,
+  },
+  colRight: {
+    width: '72%',
+  },
+  companyName: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  dateText: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginTop: 4,
+  },
+  roleTitle: {
+    fontSize: 12,
+    fontFamily: 'Times-Bold',
+    marginBottom: 6,
+  },
+  bulletList: {
+    gap: 4,
+  },
+  bulletItem: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: '#1F2937',
+    lineHeight: 1.4,
+  },
+  projectName: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  projectLink: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  projectDesc: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: '#1F2937',
+    lineHeight: 1.4,
+  },
+  detailsContainer: {
+    flexDirection: 'row',
+    marginTop: 'auto',
+  },
+  detailsTitleCol: {
+    width: '28%',
+    paddingRight: 12,
+  },
+  detailsSubGrid: {
+    flexDirection: 'row',
+    width: '72%',
+    gap: 20,
+  },
+  detailsSubCol: {
+    flex: 1,
+  },
+  subSectionTitle: {
+    fontSize: 9,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  subColBlock: {
+    marginBottom: 14,
+  },
+  eduItem: {
+    marginBottom: 10,
+  },
+  eduDegree: {
+    fontSize: 10,
+    fontFamily: 'Times-Bold',
+  },
+  eduSchool: {
+    fontSize: 9,
+    fontFamily: 'Times-Italic',
+    marginTop: 2,
+  },
+  eduYear: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  certItem: {
+    marginBottom: 8,
+  },
+  certName: {
+    fontSize: 9,
+    fontFamily: 'Times-Bold',
+  },
+  certInfo: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  refItem: {
+    marginBottom: 8,
+  },
+  refName: {
+    fontSize: 9,
+    fontFamily: 'Times-Bold',
+  },
+  refInfo: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  customSectionTitle: {
+    fontSize: 10,
+    fontFamily: 'Times-Bold',
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 6,
+    paddingBottom: 2,
+  },
+  customItem: {
+    marginBottom: 6,
+  },
+  customItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  customItemTitle: {
+    fontSize: 9,
+    fontFamily: 'Times-Bold',
+  },
+  customItemSubtitle: {
+    fontSize: 9,
+    fontFamily: 'Times-Italic',
+  },
+  customItemDate: {
+    fontSize: 9,
+    fontFamily: 'Times-Bold',
+  },
+  customItemDesc: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#374151',
+    marginTop: 2,
+  },
+  skillsText: {
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    color: '#1F2937',
+    lineHeight: 1.4,
+  },
+});
+
+export default function TypographyFirst({ data }: TemplateProps) {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+          <View style={styles.contactRow}>
+            {data.personalInfo.email && <Text style={styles.contactText}>{data.personalInfo.email}</Text>}
+            {data.personalInfo.phone && <Text style={styles.contactText}>{data.personalInfo.phone}</Text>}
+            {data.personalInfo.location && <Text style={styles.contactText}>{data.personalInfo.location}</Text>}
+            {data.personalInfo.website && <Text style={styles.contactText}>{data.personalInfo.website}</Text>}
+          </View>
+        </View>
+
+        {data.summary && (
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        )}
+
+        {data.experience.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Experience.</Text>
+            {data.experience.map(exp => (
+              <View key={exp.id} style={styles.grid2Col}>
+                <View style={styles.colLeft}>
+                  <Text style={styles.companyName}>{exp.company}</Text>
+                  <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
+                </View>
+                <View style={styles.colRight}>
+                  <Text style={styles.roleTitle}>{exp.role}</Text>
+                  <View style={styles.bulletList}>
+                    {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                      <Text key={i} style={styles.bulletItem}>
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {data.showProjects && data.projects.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Projects.</Text>
+            {data.projects.map(proj => (
+              <View key={proj.id} style={styles.grid2Col}>
+                <View style={styles.colLeft}>
+                  <Text style={styles.projectName}>{proj.name}</Text>
+                  {proj.link && <Text style={styles.projectLink}>{proj.link}</Text>}
+                </View>
+                <View style={styles.colRight}>
+                  <Text style={styles.projectDesc}>{proj.description}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailsTitleCol}>
+            <Text style={styles.sectionTitle}>Details.</Text>
+          </View>
+          <View style={styles.detailsSubGrid}>
+            <View style={styles.detailsSubCol}>
+              {data.education.length > 0 && (
+                <View style={styles.subColBlock}>
+                  <Text style={styles.subSectionTitle}>Education</Text>
+                  {data.education.map(edu => (
+                    <View key={edu.id} style={styles.eduItem}>
+                      <Text style={styles.eduDegree}>{edu.degree}</Text>
+                      <Text style={styles.eduSchool}>{edu.school}</Text>
+                      <Text style={styles.eduYear}>{edu.graduationYear}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <View style={styles.detailsSubCol}>
+              {data.showCertifications && data.certifications.length > 0 && (
+                <View style={styles.subColBlock}>
+                  <Text style={styles.subSectionTitle}>Certifications</Text>
+                  {data.certifications.map(cert => (
+                    <View key={cert.id} style={styles.certItem}>
+                      <Text style={styles.certName}>{cert.name}</Text>
+                      <Text style={styles.certInfo}>{cert.issuer} ({cert.date})</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {data.showReferences && data.references.length > 0 && (
+                <View style={styles.subColBlock}>
+                  <Text style={styles.subSectionTitle}>References</Text>
+                  {data.references.map(ref => (
+                    <View key={ref.id} style={styles.refItem}>
+                      <Text style={styles.refName}>{ref.name}</Text>
+                      <Text style={styles.refInfo}>{ref.title} at {ref.company} ({ref.contact})</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
+                section.items.length > 0 && (
+                  <View key={section.id} style={styles.subColBlock}>
+                    <Text style={styles.customSectionTitle}>{section.title}</Text>
+                    {section.items.map(item => (
+                      <View key={item.id} style={styles.customItem}>
+                        <View style={styles.customItemHeader}>
+                          <View>
+                            <Text style={styles.customItemTitle}>{item.title}</Text>
+                            {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
+                          </View>
+                          {item.date && <Text style={styles.customItemDate}>{item.date}</Text>}
+                        </View>
+                        {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
+                      </View>
+                    ))}
+                  </View>
+                )
+              ))}
+
+              {data.skills.length > 0 && (
+                <View style={styles.subColBlock}>
+                  <Text style={styles.subSectionTitle}>Skills</Text>
+                  <Text style={styles.skillsText}>
+                    {data.skills.map(s => s.name).join(' • ')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+}

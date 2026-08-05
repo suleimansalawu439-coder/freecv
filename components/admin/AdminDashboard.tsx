@@ -43,7 +43,7 @@ function RailContent({ tab, setTab, onNavigate }: { tab: TabId; setTab: (t: TabI
     <div className="flex h-full flex-col">
       {/* brand */}
       <div className="flex items-center gap-2 border-b-[3px] px-5 py-5" style={{ borderColor: t.border }}>
-        <span className="grid h-8 w-8 place-items-center fd text-base font-bold" style={{ background: t.verm, color: t.onVerm }}>C</span>
+        <img src="/logo-light-no-background.png" alt="Cvyon" className="h-8 w-auto object-contain" />
         <div className="leading-none"><div className="fd text-lg tracking-tight" style={{ color: t.text }}>CVYON</div>
           <div className="fm text-[9px] font-bold uppercase tracking-[0.25em]" style={{ color: t.muted }}>admin console</div></div>
       </div>
@@ -126,7 +126,6 @@ function Shell(props: Props) {
             <h1 className="fd truncate text-xl tracking-tight sm:text-2xl" style={{ color: t.text }}>{active.label}</h1>
           </div>
           <div className="flex items-center gap-3">
-            {email && <span className="hidden truncate fm text-[11px] sm:inline" style={{ color: t.muted }}>{email}</span>}
             <button onClick={() => setDrawer(true)} aria-label="Open menu" className="grid h-9 w-9 place-items-center border-2 lg:hidden" style={{ borderColor: t.border, background: t.inset, color: t.text }}><Menu size={16} /></button>
           </div>
         </div>

@@ -18,10 +18,29 @@ export function ConsentManager() {
     }
   }, []);
 
+  useEffect(() => {
+    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+      const lastSynced = sessionStorage.getItem(`cvyon-synced-${data.personalInfo.email}`);
+      if (!lastSynced) {
+        fetch('/api/crm/optin', {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        })
+          .then((r) => {
+            if (r.ok) sessionStorage.setItem(`cvyon-synced-${data.personalInfo.email}`, 'true');
+          })
+          .catch((e) => console.warn('Consent deferred sync error', e));
+      }
+    }
+  }, [data.personalInfo.email]);
+
   const syncConsent = (updatedConsents: any) => {
     if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
       fetch('/api/crm/optin', {
         method: 'POST',
+        keepalive: true,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, consents: updatedConsents }),
       }).catch((e) => console.warn('Consent sync error', e));

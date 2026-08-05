@@ -410,7 +410,7 @@ export default function FreeCVApp() {
     try {
       if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
         try {
-          fetch('/api/crm/optin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+          fetch('/api/crm/optin', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
             .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
             .catch(err => console.error('[CRM opt-in] Network error:', err));
         } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
@@ -452,7 +452,7 @@ export default function FreeCVApp() {
     trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('pdf'));
     if (data.personalInfo.email) {
       try {
-        fetch('/api/crm/optin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+        fetch('/api/crm/optin', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
           .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
           .catch(err => console.error('[CRM opt-in] Network error:', err));
       } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
@@ -474,7 +474,9 @@ export default function FreeCVApp() {
 
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
-              <h1 className="text-2xl font-black tracking-tighter uppercase fd">Cvyon</h1>
+              <div className="flex items-center gap-2">
+                <img src="/logo-dark-no-background.png" alt="Cvyon" className="h-8 w-auto object-contain" />
+              </div>
               <p className="fm text-[10px] font-bold uppercase tracking-[0.2em] mt-1 text-[#141312]/50">Premium & Forever Free</p>
             </div>
             <div className="flex items-center gap-2">

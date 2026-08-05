@@ -5,6 +5,14 @@ export const metadata: Metadata = {
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
   description: "Build a premium, ATS-friendly resume directly in your browser. Zero hidden fees, no sign up required, instant PDF download. 100% privacy with local storage.",
   keywords: ["Free Resume Builder", "ATS Friendly Resume Builder", "No Sign Up Resume Maker", "Free PDF Resume Creator", "No Hidden Fees Resume Builder"],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
     description: "Create a beautiful, ATS-friendly resume without hidden fees. Instant PDF download, no sign up required.",
