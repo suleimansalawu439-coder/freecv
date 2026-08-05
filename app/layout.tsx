@@ -33,6 +33,7 @@ import { ConsentManager } from "@/components/ConsentManager";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from 'react-hot-toast';
 import { AffiliateTracker } from "@/components/AffiliateTracker";
+import { JsonLd } from "@/components/JsonLd";
 import { Suspense } from "react";
 
 export default function RootLayout({
@@ -45,7 +46,11 @@ export default function RootLayout({
       lang="en"
       className="h-full antialiased font-sans"
     >
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="min-h-full flex flex-col">
+        <JsonLd />
         <AuthProvider>
           {children}
           <ConsentManager />

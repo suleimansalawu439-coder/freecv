@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
@@ -43,7 +44,7 @@ function RailContent({ tab, setTab, onNavigate }: { tab: TabId; setTab: (t: TabI
     <div className="flex h-full flex-col">
       {/* brand */}
       <div className="flex items-center gap-2 border-b-[3px] px-5 py-5" style={{ borderColor: t.border }}>
-        <img src="/logo-light-no-background.png" alt="Cvyon" className="h-8 w-auto object-contain" />
+        <Image src="/logo-light-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
         <div className="leading-none"><div className="fd text-lg tracking-tight" style={{ color: t.text }}>CVYON</div>
           <div className="fm text-[9px] font-bold uppercase tracking-[0.25em]" style={{ color: t.muted }}>admin console</div></div>
       </div>

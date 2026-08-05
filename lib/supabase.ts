@@ -62,29 +62,44 @@ const mockClient = (table: string) => {
   };
 };
 
+// Global singleton references to prevent client connection churn in serverless environments
+const globalForSupabase = globalThis as unknown as {
+  supabaseClient?: ReturnType<typeof createClient>;
+  supabaseAdminClient?: ReturnType<typeof createClient>;
+};
+
 // Client for public inserts
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : { 
-      from: mockClient,
-      auth: {
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-        getUser: async () => ({ data: { user: null }, error: null }),
-        signInWithOAuth: async () => ({ data: null, error: null }),
-        signOut: async () => ({ error: null })
-      }
-    } as unknown as ReturnType<typeof createClient>;
+export const supabase = globalForSupabase.supabaseClient || (
+  supabaseUrl && supabaseAnonKey
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : { 
+        from: mockClient,
+        auth: {
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+          getUser: async () => ({ data: { user: null }, error: null }),
+          signInWithOAuth: async () => ({ data: null, error: null }),
+          signOut: async () => ({ error: null })
+        }
+      } as unknown as ReturnType<typeof createClient>
+);
 
 // Server-side admin client to bypass RLS
 const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
-export const supabaseAdmin = isRealAdmin
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as ReturnType<typeof createClient>;
+export const supabaseAdmin = globalForSupabase.supabaseAdminClient || (
+  isRealAdmin
+    ? createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as ReturnType<typeof createClient>
+);
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForSupabase.supabaseClient = supabase;
+  globalForSupabase.supabaseAdminClient = supabaseAdmin;
+}
 
 /** True when supabaseAdmin is connected to a real database, false when using mock */
 export const isSupabaseConfigured = isRealAdmin;

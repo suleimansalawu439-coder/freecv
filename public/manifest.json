@@ -1,0 +1,23 @@
+{
+  "name": "Cvyon — Free ATS Resume Builder",
+  "short_name": "Cvyon",
+  "description": "Build ATS-friendly resumes and CVs with instant PDF downloads forever free.",
+  "start_url": "/build",
+  "display": "standalone",
+  "background_color": "#E8E7E1",
+  "theme_color": "#141312",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

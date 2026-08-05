@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
@@ -22,13 +23,13 @@ import { supabase } from '@/lib/supabase';
 import { templates, TemplateKey } from '@/components/templates';
 import { templates as htmlTemplates } from '@/components/html_templates';
 import NewsletterCapture from '@/components/NewsletterCapture';
-import { ImportResume } from '@/components/builder/ImportResume';
-import { CoverLetterTab } from '@/components/builder/CoverLetterTab';
-import { AuthModal } from '@/components/builder/AuthModal';
-
 import dynamic from 'next/dynamic';
-import { JobsModal } from '@/components/builder/JobsModal';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+const ImportResume = dynamic(() => import('@/components/builder/ImportResume').then(m => m.ImportResume), { ssr: false });
+const CoverLetterTab = dynamic(() => import('@/components/builder/CoverLetterTab').then(m => m.CoverLetterTab), { ssr: false });
+const AuthModal = dynamic(() => import('@/components/builder/AuthModal').then(m => m.AuthModal), { ssr: false });
+const JobsModal = dynamic(() => import('@/components/builder/JobsModal').then(m => m.JobsModal), { ssr: false });
 const PDFPreview = dynamic(() => import('@/components/builder/PDFPreview'), { ssr: false });
 const PDFDownloadButton = dynamic(() => import('@/components/builder/PDFDownloadButton'), { ssr: false });
 
@@ -476,7 +477,7 @@ export default function FreeCVApp() {
           <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
             <div>
               <div className="flex items-center gap-2">
-                <img src="/logo-dark-no-background.png" alt="Cvyon" className="h-8 w-auto object-contain" />
+                <Image src="/logo-dark-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
               </div>
               <p className="fm text-[10px] font-bold uppercase tracking-[0.2em] mt-1 text-[#141312]/50">Premium & Forever Free</p>
             </div>
