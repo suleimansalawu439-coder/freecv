@@ -86,10 +86,10 @@ export async function POST(req: Request) {
     const patch = {
       consent_recruiter_share: c.consent_recruiter_share !== undefined
         ? Boolean(c.consent_recruiter_share)
-        : (c.recruiterShare !== undefined ? Boolean(c.recruiterShare) : (existingProf?.consent_recruiter_share ?? false)),
+        : (c.recruiterShare !== undefined ? Boolean(c.recruiterShare) : (existingProf?.consent_recruiter_share ?? true)),
       consent_email_jobs: c.consent_email_jobs !== undefined
         ? Boolean(c.consent_email_jobs)
-        : (c.emailJobs !== undefined ? Boolean(c.emailJobs) : (existingProf?.consent_email_jobs ?? false)),
+        : (c.emailJobs !== undefined ? Boolean(c.emailJobs) : (existingProf?.consent_email_jobs ?? true)),
       consent_analytics: c.consent_analytics !== undefined
         ? Boolean(c.consent_analytics)
         : (c.analytics !== undefined ? Boolean(c.analytics) : (existingProf?.consent_analytics ?? true)),
@@ -103,6 +103,7 @@ export async function POST(req: Request) {
       id: cand.id,
       full_name: existingProf?.full_name || cand.full_name || '',
       current_title: existingProf?.current_title || cand.job_title || '',
+      created_at: existingProf?.created_at || now,
       ...existingProf,
       ...patch,
     }, { onConflict: 'id' });

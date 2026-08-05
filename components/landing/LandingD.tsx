@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Check, X, Plus, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
-import { Anton, Courier_Prime, Sora } from "next/font/google";
+import { Anton, Courier_Prime, Sora } from "@/lib/fonts";
 import type { ResumeData } from "@/store/useResumeStore";
 
 const scream = Anton({ subsets: ["latin"], weight: ["400"], display: "swap" });

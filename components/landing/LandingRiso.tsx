@@ -5,7 +5,7 @@ import { ArrowRight, ArrowUpRight, Sparkles, Check, Star, MoveRight } from "luci
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
 import { templates as htmlTemplates } from "@/components/html_templates";
-import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "next/font/google";
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "@/lib/fonts";
 
 const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
 const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });

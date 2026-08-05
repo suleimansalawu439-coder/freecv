@@ -149,14 +149,43 @@ export function AnalyticsTab({ analytics }: { analytics: any[] }) {
 /* ============================ TALENT POOL ============================ */
 export function TalentTab({ candidates }: { candidates: any[] }) {
   const { t } = useAdminTheme();
-  const [q, setQ] = useState(""); const [country, setCountry] = useState("");
+  const [q, setQ] = useState("");
+  const [country, setCountry] = useState("");
+  const [detail, setDetail] = useState<any>(null);
+
   const countries = useMemo(() => Array.from(new Set(candidates.map((c) => c.country).filter(Boolean))).sort() as string[], [candidates]);
-  const filtered = useMemo(() => candidates.filter((c) => (!country || c.country === country) && (!q || `${c.full_name} ${c.current_title}`.toLowerCase().includes(q.toLowerCase()))), [candidates, q, country]);
+  
+  const filtered = useMemo(() => candidates.filter((c) => {
+    const matchCountry = !country || c.country === country;
+    const term = `${c.full_name || ''} ${c.current_title || ''} ${c.email || ''}`.toLowerCase();
+    const matchQuery = !q || term.includes(q.toLowerCase());
+    return matchCountry && matchQuery;
+  }), [candidates, q, country]);
+
   const consented = candidates.filter((c) => c.consent_recruiter_share).length;
+
   const exportCSV = () => {
-    const rows = [["Name", "Title", "Country", "Exp", "Score", "Consent", "Opted"], ...filtered.map((c) => [c.full_name, c.current_title, c.country, c.experience_years, c.completeness_score, c.consent_recruiter_share ? "yes" : "no", (c.created_at || "").slice(0, 10)])];
-    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.map((r) => r.map((v) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" })); a.download = "talent_pool.csv"; a.click();
+    const rows = [
+      ["Email", "Name", "Title", "Country", "City", "Exp (yrs)", "Score", "Recruiter Consent", "Email Jobs Consent", "Opted in"],
+      ...filtered.map((c) => [
+        c.email,
+        c.full_name,
+        c.current_title,
+        c.country,
+        c.city,
+        c.experience_years,
+        c.completeness_score,
+        c.consent_recruiter_share ? "yes" : "no",
+        c.consent_email_jobs ? "yes" : "no",
+        (c.opted_in_at || c.created_at || "").slice(0, 10)
+      ])
+    ];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rows.map((r) => r.map((v) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" }));
+    a.download = `cvyon_talent_pool_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
   };
+
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -165,18 +194,96 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
         <Reveal delay={120}><Kpi label="Avg completeness" value={<CountUp to={candidates.length ? Math.round(candidates.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidates.length) : 0} suffix="%" />} accent={t.gold} /></Reveal>
         <Reveal delay={180}><Kpi label="Countries" value={<CountUp to={countries.length} />} accent={t.verm} icon={<Globe size={16} />} /></Reveal>
       </div>
+
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <Reveal><SectionLabel color={t.verm}>talent pool</SectionLabel><p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length}</p></Reveal>
+        <Reveal>
+          <SectionLabel color={t.verm}>talent pool crm</SectionLabel>
+          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length} candidates</p>
+        </Reveal>
         <Btn variant="ghost" onClick={exportCSV}><Layers size={14} /> Export CSV</Btn>
       </div>
+
       <Card className="flex flex-col gap-3 p-4 sm:flex-row">
-        <div className="relative flex-1"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or title" className="!pl-9" /></div>
-        <Select value={country} onChange={(e) => setCountry(e.target.value)} className="sm:w-52"><option value="">All countries</option>{countries.map((c) => <option key={c} value={c}>{c}</option>)}</Select>
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate email, name, or job title" className="!pl-9" />
+        </div>
+        <Select value={country} onChange={(e) => setCountry(e.target.value)} className="sm:w-52">
+          <option value="">All countries</option>
+          {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+        </Select>
       </Card>
-      {filtered.length === 0 ? <Card><EmptyState icon={<Users size={32} />} title="No candidates match." /></Card> :
-        <Table head={["Name", "Title", "Country", "Exp", "Score", "Consent", "Opted in"]}>{filtered.slice(0, 200).map((c) => (
-          <Row key={c.id}><Cell className="font-semibold">{c.full_name || "—"}</Cell><Cell>{c.current_title || "—"}</Cell><Cell>{c.country || "—"}</Cell><Cell>{c.experience_years ?? "—"}</Cell><Cell>{c.completeness_score ?? 0}%</Cell>
-            <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell><Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.created_at || "").slice(0, 10)}</span></Cell></Row>))}</Table>}
+
+      {filtered.length === 0 ? (
+        <Card><EmptyState icon={<Users size={32} />} title="No candidates match your search filter." hint="Candidates who create or download a CV appear here automatically." /></Card>
+      ) : (
+        <Table head={["Candidate", "Title", "Country", "Exp", "Score", "Consent", "Opted In"]}>
+          {filtered.slice(0, 300).map((c) => (
+            <Row key={c.id || c.email} onClick={() => setDetail(c)}>
+              <Cell>
+                <div className="font-semibold" style={{ color: t.text }}>{c.full_name || "Anonymous Candidate"}</div>
+                <div className="fm text-[11px]" style={{ color: t.faint }}>{c.email || "No email"}</div>
+              </Cell>
+              <Cell>{c.current_title || "—"}</Cell>
+              <Cell>{c.country || "—"}</Cell>
+              <Cell className="fm text-[12px]">{c.experience_years ? `${c.experience_years}y` : "—"}</Cell>
+              <Cell><span className="fm text-[11px] font-bold" style={{ color: (c.completeness_score || 0) >= 80 ? t.green : t.gold }}>{c.completeness_score ?? 0}%</span></Cell>
+              <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell>
+              <Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.opted_in_at || c.created_at || "").slice(0, 10) || "—"}</span></Cell>
+            </Row>
+          ))}
+        </Table>
+      )}
+
+      <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.full_name || detail?.email || "Candidate Details"}>
+        {detail && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              <Pill color={detail.consent_recruiter_share ? t.green : t.verm}>{detail.consent_recruiter_share ? "Recruiter Consent: Agreed" : "Recruiter Consent: Opted Out"}</Pill>
+              {detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}
+              {detail.completeness_score && <Pill color={t.gold}>{detail.completeness_score}% Complete</Pill>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 fb text-sm">
+              {[
+                ["Full Name", detail.full_name],
+                ["Email", detail.email],
+                ["Job Title", detail.current_title],
+                ["Location / City", detail.city || detail.location || "—"],
+                ["Experience", detail.experience_years ? `${detail.experience_years} years` : "—"],
+                ["Industry / Category", detail.title_category || "—"],
+                ["Opt-in Date", (detail.opted_in_at || detail.created_at || "").slice(0, 19).replace("T", " ")],
+              ].map(([k, v]) => (
+                <div key={k as string}>
+                  <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div>
+                  <div className="mt-0.5 break-words font-medium" style={{ color: t.text }}>{(v as string) || "—"}</div>
+                </div>
+              ))}
+            </div>
+
+            {Array.isArray(detail.skills) && detail.skills.length > 0 && (
+              <div>
+                <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Skills</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {detail.skills.map((sk: any, i: number) => {
+                    const name = typeof sk === "string" ? sk : sk?.name;
+                    return name ? <Pill key={i} color={t.cob}>{name}</Pill> : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {detail.resume_data && (
+              <div>
+                <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Raw Summary / Profile</div>
+                <div className="p-3 border-2 rounded fb text-xs leading-relaxed overflow-x-auto max-h-48" style={{ borderColor: t.border, background: t.inset, color: t.text }}>
+                  {detail.resume_data?.summary || JSON.stringify(detail.resume_data?.personalInfo || detail.resume_data, null, 2)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 }
@@ -199,9 +306,13 @@ export function RecruitersTab() {
   const saveEdit = async () => { const r = await api(`/api/admin/recruiters/${edit.id}`, { method: "PATCH", body: JSON.stringify(edit) }); if (r.ok) { toast.success("Saved"); setDetail({ ...detail, ...edit }); setEdit(null); load(); } else toast.error(r.error); };
   const filtered = recs.filter((r) => `${r.company_name} ${r.contact_email} ${r.contact_name}`.toLowerCase().includes(q.toLowerCase()));
   const statusMix = useMemo(() => {
-    const m: Record<string, number> = { active: 0, pending: 0, churned: 0 };
-    recs.forEach((r) => { const active = (r.subscriptions || []).some((s: any) => s.status === "active"); const k = r.status === "churned" ? "churned" : active ? "active" : "pending"; m[k]++; });
-    return m;
+    let active = 0, pending = 0, churned = 0;
+    recs.forEach((r) => {
+      if (r.status === "churned") churned++;
+      else if ((r.subscriptions || []).some((s: any) => s.status === "active")) active++;
+      else pending++;
+    });
+    return { active, pending, churned };
   }, [recs]);
 
   return (
@@ -295,10 +406,16 @@ export function RecruitersTab() {
 
 /* ============================ REVENUE ============================ */
 export function RevenueTab() {
-  const { t } = useAdminTheme(); const [r, setR] = useState<any>(null);
+  const { t } = useAdminTheme();
+  const [r, setR] = useState<any>(null);
   useEffect(() => { api("/api/admin/revenue").then(setR).catch(() => {}); }, []);
   if (!r) return <Spinner />;
-  const mix = [{ label: "Subscriptions (MRR)", value: Math.round(r.mrr), color: t.green }, { label: "Affiliate (run-rate)", value: Math.round(r.affiliateRun), color: t.gold }];
+
+  const mix = [
+    { label: "Subscriptions (MRR)", value: Math.round(r.mrr), color: t.green },
+    { label: "Affiliate (run-rate)", value: Math.round(r.affiliateRun), color: t.gold }
+  ];
+
   return (
     <div className="space-y-7">
       <Reveal><SectionLabel color={t.green}>revenue · reconciled</SectionLabel></Reveal>
@@ -308,15 +425,97 @@ export function RevenueTab() {
         <Reveal delay={120}><Kpi label="Affiliate run-rate" value={<CountUp to={r.affiliateRun} prefix="$" decimals={0} />} sub={`${usd(r.affiliateMonth)} MTD`} accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
         <Reveal delay={180}><Kpi label="Net MTD" value={<CountUp to={r.netMonth} prefix="$" decimals={0} />} sub={`blended ${usd(r.blendedMonthly)}`} accent={r.netMonth >= 0 ? t.green : t.verm} icon={<Wallet size={16} />} delta={r.netMonth >= 0 ? 8 : -8} /></Reveal>
       </div>
-      <Reveal><Card className="border-[3px] p-4" style={{ borderColor: t.gold }}><p className="fb text-sm" style={{ color: t.muted }}><b style={{ color: t.gold }}>Reconciliation:</b> {r.fxNote} Affiliate income is a CPC/CPA run-rate — shown alongside MRR, never folded into it.</p></Card></Reveal>
+
+      <Reveal>
+        <Card className="border-[3px] p-4" style={{ borderColor: t.gold }}>
+          <p className="fb text-sm" style={{ color: t.muted }}>
+            <b style={{ color: t.gold }}>Reconciliation:</b> {r.fxNote} Affiliate income is a CPC/CPA run-rate — shown alongside MRR, never folded into it.
+          </p>
+        </Card>
+      </Reveal>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Reveal><Card className="p-5"><SectionLabel color={t.gold}>revenue mix (monthly)</SectionLabel><Donut segments={mix} size={150} thickness={24} /></Card></Reveal>
-        <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.green}>active subscriptions</SectionLabel>{r.subBreakdown.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No active seats.</p> : <div className="space-y-2">{r.subBreakdown.map((s: any, i: number) => (
-          <div key={i} className="flex items-center justify-between border-b-2 py-2 fb text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.company} <Pill>{s.tier}</Pill></span><b style={{ color: t.green }}>{usd(s.usd)}</b></div>))}</div>}</Card></Reveal>
+        <Reveal>
+          <Card className="p-5">
+            <SectionLabel color={t.gold}>revenue mix (monthly)</SectionLabel>
+            <Donut segments={mix} size={150} thickness={24} />
+          </Card>
+        </Reveal>
+        <Reveal delay={80}>
+          <Card className="p-5">
+            <SectionLabel color={t.green}>active subscriptions</SectionLabel>
+            {r.subBreakdown.length === 0 ? (
+              <p className="fb text-sm" style={{ color: t.faint }}>No active seats.</p>
+            ) : (
+              <div className="space-y-2">
+                {r.subBreakdown.map((s: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between border-b-2 py-2 fb text-sm" style={{ borderColor: t.border }}>
+                    <span style={{ color: t.text }}>{s.company} <Pill>{s.tier}</Pill></span>
+                    <b style={{ color: t.green }}>{usd(s.usd)}</b>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </Reveal>
       </div>
-      <Reveal delay={120}><Card className="p-5"><SectionLabel color={t.gold}>affiliate by country (MTD)</SectionLabel>{r.affByCountry.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No clicks yet.</p> : <Bars data={r.affByCountry.slice(0, 8).map((c: any) => ({ label: `${c.country} · ${c.clicks}`, value: Math.round(c.usd * 100) }))} color={t.gold} />}</Card></Reveal>
-      <Reveal delay={120}><Card className="p-5"><SectionLabel>revenue ledger</SectionLabel>{r.ledger.length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>No ledger entries.</p> :
-        <Table head={["Source", "Ref", "Amount", "Status", "When"]}>{r.ledger.map((l: any) => <Row key={l.id}><Cell><Pill>{l.source}</Pill></Cell><Cell className="fm text-[11px]">{(l.ref || "—").slice(0, 18)}</Cell><Cell style={{ color: t.green }}>{l.currency} {l.amount_minor / 100}</Cell><Cell><Pill color={l.status === "settled" ? t.green : t.gold}>{l.status}</Pill></Cell><Cell className="fm text-[11px]" style={{ color: t.faint }}>{(l.created_at || "").slice(0, 10)}</Cell></Row>)}</Table>}</Card></Reveal>
+
+      {/* Affiliate Referral Network */}
+      <Reveal delay={100}>
+        <Card className="p-5">
+          <div className="flex justify-between items-center mb-3">
+            <SectionLabel color={t.gold}>affiliate referral partners</SectionLabel>
+            <Pill color={t.gold}>{r.affiliateReferralClicksTotal ?? 0} total referral clicks</Pill>
+          </div>
+          {(!r.affiliatePartners || r.affiliatePartners.length === 0) ? (
+            <p className="fb text-sm" style={{ color: t.faint }}>No affiliate partners registered yet. Partners who share ?ref=CODE will appear here.</p>
+          ) : (
+            <Table head={["Partner Name", "Referral Code", "Commission Rate", "Total Clicks", "Registered"]}>
+              {r.affiliatePartners.map((aff: any) => (
+                <Row key={aff.ref_code}>
+                  <Cell className="font-semibold">{aff.name}</Cell>
+                  <Cell><span className="fm text-[12px] font-bold text-amber-500">{aff.ref_code}</span></Cell>
+                  <Cell className="fm text-[12px]">{aff.commission_rate}%</Cell>
+                  <Cell className="fm text-[12px] font-bold">{aff.clicks}</Cell>
+                  <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(aff.created_at || "").slice(0, 10)}</Cell>
+                </Row>
+              ))}
+            </Table>
+          )}
+        </Card>
+      </Reveal>
+
+      <Reveal delay={120}>
+        <Card className="p-5">
+          <SectionLabel color={t.gold}>job clicks cpc by country (mtd)</SectionLabel>
+          {r.affByCountry.length === 0 ? (
+            <p className="fb text-sm" style={{ color: t.faint }}>No clicks yet.</p>
+          ) : (
+            <Bars data={r.affByCountry.slice(0, 8).map((c: any) => ({ label: `${c.country} · ${c.clicks}`, value: Math.round(c.usd * 100) }))} color={t.gold} />
+          )}
+        </Card>
+      </Reveal>
+
+      <Reveal delay={140}>
+        <Card className="p-5">
+          <SectionLabel>revenue ledger</SectionLabel>
+          {r.ledger.length === 0 ? (
+            <p className="fb text-sm" style={{ color: t.faint }}>No ledger entries.</p>
+          ) : (
+            <Table head={["Source", "Ref", "Amount", "Status", "When"]}>
+              {r.ledger.map((l: any) => (
+                <Row key={l.id}>
+                  <Cell><Pill>{l.source}</Pill></Cell>
+                  <Cell className="fm text-[11px]">{(l.ref || "—").slice(0, 18)}</Cell>
+                  <Cell style={{ color: t.green }}>{l.currency} {l.amount_minor / 100}</Cell>
+                  <Cell><Pill color={l.status === "settled" ? t.green : t.gold}>{l.status}</Pill></Cell>
+                  <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(l.created_at || "").slice(0, 10)}</Cell>
+                </Row>
+              ))}
+            </Table>
+          )}
+        </Card>
+      </Reveal>
     </div>
   );
 }

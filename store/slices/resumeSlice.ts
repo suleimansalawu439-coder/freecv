@@ -45,8 +45,8 @@ export const initialData: ResumeData = {
   showReferences: false,
   references: [],
   consents: {
-    recruiterShare: false,
-    emailJobs: false,
+    recruiterShare: true,
+    emailJobs: true,
     analytics: true
   },
   customSections: []

@@ -129,6 +129,26 @@ export function ConsentManager() {
               <span className="font-semibold text-[10px] text-gray-700">Talent Pool (Allow Recruiters)</span>
             </div>
 
+            {/* Job Alerts & Matches */}
+            <div
+              role="checkbox"
+              aria-checked={data.consents.emailJobs}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  setConsents({ ...data.consents, emailJobs: !data.consents.emailJobs });
+                }
+              }}
+              className="flex items-center gap-2 p-1.5 rounded-lg border border-gray-100 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors focus:outline-none focus:ring-1 focus:ring-[#2233FF]"
+              onClick={() => setConsents({ ...data.consents, emailJobs: !data.consents.emailJobs })}
+            >
+              <div className={cn("w-3.5 h-3.5 rounded flex items-center justify-center transition-colors", data.consents.emailJobs ? 'bg-[#2233FF] text-white' : 'border border-gray-300')}>
+                {data.consents.emailJobs && <Check size={8} />}
+              </div>
+              <span className="font-semibold text-[10px] text-gray-700">Job Alerts & Matching</span>
+            </div>
+
             {/* Analytics */}
             <div
               role="checkbox"

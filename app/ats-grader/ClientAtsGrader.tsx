@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { trackEvent } from "@/lib/analytics";
 import confetti from "canvas-confetti";
-import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "next/font/google";
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "@/lib/fonts";
 
 const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
 const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });

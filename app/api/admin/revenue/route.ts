@@ -11,9 +11,11 @@ const monthStart = () => new Date(new Date().getFullYear(), new Date().getMonth(
 export async function GET() {
   try { await requireAdmin(); } catch { return adminFail(); }
   const ms = monthStart();
-  const [subs, clicks, ledger, exp] = await Promise.all([
+  const [subs, clicks, affClicks, affiliates, ledger, exp] = await Promise.all([
     supabaseAdmin.from('subscriptions').select('*, recruiters(company_name, contact_email)'),
     supabaseAdmin.from('job_clicks').select('cpc_value, country, job_title, company').gte('created_at', ms),
+    supabaseAdmin.from('affiliate_clicks').select('ref_code, created_at'),
+    supabaseAdmin.from('affiliates').select('*').order('created_at', { ascending: false }),
     supabaseAdmin.from('revenue_ledger').select('*').order('created_at', { ascending: false }).limit(40),
     supabaseAdmin.from('expenditures').select('amount_minor, fx_to_usd').gte('spent_on', new Date().toISOString().slice(0, 10).replace(/-\d\d$/, '-01')),
   ]);
@@ -28,6 +30,22 @@ export async function GET() {
   const byCountry: Record<string, { clicks: number; usd: number }> = {};
   clicksAll.forEach((c: any) => { const k = c.country || 'UNKNOWN'; (byCountry[k] ||= { clicks: 0, usd: 0 }).clicks++; byCountry[k].usd += Number(c.cpc_value) || 0; });
 
+  const allAffClicks = affClicks.data || [];
+  const affClicksThisMonth = allAffClicks.filter((ac: any) => ac.created_at >= ms).length;
+  const affClicksByRef: Record<string, number> = {};
+  allAffClicks.forEach((ac: any) => {
+    const ref = ac.ref_code || 'direct';
+    affClicksByRef[ref] = (affClicksByRef[ref] || 0) + 1;
+  });
+
+  const partnersList = (affiliates.data || []).map((aff: any) => ({
+    name: aff.name,
+    ref_code: aff.ref_code,
+    commission_rate: aff.commission_rate,
+    clicks: affClicksByRef[aff.ref_code] || 0,
+    created_at: aff.created_at,
+  }));
+
   const expMonth = (exp.data || []).reduce((s: number, e: any) => s + (Number(e.amount_minor) || 0) * (Number(e.fx_to_usd) || 1) / 100, 0);
   const ledgerCash = (ledger.data || []).filter((l: any) => l.status === 'settled').reduce((s: number, l: any) => s + toUSD(l.amount_minor, l.currency, l.fx_to_usd), 0);
 
@@ -39,6 +57,9 @@ export async function GET() {
     ledgerCashAllTime: +ledgerCash.toFixed(2),
     subBreakdown: active.map((s: any) => ({ company: s.recruiters?.company_name || '—', tier: s.tier, usd: +toUSD(s.amount_minor || 0, s.currency, s.fx_to_usd).toFixed(2), currency: s.currency })),
     affByCountry: Object.entries(byCountry).map(([country, v]) => ({ country, ...v, usd: +v.usd.toFixed(2) })).sort((a, b) => b.usd - a.usd),
+    affiliateReferralClicksTotal: allAffClicks.length,
+    affiliateReferralClicksMonth: affClicksThisMonth,
+    affiliatePartners: partnersList,
     ledger: ledger.data || [],
     fxNote: 'FX rates are approximations; reconcile MRR/cash against Paystack + bank statements.',
   });

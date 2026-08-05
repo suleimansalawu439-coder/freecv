@@ -148,7 +148,7 @@ export default function FreeCVApp() {
     certifications: storeData.certifications || [],
     references: storeData.references || [],
     customSections: storeData.customSections || [],
-    consents: storeData.consents || { recruiterShare: false, emailJobs: false, analytics: true }
+    consents: storeData.consents || { recruiterShare: true, emailJobs: true, analytics: true }
   }), [storeData]);
 
   const [skillInput, setSkillInput] = useState('');

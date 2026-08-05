@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Sparkles, Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
-import { Fraunces, Figtree, Spline_Sans_Mono } from "next/font/google";
+import { Fraunces, Figtree, Spline_Sans_Mono } from "@/lib/fonts";
 
 const display = Fraunces({ subsets: ["latin"], weight: ["400", "500", "600", "900"], style: ["normal", "italic"], display: "swap" });
 const bodyF = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700"], display: "swap" });

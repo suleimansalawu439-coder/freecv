@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Sparkles, Check, Star, MoveRight, Crosshair, Cpu, ScanLine, Activity, Plus, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
-import { Chakra_Petch, Sora, JetBrains_Mono } from "next/font/google";
+import { Chakra_Petch, Sora, JetBrains_Mono } from "@/lib/fonts";
 import { FAQS } from "./LandingF_FAQS";
 
 const display = Chakra_Petch({ subsets: ["latin"], weight: ["500", "600", "700"], display: "swap" });

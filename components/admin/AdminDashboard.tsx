@@ -7,7 +7,7 @@ import {
   LayoutDashboard, BarChart3, Users, Building2, DollarSign, Target, Wallet,
   Headphones, FileText, Settings as Cog, LogOut, Menu, X,
 } from "lucide-react";
-import { Chakra_Petch, Sora, JetBrains_Mono } from "next/font/google";
+import { Chakra_Petch, Sora, JetBrains_Mono } from "@/lib/fonts";
 import { AdminThemeProvider, useAdminTheme, ThemeToggle } from "./admin/theme";
 import { AdminStyle } from "./admin/ui";
 import {
