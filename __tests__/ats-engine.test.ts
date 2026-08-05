@@ -43,7 +43,7 @@ test('calculateAtsScore awards high score for comprehensive resume', () => {
 
   const result = calculateAtsScore(resume as any);
   assert.ok(result.score >= 85, `Expected score >= 85, got ${result.score}`);
-  assert.equal(result.grade, 'A+' || 'A');
+  assert.ok(result.grade === 'A+' || result.grade === 'A', `Expected grade A+ or A, got ${result.grade}`);
   assert.equal(result.breakdown.contactInfo.score, 20);
   assert.equal(result.breakdown.education.score, 10);
   assert.equal(result.breakdown.skills.score, 20);
