@@ -475,7 +475,7 @@ export default function FreeCVApp() {
       <section className="w-full lg:w-[45%] border-r-[3px] border-[#141312] print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative bg-white">
         <div className="max-w-xl mx-auto pb-24 lg:pb-0">
 
-          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <header className="sticky top-0 z-30 -mx-6 -mt-8 px-6 py-4 lg:-mx-10 lg:-mt-12 lg:px-10 lg:py-4 bg-white/95 backdrop-blur-md border-b-2 border-[#141312] shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-8 transition-all">
             <div>
               <div className="flex items-center gap-2">
                 <Image src="/logo-dark-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
