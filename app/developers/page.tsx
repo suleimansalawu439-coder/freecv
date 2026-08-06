@@ -84,10 +84,10 @@ print(response.json())`;
             <Image
               src="/logo-light-no-background.png"
               alt="Cvyon"
-              width={120}
-              height={32}
+              width={200}
+              height={60}
               priority
-              className="h-7 w-auto object-contain"
+              className="h-9 sm:h-10 md:h-11 w-auto object-contain transition-all"
             />
             <span className="text-gray-800 text-sm font-bold bg-gray-100 px-2 py-0.5 rounded">API</span>
           </Link>

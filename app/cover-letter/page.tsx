@@ -65,10 +65,10 @@ export default function CoverLetterPage() {
             <Image
               src="/logo-light-no-background.png"
               alt="Cvyon"
-              width={130}
-              height={32}
+              width={240}
+              height={80}
               priority
-              className="h-8 w-auto object-contain"
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain transition-all"
             />
           </Link>
           <div className="flex gap-4">

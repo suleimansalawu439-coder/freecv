@@ -478,7 +478,7 @@ export default function FreeCVApp() {
           <header className="sticky top-0 z-30 -mx-6 -mt-8 px-6 py-4 lg:-mx-10 lg:-mt-12 lg:px-10 lg:py-4 bg-white/95 backdrop-blur-md border-b-2 border-[#141312] shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-8 transition-all">
             <div>
               <Link href="/" className="flex items-center gap-2">
-                <Image src="/logo-light-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
+                <Image src="/logo-light-no-background.png" alt="Cvyon" width={200} height={65} priority className="h-9 sm:h-10 md:h-11 w-auto object-contain transition-all" />
               </Link>
               <div className="flex items-center gap-2 mt-1">
                 <p className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">Premium & Forever Free</p>

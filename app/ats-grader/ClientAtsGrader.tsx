@@ -154,12 +154,12 @@ export default function ClientAtsGrader() {
             <Image
               src="/logo-light-no-background.png"
               alt="Cvyon"
-              width={120}
-              height={32}
+              width={240}
+              height={80}
               priority
-              className="h-8 w-auto object-contain"
+              className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain transition-all"
             />
-            <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#FF4326] sm:inline-block">ATS Grader</span>
+            <span className="fm hidden text-[11px] font-bold uppercase tracking-[0.2em] text-[#FF4326] sm:inline-block border-l-2 border-[#141312]/20 pl-2">ATS Grader</span>
           </Link>
           <div className="flex items-center gap-4 sm:gap-6">
             <Link href="/" className="fm text-[11px] font-bold uppercase tracking-[0.18em] transition-colors hover:text-[#FF4326]">

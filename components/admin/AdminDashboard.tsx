@@ -47,10 +47,10 @@ function RailContent({ tab, setTab, onNavigate }: { tab: TabId; setTab: (t: TabI
         <Image
           src={mode === "dark" ? "/logo-dark-no-background.png" : "/logo-light-no-background.png"}
           alt="Cvyon"
-          width={130}
-          height={32}
+          width={200}
+          height={60}
           priority
-          className="h-8 w-auto object-contain"
+          className="h-9 sm:h-10 md:h-11 w-auto object-contain transition-all"
         />
         <span
           className="fm text-[9px] font-bold uppercase tracking-[0.2em] px-2 py-0.5 border"

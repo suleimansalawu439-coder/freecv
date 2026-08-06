@@ -43,10 +43,10 @@ export default function AdminLogin() {
             <Image
               src="/logo-dark-no-background.png"
               alt="Cvyon"
-              width={140}
-              height={36}
+              width={220}
+              height={70}
               priority
-              className="h-8 w-auto object-contain"
+              className="h-10 sm:h-12 w-auto object-contain transition-all"
             />
             <div className="w-10 h-10 bg-white text-black flex items-center justify-center rounded-none shadow-[3px_3px_0px_0px_rgba(255,51,51,1)]">
               <Lock size={20} className="stroke-[3]" />

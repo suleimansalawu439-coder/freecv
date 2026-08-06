@@ -121,10 +121,10 @@ export default function LandingRiso() {
             <Image
               src="/logo-light-no-background.png"
               alt="Cvyon"
-              width={120}
-              height={32}
+              width={240}
+              height={80}
               priority
-              className="h-8 w-auto object-contain"
+              className="h-10 sm:h-12 md:h-14 lg:h-16 w-auto object-contain transition-all"
             />
           </Link>
           <nav className="hidden items-center gap-7 fm text-[11px] font-bold uppercase tracking-[0.18em] md:flex">
