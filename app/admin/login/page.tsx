@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Lock } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -38,13 +39,17 @@ export default function AdminLogin() {
           <div className="absolute top-0 left-0 w-full h-2 bg-[#ff3333]" />
           <div className="absolute top-0 right-0 w-16 h-16 border-b-2 border-l-2 border-[#333] transform translate-x-8 -translate-y-8 rotate-45" />
 
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-white text-black flex items-center justify-center rounded-none shadow-[4px_4px_0px_0px_rgba(255,51,51,1)]">
-              <Lock size={24} className="stroke-[3]" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">System</h1>
-              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mt-1">Admin Access Only</p>
+          <div className="flex items-center justify-between gap-4 mb-8">
+            <Image
+              src="/logo-dark-no-background.png"
+              alt="Cvyon"
+              width={140}
+              height={36}
+              priority
+              className="h-8 w-auto object-contain"
+            />
+            <div className="w-10 h-10 bg-white text-black flex items-center justify-center rounded-none shadow-[3px_3px_0px_0px_rgba(255,51,51,1)]">
+              <Lock size={20} className="stroke-[3]" />
             </div>
           </div>
 

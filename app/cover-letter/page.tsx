@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Sparkles, FileText, ArrowRight, Loader2, Copy, CheckCircle2, Navigation } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 import { clsx, type ClassValue } from 'clsx';
@@ -60,11 +61,15 @@ export default function CoverLetterPage() {
       {/* Brutalist Nav */}
       <nav className="border-b-[4px] border-[#141312] bg-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black tracking-tighter uppercase flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-[#2233FF] group-hover:bg-[#FF4326] transition-colors border-[3px] border-[#141312] rounded-br-xl rounded-tl-xl flex items-center justify-center shadow-[2px_2px_0_#141312]">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            CVYON
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo-light-no-background.png"
+              alt="Cvyon"
+              width={130}
+              height={32}
+              priority
+              className="h-8 w-auto object-contain"
+            />
           </Link>
           <div className="flex gap-4">
             <Link href="/build" className="hidden sm:flex bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] hover:bg-[#FF4326] hover:text-[#141312] px-6 py-2.5 rounded-none font-bold uppercase tracking-wider text-sm transition-transform active:scale-95 hs shadow-[4px_4px_0_#141312] items-center gap-2">

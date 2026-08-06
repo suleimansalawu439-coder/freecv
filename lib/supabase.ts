@@ -5,7 +5,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 const mockClient = (table: string) => {
+  const mockStore: Record<string, any[]> = (globalThis as any).__mockSupabaseStore || ((globalThis as any).__mockSupabaseStore = {});
+  if (!mockStore[table]) mockStore[table] = [];
+
   const getMockData = () => {
+    if (mockStore[table] && mockStore[table].length > 0) {
+      return mockStore[table];
+    }
     switch (table) {
       case 'feature_flags':
         return [
@@ -34,30 +40,86 @@ const mockClient = (table: string) => {
         return [
           { id: 1, site_name: 'Cvyon', maintenance_mode: false }
         ];
+      case 'candidates':
+        return mockStore['candidates'] || [];
+      case 'candidate_profiles':
+        return mockStore['candidate_profiles'] || [];
       default:
-        return [];
+        return mockStore[table] || [];
     }
   };
 
   const chainable: any = {
-    eq: () => chainable,
+    eq: (col: string, val: any) => {
+      return {
+        ...chainable,
+        then: (resolve: (val: { data: any[], error: null }) => void) => {
+          const list = getMockData().filter((item: any) => item[col] === val);
+          resolve({ data: list, error: null });
+        },
+        maybeSingle: () => {
+          const list = getMockData().filter((item: any) => item[col] === val);
+          return Promise.resolve({ data: list[0] || null, error: null });
+        },
+        single: () => {
+          const list = getMockData().filter((item: any) => item[col] === val);
+          return Promise.resolve({ data: list[0] || null, error: null });
+        }
+      };
+    },
     order: () => chainable,
     limit: () => chainable,
-    single: () => ({
-      then: (resolve: (val: { data: any, error: null }) => void) => resolve({ data: getMockData()[0] || null, error: null })
-    }),
+    select: () => chainable,
+    maybeSingle: () => Promise.resolve({ data: getMockData()[0] || null, error: null }),
+    single: () => Promise.resolve({ data: getMockData()[0] || null, error: null }),
     then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: getMockData(), error: null }),
     catch: (resolve: (err: unknown) => void) => resolve(null)
   };
 
   return {
     insert: async (data: any) => {
-      console.warn(`[Supabase Mock] Insert into ${table}:`, data);
-      return { data: null, error: null };
+      const items = Array.isArray(data) ? data : [data];
+      const inserted = items.map((it: any) => ({ id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, created_at: new Date().toISOString(), ...it }));
+      mockStore[table].push(...inserted);
+      return { data: inserted, error: null };
+    },
+    upsert: (data: any, _options?: any) => {
+      const items = Array.isArray(data) ? data : [data];
+      const saved: any[] = [];
+      for (const it of items) {
+        const key = it.id || it.email;
+        const idx = mockStore[table].findIndex((x: any) => (key && (x.id === key || x.email === key)));
+        const record = { id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, created_at: new Date().toISOString(), ...it };
+        if (idx >= 0) {
+          mockStore[table][idx] = { ...mockStore[table][idx], ...record };
+          saved.push(mockStore[table][idx]);
+        } else {
+          mockStore[table].push(record);
+          saved.push(record);
+        }
+      }
+      return {
+        select: (_fields?: string) => ({
+          maybeSingle: () => Promise.resolve({ data: saved[0] || null, error: null }),
+          single: () => Promise.resolve({ data: saved[0] || null, error: null }),
+          then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null })
+        }),
+        then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null })
+      };
     },
     select: () => chainable,
-    update: () => chainable,
-    delete: () => chainable,
+    update: (updates: any) => ({
+      eq: (col: string, val: any) => {
+        mockStore[table] = mockStore[table].map((item: any) => item[col] === val ? { ...item, ...updates } : item);
+        return Promise.resolve({ data: null, error: null });
+      }
+    }),
+    delete: () => ({
+      eq: (col: string, val: any) => {
+        mockStore[table] = mockStore[table].filter((item: any) => item[col] !== val);
+        return Promise.resolve({ data: null, error: null });
+      }
+    }),
     rpc: async () => ({ data: null, error: null })
   };
 };

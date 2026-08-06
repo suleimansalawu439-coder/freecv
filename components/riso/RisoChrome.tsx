@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -84,11 +85,15 @@ export function RisoNav() {
   return (
     <header className="sticky top-0 z-40 border-b-[3px] border-[#141312] bg-[#E8E7E1]/95">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 lg:px-8">
-        <Link href="/" className="flex items-baseline gap-2">
-          <span className="fd text-2xl leading-none tracking-tight">CVYON</span>
-          <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 sm:inline">
-            ® free forever
-          </span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo-light-no-background.png"
+            alt="Cvyon"
+            width={120}
+            height={32}
+            priority
+            className="h-8 w-auto object-contain"
+          />
         </Link>
 
         <nav className="hidden items-center gap-7 fm text-[11px] font-bold uppercase tracking-[0.18em] md:flex">
@@ -126,7 +131,14 @@ export function RisoNav() {
       {open && (
         <div className="fixed inset-0 z-[70] flex flex-col bg-[#E8E7E1] md:hidden">
           <div className="flex items-center justify-between border-b-[3px] border-[#141312] px-5 py-4">
-            <span className="fd text-2xl">CVYON</span>
+            <Image
+              src="/logo-light-no-background.png"
+              alt="Cvyon"
+              width={120}
+              height={32}
+              priority
+              className="h-8 w-auto object-contain"
+            />
             <button
               aria-label="Close menu"
               onClick={() => setOpen(false)}

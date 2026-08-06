@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useResumeStore } from "@/store/useResumeStore";
 import { UploadCloud, FileText, CheckCircle2, AlertCircle, Sparkles, Loader2, Target, Lightbulb, ChevronLeft } from "lucide-react";
@@ -149,8 +150,15 @@ export default function ClientAtsGrader() {
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b-[3px] border-[#141312] bg-[#E8E7E1]/95 backdrop-blur-0">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 lg:px-8">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="fd text-2xl uppercase leading-none tracking-tighter sm:text-3xl">Cvyon</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo-light-no-background.png"
+              alt="Cvyon"
+              width={120}
+              height={32}
+              priority
+              className="h-8 w-auto object-contain"
+            />
             <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#FF4326] sm:inline-block">ATS Grader</span>
           </Link>
           <div className="flex items-center gap-4 sm:gap-6">

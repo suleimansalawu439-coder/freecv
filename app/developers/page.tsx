@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Terminal, Copy, Check, ChevronRight, Server, Database, Shield } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -79,8 +80,16 @@ print(response.json())`;
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="font-black text-2xl tracking-tighter text-blue-600">
-            CVYON <span className="text-gray-800 text-lg font-bold">API</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo-light-no-background.png"
+              alt="Cvyon"
+              width={120}
+              height={32}
+              priority
+              className="h-7 w-auto object-contain"
+            />
+            <span className="text-gray-800 text-sm font-bold bg-gray-100 px-2 py-0.5 rounded">API</span>
           </Link>
           <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>

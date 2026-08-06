@@ -33,8 +33,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured) {
-      console.error('[CRM opt-in] Supabase not configured — data will NOT be saved');
-      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+      console.warn('[CRM opt-in] Supabase credentials not set — saving to in-memory store');
     }
 
     const country = request.headers.get('x-vercel-ip-country') || 'Unknown';

@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Sparkles, Check, Star, MoveRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { templates } from "@/components/templates";
@@ -116,9 +117,15 @@ export default function LandingRiso() {
       {/* NAV */}
       <header className="sticky top-0 z-40 border-b-[3px] border-[#141312] bg-[#E8E7E1]/95 backdrop-blur-0">
         <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 lg:px-8">
-          <Link href="/" className="flex items-baseline gap-2">
-            <span className="fd text-2xl leading-none tracking-tight">CVYON</span>
-            <span className="fm hidden text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 sm:inline">® free forever</span>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo-light-no-background.png"
+              alt="Cvyon"
+              width={120}
+              height={32}
+              priority
+              className="h-8 w-auto object-contain"
+            />
           </Link>
           <nav className="hidden items-center gap-7 fm text-[11px] font-bold uppercase tracking-[0.18em] md:flex">
             <a href="#grader" className="ul">Grader</a><a href="#plates" className="ul">Templates</a><a href="#start" className="ul">Start</a>

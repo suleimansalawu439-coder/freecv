@@ -39,14 +39,25 @@ type Props = {
 };
 
 function RailContent({ tab, setTab, onNavigate }: { tab: TabId; setTab: (t: TabId) => void; onNavigate?: () => void }) {
-  const { t } = useAdminTheme();
+  const { mode, t } = useAdminTheme();
   return (
     <div className="flex h-full flex-col">
       {/* brand */}
-      <div className="flex items-center gap-2 border-b-[3px] px-5 py-5" style={{ borderColor: t.border }}>
-        <Image src="/logo-light-no-background.png" alt="Cvyon" width={120} height={32} priority className="h-8 w-auto object-contain" />
-        <div className="leading-none"><div className="fd text-lg tracking-tight" style={{ color: t.text }}>CVYON</div>
-          <div className="fm text-[9px] font-bold uppercase tracking-[0.25em]" style={{ color: t.muted }}>admin console</div></div>
+      <div className="flex items-center justify-between border-b-[3px] px-5 py-4" style={{ borderColor: t.border }}>
+        <Image
+          src={mode === "dark" ? "/logo-dark-no-background.png" : "/logo-light-no-background.png"}
+          alt="Cvyon"
+          width={130}
+          height={32}
+          priority
+          className="h-8 w-auto object-contain"
+        />
+        <span
+          className="fm text-[9px] font-bold uppercase tracking-[0.2em] px-2 py-0.5 border"
+          style={{ borderColor: t.border, color: t.muted, background: t.inset }}
+        >
+          ADMIN
+        </span>
       </div>
       {/* nav */}
       <nav className="adm-scroll flex-1 overflow-y-auto px-3 py-4">
