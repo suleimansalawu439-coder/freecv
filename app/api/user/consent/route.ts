@@ -113,7 +113,13 @@ export async function POST(req: Request) {
       if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
     }
 
-    // 4. Audit log
+    // 4. CRITICAL: Update candidates.opted_in_at when consent_recruiter_share is enabled
+    // This ensures users who opt-in via settings appear correctly in admin dashboard
+    if (patch.consent_recruiter_share === true) {
+      await supabaseAdmin.from('candidates').update({ opted_in_at: now, updated_at: now }).eq('id', cand.id);
+    }
+
+    // 5. Audit log
     try {
       await supabaseAdmin.from('consent_logs').insert({
         session_id: req.headers.get('x-forwarded-for') || 'unknown',
