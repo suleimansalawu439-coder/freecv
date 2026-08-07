@@ -20,9 +20,38 @@ export default async function AdminPage() {
   }
   if (!ok) redirect('/admin/login');
 
-  const [candidatesRes, profilesRes, analytics, aiLogs, siteSettings, featureFlags, blogPosts] = await Promise.all([
-    supabaseAdmin.from('candidates').select('*').order('created_at', { ascending: false }),
-    supabaseAdmin.from('candidate_profiles').select('*').order('updated_at', { ascending: false }),
+  // Resilient candidate fetching that safely handles any column naming variation
+  const fetchCandidates = async () => {
+    try {
+      const res = await supabaseAdmin.from('candidates').select('*').order('opted_in_at', { ascending: false });
+      if (!res.error && res.data) return res.data;
+    } catch {}
+    try {
+      const res = await supabaseAdmin.from('candidates').select('*').order('updated_at', { ascending: false });
+      if (!res.error && res.data) return res.data;
+    } catch {}
+    try {
+      const res = await supabaseAdmin.from('candidates').select('*');
+      if (!res.error && res.data) return res.data;
+    } catch {}
+    return [];
+  };
+
+  const fetchProfiles = async () => {
+    try {
+      const res = await supabaseAdmin.from('candidate_profiles').select('*').order('updated_at', { ascending: false });
+      if (!res.error && res.data) return res.data;
+    } catch {}
+    try {
+      const res = await supabaseAdmin.from('candidate_profiles').select('*');
+      if (!res.error && res.data) return res.data;
+    } catch {}
+    return [];
+  };
+
+  const [candidatesList, profilesList, analytics, aiLogs, siteSettings, featureFlags, blogPosts] = await Promise.all([
+    fetchCandidates(),
+    fetchProfiles(),
     supabaseAdmin.from('analytics_events').select('*').order('created_at', { ascending: false }).limit(5000),
     supabaseAdmin.from('ai_usage_logs').select('*').order('created_at', { ascending: false }).limit(3000),
     supabaseAdmin.from('site_settings').select('*').maybeSingle(),
@@ -30,11 +59,14 @@ export default async function AdminPage() {
     supabaseAdmin.from('blog_posts').select('*').order('created_at', { ascending: false }),
   ]);
 
+  const candidatesData = candidatesList || [];
+  const profilesData = profilesList || [];
+
   // Combine candidates and candidate_profiles seamlessly so 100% of candidate opt-ins appear
-  const profileMap = new Map<string, any>((profilesRes.data || []).map((p: any) => [p.id, p]));
+  const profileMap = new Map<string, any>(profilesData.map((p: any) => [p.id, p]));
   const seenIds = new Set<string>();
 
-  const mergedCandidates: any[] = (candidatesRes.data || []).map((c: any) => {
+  const mergedCandidates: any[] = candidatesData.map((c: any) => {
     seenIds.add(c.id);
     const prof = profileMap.get(c.id);
     return {
@@ -52,14 +84,14 @@ export default async function AdminPage() {
       consent_email_jobs: prof?.consent_email_jobs ?? true,
       consent_analytics: prof?.consent_analytics ?? true,
       opted_in_at: c.opted_in_at || c.created_at || prof?.consent_at || prof?.created_at,
-      created_at: c.created_at || prof?.created_at,
+      created_at: c.created_at || c.opted_in_at || prof?.created_at,
       updated_at: c.updated_at || prof?.updated_at,
       resume_data: c.resume_data || prof?.resume_data,
     };
   });
 
   // Include any orphan profiles from candidate_profiles
-  (profilesRes.data || []).forEach((p: any) => {
+  profilesData.forEach((p: any) => {
     if (!seenIds.has(p.id)) {
       seenIds.add(p.id);
       mergedCandidates.push({

@@ -19,25 +19,26 @@ export function ConsentManager() {
   }, []);
 
   useEffect(() => {
-    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
-      const lastSynced = sessionStorage.getItem(`cvyon-synced-${data.personalInfo.email}`);
-      if (!lastSynced) {
+    const email = data.personalInfo?.email?.trim();
+    const isValidEmail = email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+
+    if (isValidEmail) {
+      const timer = setTimeout(() => {
         fetch('/api/crm/optin', {
           method: 'POST',
           keepalive: true,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
-        })
-          .then((r) => {
-            if (r.ok) sessionStorage.setItem(`cvyon-synced-${data.personalInfo.email}`, 'true');
-          })
-          .catch((e) => console.warn('Consent deferred sync error', e));
-      }
+        }).catch((e) => console.warn('Consent sync error', e));
+      }, 1200);
+
+      return () => clearTimeout(timer);
     }
-  }, [data.personalInfo.email]);
+  }, [data.personalInfo.email, data.personalInfo.fullName, data.personalInfo.jobTitle, data.skills, data.consents]);
 
   const syncConsent = (updatedConsents: any) => {
-    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+    const email = data.personalInfo?.email?.trim();
+    if (email && email.includes('@')) {
       fetch('/api/crm/optin', {
         method: 'POST',
         keepalive: true,

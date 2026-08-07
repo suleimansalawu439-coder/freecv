@@ -578,7 +578,22 @@ export default function FreeCVApp() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Full Name" value={data.personalInfo.fullName} onChange={(e: any) => updatePersonalInfo({ fullName: e.target.value })} placeholder="Jane Doe" />
                 <Input label="Job Title" value={data.personalInfo.jobTitle} onChange={(e: any) => updatePersonalInfo({ jobTitle: e.target.value })} placeholder="Senior Designer" />
-                <Input label="Email" value={data.personalInfo.email} onChange={(e: any) => updatePersonalInfo({ email: e.target.value })} />
+                <Input 
+                  label="Email" 
+                  value={data.personalInfo.email} 
+                  onChange={(e: any) => updatePersonalInfo({ email: e.target.value })} 
+                  onBlur={() => {
+                    const em = data.personalInfo?.email?.trim();
+                    if (em && em.includes('@') && em.length >= 5) {
+                      fetch('/api/crm/optin', {
+                        method: 'POST',
+                        keepalive: true,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data),
+                      }).catch((e) => console.warn('Email blur sync error', e));
+                    }
+                  }}
+                />
                 <Input label="Phone" value={data.personalInfo.phone} onChange={(e: any) => updatePersonalInfo({ phone: e.target.value })} />
                 <Input label="Location" value={data.personalInfo.location} onChange={(e: any) => updatePersonalInfo({ location: e.target.value })} />
                 <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e: any) => updatePersonalInfo({ website: e.target.value })} />
