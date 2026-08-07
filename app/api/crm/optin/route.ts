@@ -135,7 +135,8 @@ export async function POST(request: Request) {
       updated_at: now,
     };
 
-    const { data: cand, error: candErr } = await supabaseAdmin
+    // 1. PRIMARY CANDIDATES TABLE UPSERT (With multi-tier schema fallback)
+    let { data: cand, error: candErr } = await supabaseAdmin
       .from('candidates')
       .upsert(candidatePayload, { onConflict: 'email' })
       .select('id')
@@ -144,23 +145,51 @@ export async function POST(request: Request) {
     if (cand?.id) {
       candidateId = cand.id;
     } else {
-      // Fallback query if onConflict single returning had an anomaly
-      const { data: existingCand } = await supabaseAdmin
+      // Fallback 1: Retry with standard essential columns in case of extra column mismatch
+      const corePayload = {
+        email,
+        name: fullName || 'Candidate',
+        full_name: fullName || 'Candidate',
+        job_title: jobTitle || 'Professional',
+        current_title: jobTitle || 'Professional',
+        country: country || 'Unknown',
+        city: location ? location.split(',')[0].trim() : '',
+        skills: resumeSkills,
+        resume_data: data,
+        opted_in_at: now,
+        updated_at: now,
+      };
+
+      const { data: retryCand } = await supabaseAdmin
         .from('candidates')
+        .upsert(corePayload, { onConflict: 'email' })
         .select('id')
-        .eq('email', email)
         .maybeSingle();
-      if (existingCand?.id) {
-        candidateId = existingCand.id;
+
+      if (retryCand?.id) {
+        candidateId = retryCand.id;
+      } else {
+        // Fallback 2: Direct lookup by email
+        const { data: existingCand } = await supabaseAdmin
+          .from('candidates')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+        if (existingCand?.id) {
+          candidateId = existingCand.id;
+        } else {
+          // Fallback 3: Minimal insert
+          const { data: minCand } = await supabaseAdmin
+            .from('candidates')
+            .upsert({ email, name: fullName || 'Candidate' }, { onConflict: 'email' })
+            .select('id')
+            .maybeSingle();
+          if (minCand?.id) candidateId = minCand.id;
+        }
       }
     }
 
-    if (candErr && !candidateId) {
-      console.error('[CRM opt-in] candidates upsert error:', candErr);
-      return NextResponse.json({ error: 'Failed to save candidate', details: candErr.message }, { status: 500 });
-    }
-
-    // ---- 2. IMMEDIATE CANDIDATE_PROFILES SYNC ----
+    // 2. CANDIDATE_PROFILES SYNC (With multi-tier fallback)
     if (candidateId) {
       const profilePayload: Record<string, any> = {
         id: candidateId,
@@ -192,18 +221,16 @@ export async function POST(request: Request) {
         .upsert(profilePayload, { onConflict: 'id' });
 
       if (profErr) {
-        console.warn('[CRM opt-in] candidate_profiles upsert error, trying update fallback:', profErr);
-        await supabaseAdmin.from('candidate_profiles').update({
+        // Fallback: core profile update
+        await supabaseAdmin.from('candidate_profiles').upsert({
+          id: candidateId,
           full_name: fullName || 'Candidate',
           current_title: jobTitle || 'Professional',
           consent_recruiter_share,
           consent_email_jobs,
           consent_analytics,
-          consent_version: CONSENT_VERSION,
-          consent_at: now,
-          resume_data: data,
           updated_at: now,
-        }).eq('id', candidateId);
+        }, { onConflict: 'id' });
       }
     }
 

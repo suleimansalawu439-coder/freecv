@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Users, DollarSign, TrendingUp, Briefcase, Headphones, FileText, Settings as Cog,
   BarChart3, Plus, Search, Mail, Globe, Building2, ArrowRight, ArrowLeft,
-  Inbox, Wallet, Target, Activity, MousePointerClick, Layers, Cpu,
+  Inbox, Wallet, Target, Activity, MousePointerClick, Layers, Cpu, CheckCircle, AlertCircle, RefreshCw,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminTheme } from "./admin/theme";
@@ -89,8 +89,8 @@ export function OverviewTab({ candidates, analytics, aiLogs }: { candidates: any
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Reveal><Card className="p-5"><SectionLabel color={t.verm}>talent pool</SectionLabel>
           <div className="space-y-3">
-            <div className="flex justify-between fm text-[11px]"><span style={{ color: t.muted }}>Total candidates</span><b style={{ color: t.text }}>{(o?.candidates ?? candidates.length).toLocaleString()}</b></div>
-            <Bars data={[{ label: "recruiter-consented", value: o?.consented ?? 0 }, { label: "total", value: o?.candidates ?? candidates.length }]} color={t.verm} />
+            <div className="flex justify-between fm text-[11px]"><span style={{ color: t.muted }}>Total candidates</span><b style={{ color: t.text }}>{Math.max(candidates.length, o?.candidates || 0).toLocaleString()}</b></div>
+            <Bars data={[{ label: "recruiter-consented", value: o?.consented ?? candidates.filter(c => c.consent_recruiter_share).length }, { label: "total", value: Math.max(candidates.length, o?.candidates || 0) }]} color={t.verm} />
           </div></Card></Reveal>
         <Reveal delay={80}><Card className="p-5"><SectionLabel color={t.cob}>devices</SectionLabel>
           {Object.keys(device).length ? <Donut segments={topN(device, 4).map(([k, v]) => ({ label: k, value: v, color: k === "mobile" ? t.cob : k === "desktop" ? t.green : t.gold }))} size={132} thickness={22} /> : <p className="fb text-sm" style={{ color: t.faint }}>No data.</p>}</Card></Reveal>
@@ -751,6 +751,27 @@ export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSett
   const [site, setSite] = useState({ site_name: siteSettings?.site_name || "Cvyon", meta_title: siteSettings?.meta_title || "", meta_description: siteSettings?.meta_description || "", maintenance_mode: !!siteSettings?.maintenance_mode });
   const [billing, setBilling] = useState({ amount: 99, currency: "NGN" });
   const [aiLimit, setAiLimit] = useState(50);
+  const [diag, setDiag] = useState<any>(null);
+  const [diagLoading, setDiagLoading] = useState(false);
+
+  const runDiagnostics = async () => {
+    setDiagLoading(true);
+    try {
+      const res = await fetch("/api/admin/diagnostics");
+      const data = await res.json();
+      setDiag(data);
+      if (data.overall === "ALL_HEALTHY") {
+        toast.success("All systems healthy!");
+      } else {
+        toast.error("System issues detected — check diagnostic details.");
+      }
+    } catch {
+      toast.error("Failed to run diagnostics.");
+    } finally {
+      setDiagLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetch("/api/admin/settings").then((r) => r.ok ? r.json() : null).then((j) => {
       if (j?.billing) setBilling({ amount: j.billing.amount / 100, currency: j.billing.currency });
@@ -764,6 +785,83 @@ export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSett
   const spend = overview?.expensesThisMonth ?? 0; const ai = overview?.aiCostThisMonth ?? 0;
   return (
     <div className="grid gap-5 lg:grid-cols-2">
+      {/* Live System Diagnostics & DB Health */}
+      <Reveal className="lg:col-span-2">
+        <Card className="p-5" accent={diag?.overall === "ALL_HEALTHY" ? t.green : t.cob}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <SectionLabel color={diag?.overall === "ALL_HEALTHY" ? t.green : t.cob}>system diagnostics & live health</SectionLabel>
+              <p className="fb text-xs" style={{ color: t.muted }}>
+                Verify live database connectivity, candidate table writes, and external API services.
+              </p>
+            </div>
+            <Btn onClick={runDiagnostics} disabled={diagLoading} className="text-xs">
+              <RefreshCw size={13} className={diagLoading ? "animate-spin" : ""} /> {diagLoading ? "Testing..." : "Run Health Test"}
+            </Btn>
+          </div>
+
+          {diag ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+              <div className="border-2 p-3 rounded" style={{ borderColor: t.border, background: t.inset }}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {diag.checks?.supabase?.status === "OK" ? <CheckCircle size={14} className="text-green-500" /> : <AlertCircle size={14} className="text-red-500" />}
+                  <span className="fm text-xs font-bold" style={{ color: t.text }}>Supabase DB</span>
+                </div>
+                <div className="fm text-[11px]" style={{ color: t.muted }}>
+                  Status: <b style={{ color: diag.checks?.supabase?.status === "OK" ? t.green : t.verm }}>{diag.checks?.supabase?.status || "UNKNOWN"}</b>
+                </div>
+                <div className="fm text-[10px]" style={{ color: t.faint }}>
+                  Client: {diag.checks?.supabase_client?.is_real ? "Live DB" : "Mock (Memory)"}
+                </div>
+              </div>
+
+              <div className="border-2 p-3 rounded" style={{ borderColor: t.border, background: t.inset }}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {diag.checks?.write_test?.status === "OK" ? <CheckCircle size={14} className="text-green-500" /> : <AlertCircle size={14} className="text-amber-500" />}
+                  <span className="fm text-xs font-bold" style={{ color: t.text }}>Live Write Test</span>
+                </div>
+                <div className="fm text-[11px]" style={{ color: t.muted }}>
+                  {diag.checks?.write_test?.status === "OK" ? "Write Verified" : diag.checks?.write_test?.status || "Pending"}
+                </div>
+                <div className="fm text-[10px]" style={{ color: t.faint }}>
+                  {diag.checks?.write_test?.error || "Candidates table writable"}
+                </div>
+              </div>
+
+              <div className="border-2 p-3 rounded" style={{ borderColor: t.border, background: t.inset }}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Activity size={14} className="text-blue-500" />
+                  <span className="fm text-xs font-bold" style={{ color: t.text }}>Pool Records</span>
+                </div>
+                <div className="fm text-[11px]" style={{ color: t.muted }}>
+                  Candidates: <b style={{ color: t.text }}>{diag.checks?.candidates_table?.candidates_count ?? 0}</b>
+                </div>
+                <div className="fm text-[10px]" style={{ color: t.faint }}>
+                  Profiles: {diag.checks?.supabase?.candidate_profiles_count ?? 0}
+                </div>
+              </div>
+
+              <div className="border-2 p-3 rounded" style={{ borderColor: t.border, background: t.inset }}>
+                <div className="flex items-center gap-1.5 mb-1">
+                  {diag.checks?.careerjet_proxy?.status === "OK" ? <CheckCircle size={14} className="text-green-500" /> : <AlertCircle size={14} className="text-amber-500" />}
+                  <span className="fm text-xs font-bold" style={{ color: t.text }}>Job Proxy</span>
+                </div>
+                <div className="fm text-[11px]" style={{ color: t.muted }}>
+                  Status: {diag.checks?.careerjet_proxy?.status || "N/A"}
+                </div>
+                <div className="fm text-[10px]" style={{ color: t.faint }}>
+                  Jobs Feed: {diag.checks?.careerjet_proxy?.jobs_count ? `${diag.checks.careerjet_proxy.jobs_count} live` : "0"}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 border border-dashed rounded text-center fm text-xs" style={{ borderColor: t.border, color: t.muted }}>
+              Click "Run Health Test" to test production database read/write and external service health.
+            </div>
+          )}
+        </Card>
+      </Reveal>
+
       <Reveal><Card className="p-5" accent={t.green}><SectionLabel color={t.green}>billing (recruiter subscription)</SectionLabel>
         <p className="mb-4 fb text-sm" style={{ color: t.muted }}>Drives the Paystack charge and the price on the recruiter portal — they can't disagree.</p>
         <div className="grid grid-cols-2 gap-4"><Field label="Amount (major units)"><Input type="number" value={billing.amount} onChange={(e) => setBilling({ ...billing, amount: Number(e.target.value) })} /></Field>
