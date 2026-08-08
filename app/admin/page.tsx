@@ -105,8 +105,8 @@ export default async function AdminPage() {
         experience_years: p.experience_years ?? 0,
         skills: p.skills || [],
         completeness_score: p.completeness_score || 80,
-        consent_recruiter_share: p.consent_recruiter_share ?? true,
-        consent_email_jobs: p.consent_email_jobs ?? true,
+        consent_recruiter_share: p.consent_recruiter_share ?? false,
+        consent_email_jobs: p.consent_email_jobs ?? false,
         consent_analytics: p.consent_analytics ?? true,
         opted_in_at: p.consent_at || p.created_at,
         created_at: p.created_at,
@@ -116,9 +116,13 @@ export default async function AdminPage() {
     }
   });
 
+  // CRITICAL FIX: Explicitly filter to show ONLY users who have opted in
+  // Previously, the list included ALL users (with defaulted true/false values), burying new opt-ins
+  const optedInCandidates = mergedCandidates.filter(c => c.consent_recruiter_share === true);
+
   return (
     <AdminDashboard
-      candidates={mergedCandidates}
+      candidates={optedInCandidates}
       analytics={analytics.data || []}
       aiLogs={aiLogs.data || []}
       siteSettings={siteSettings.data || {}}
