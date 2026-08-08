@@ -7,17 +7,16 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try { await requireAdmin(); } catch { return adminFail(); }
 
-  const { data, error } = await supabaseAdmin
-    .from('job_clicks')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(2000);
+  const [jobClicksRes, affClicksRes, affPartnersRes] = await Promise.allSettled([
+    supabaseAdmin.from('job_clicks').select('*').order('created_at', { ascending: false }).limit(2000),
+    supabaseAdmin.from('affiliate_clicks').select('*').order('created_at', { ascending: false }).limit(1000),
+    supabaseAdmin.from('affiliates').select('*').order('created_at', { ascending: false }),
+  ]);
 
-  if (error) {
-    console.error('Error fetching job clicks:', error);
-  }
+  const all = (jobClicksRes.status === 'fulfilled' && !jobClicksRes.value.error) ? (jobClicksRes.value.data || []) : [];
+  const referralClicks = (affClicksRes.status === 'fulfilled' && !affClicksRes.value.error) ? (affClicksRes.value.data || []) : [];
+  const affiliatePartners = (affPartnersRes.status === 'fulfilled' && !affPartnersRes.value.error) ? (affPartnersRes.value.data || []) : [];
 
-  const all = data || [];
   const now = Date.now();
   const inDays = (n: number) => all.filter((c: any) => now - new Date(c.created_at).getTime() < n * 864e5);
   const cents = (rows: any[]) => rows.reduce((s: number, c: any) => s + Math.round((Number(c.cpc_value) || 0) * 100), 0);
@@ -80,5 +79,11 @@ export async function GET() {
       cpc_minor: Math.round((Number(c.cpc_value) || 0) * 100),
       created_at: c.created_at,
     })),
+    referrals: {
+      totalClicks: referralClicks.length,
+      partnersCount: affiliatePartners.length,
+      recentClicks: referralClicks.slice(0, 100),
+      partners: affiliatePartners,
+    },
   });
 }

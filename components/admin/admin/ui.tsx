@@ -151,19 +151,58 @@ export function Modal({ open, onClose, title, children, wide }:
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", k); const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = prev; };
+    document.addEventListener("keydown", k);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", k);
+      document.body.style.overflow = prev;
+    };
   }, [open, onClose]);
+
   if (!open) return null;
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className={cn("adm-pop adm-scroll max-h-[90vh] w-full overflow-y-auto border-[3px]", wide ? "sm:max-w-3xl" : "sm:max-w-lg")}
-        style={{ background: t.bg, borderColor: t.borderStrong, boxShadow: `10px 10px 0 ${t.shadow}` }}>
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b-[3px] px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
-          <h3 className="fd text-lg tracking-tight" style={{ color: t.text }}>{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="grid h-8 w-8 place-items-center border-2" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
+    <div
+      className="fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-sm overflow-y-auto"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          "adm-pop relative my-auto max-h-[88vh] w-full flex flex-col overflow-hidden border-[3px] shadow-2xl",
+          wide ? "max-w-3xl" : "max-w-lg"
+        )}
+        style={{
+          background: t.bg,
+          borderColor: t.borderStrong,
+          boxShadow: `10px 10px 0 ${t.shadow}`,
+        }}
+      >
+        {/* Sticky Header */}
+        <div
+          className="sticky top-0 z-10 flex items-center justify-between border-b-[3px] px-5 py-3.5 sm:px-6 sm:py-4 shrink-0"
+          style={{ borderColor: t.border, background: t.surface }}
+        >
+          <h3 className="fd truncate text-base sm:text-lg tracking-tight font-extrabold" style={{ color: t.text }}>
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-8 w-8 place-items-center border-2 transition-transform hover:scale-105 active:scale-95 shrink-0 ml-2"
+            style={{ borderColor: t.border, color: t.muted, background: t.surface2 }}
+          >
+            <X size={16} />
+          </button>
         </div>
-        <div className="p-6">{children}</div>
+
+        {/* Scrollable Modal Content */}
+        <div className="adm-scroll flex-1 overflow-y-auto p-5 sm:p-6">
+          {children}
+        </div>
       </div>
     </div>
   );

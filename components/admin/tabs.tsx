@@ -160,8 +160,10 @@ export function AnalyticsTab({ analytics }: { analytics: any[] }) {
 }
 
 /* ============================ TALENT POOL ============================ */
-export function TalentTab({ candidates }: { candidates: any[] }) {
+export function TalentTab({ candidates: initialCandidates = [] }: { candidates?: any[] }) {
   const { t } = useAdminTheme();
+  const [candidatesList, setCandidatesList] = useState<any[]>(initialCandidates);
+  const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
   const [country, setCountry] = useState("");
   const [consentFilter, setConsentFilter] = useState("all");
@@ -170,10 +172,38 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
-  const countries = useMemo(() => Array.from(new Set(candidates.map((c) => c.country).filter(Boolean))).sort() as string[], [candidates]);
+  // Sync from prop changes if any
+  useEffect(() => {
+    if (initialCandidates && initialCandidates.length > 0) {
+      setCandidatesList(initialCandidates);
+    }
+  }, [initialCandidates]);
+
+  // Live fetch freshest candidates on mount and on-demand
+  const fetchLiveTalent = () => {
+    setLoading(true);
+    api("/api/admin/talent")
+      .then((res) => {
+        if (res?.candidates && Array.isArray(res.candidates)) {
+          setCandidatesList(res.candidates);
+        }
+      })
+      .catch((err) => {
+        console.error("Talent fetch error:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchLiveTalent();
+  }, []);
+
+  const countries = useMemo(() => Array.from(new Set(candidatesList.map((c) => c.country).filter(Boolean))).sort() as string[], [candidatesList]);
   
   const filtered = useMemo(() => {
-    return candidates.filter((c) => {
+    return candidatesList.filter((c) => {
       const matchCountry = !country || c.country === country;
       const matchConsent = consentFilter === "all" ? true :
         consentFilter === "consented" ? !!c.consent_recruiter_share : !c.consent_recruiter_share;
@@ -184,14 +214,14 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
       const matchQuery = !q || q.toLowerCase().split(/\s+/).every(w => term.includes(w));
       return matchCountry && matchConsent && matchDevice && matchQuery;
     });
-  }, [candidates, q, country, consentFilter, deviceFilter]);
+  }, [candidatesList, q, country, consentFilter, deviceFilter]);
 
   // Reset page to 1 on filter changes
   useEffect(() => {
     setPage(1);
   }, [q, country, consentFilter, deviceFilter, pageSize]);
 
-  const consented = candidates.filter((c) => c.consent_recruiter_share).length;
+  const consented = candidatesList.filter((c) => c.consent_recruiter_share).length;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginatedList = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -232,18 +262,25 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Reveal><Kpi label="Talent pool size" value={<CountUp to={candidates.length} />} accent={t.cob} icon={<Users size={16} />} /></Reveal>
-        <Reveal delay={60}><Kpi label="Recruiter-consented" value={<CountUp to={consented} />} accent={t.green} gauge={{ value: candidates.length ? (consented / candidates.length) * 100 : 0 }} /></Reveal>
-        <Reveal delay={120}><Kpi label="Avg completeness" value={<CountUp to={candidates.length ? Math.round(candidates.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidates.length) : 0} suffix="%" />} accent={t.gold} /></Reveal>
+        <Reveal><Kpi label="Talent pool size" value={<CountUp to={candidatesList.length} />} accent={t.cob} icon={<Users size={16} />} /></Reveal>
+        <Reveal delay={60}><Kpi label="Recruiter-consented" value={<CountUp to={consented} />} accent={t.green} gauge={{ value: candidatesList.length ? (consented / candidatesList.length) * 100 : 0 }} /></Reveal>
+        <Reveal delay={120}><Kpi label="Avg completeness" value={<CountUp to={candidatesList.length ? Math.round(candidatesList.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidatesList.length) : 0} suffix="%" />} accent={t.gold} /></Reveal>
         <Reveal delay={180}><Kpi label="Countries represented" value={<CountUp to={countries.length} />} accent={t.verm} icon={<Globe size={16} />} /></Reveal>
       </div>
 
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <Reveal>
           <SectionLabel color={t.verm}>talent pool CRM & candidate telemetry</SectionLabel>
-          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length} candidates visible</p>
+          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidatesList.length} candidates visible</p>
         </Reveal>
-        <Btn variant="ghost" onClick={exportCSV}><Download size={14} /> Export CSV</Btn>
+        <div className="flex items-center gap-2">
+          <Btn variant="ghost" onClick={fetchLiveTalent} className="text-xs">
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+          </Btn>
+          <Btn variant="ghost" onClick={exportCSV} className="text-xs">
+            <Download size={14} /> Export CSV
+          </Btn>
+        </div>
       </div>
 
       {/* Filter toolbar */}
@@ -269,7 +306,9 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
         </Select>
       </Card>
 
-      {filtered.length === 0 ? (
+      {loading && candidatesList.length === 0 ? (
+        <Card className="p-8 text-center"><Spinner /></Card>
+      ) : filtered.length === 0 ? (
         <Card><EmptyState icon={<Users size={32} />} title="No candidates match your filters." hint="Candidates who create or download a CV appear here automatically." /></Card>
       ) : (
         <>
@@ -301,7 +340,7 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
                 <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill color={t.verm}>no</Pill>}</Cell>
                 <Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.opted_in_at || c.created_at || "").slice(0, 10) || "—"}</span></Cell>
                 <Cell>
-                  <Btn variant="ghost" onClick={(e) => { e.stopPropagation(); setDetail(c); }} className="text-xs py-1 px-2">
+                  <Btn variant="ghost" onClick={(e) => { e.stopPropagation(); setDetail(c); }} className="text-xs py-1 px-2.5">
                     <Eye size={13} /> View
                   </Btn>
                 </Cell>
@@ -334,14 +373,19 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
         </>
       )}
 
-      {/* Candidate Details Drawer */}
-      <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.full_name || detail?.email || "Candidate Details"}>
+      {/* Candidate Details Modal - Centered on all screens with multiple close options */}
+      <Modal open={!!detail} onClose={() => setDetail(null)} title={detail?.full_name || detail?.email || "Candidate Details"} wide>
         {detail && (
           <div className="space-y-6">
             <div className="flex flex-wrap gap-2">
               <Pill color={detail.consent_recruiter_share ? t.green : t.verm}>
                 {detail.consent_recruiter_share ? "Recruiter Consent: Agreed" : "Recruiter Consent: Opted Out"}
               </Pill>
+              {detail.consent_email_jobs !== undefined && (
+                <Pill color={detail.consent_email_jobs ? t.green : t.muted}>
+                  {detail.consent_email_jobs ? "Job Alerts: Subscribed" : "Job Alerts: Opted Out"}
+                </Pill>
+              )}
               {detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}
               {detail.device_type && (
                 <Pill color={t.cob}>
@@ -351,12 +395,13 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
               {detail.completeness_score && <Pill color={t.gold}>{detail.completeness_score}% Complete</Pill>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 fb text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 fb text-sm p-4 border-[2px] rounded-lg" style={{ borderColor: t.border, background: t.surface2 }}>
               {[
                 ["Full Name", detail.full_name],
                 ["Email", detail.email],
                 ["Job Title", detail.current_title],
                 ["Location / City", detail.city || detail.location || "—"],
+                ["Country", detail.country || "—"],
                 ["Device Type", detail.device_type || "desktop"],
                 ["Experience", detail.experience_years ? `${detail.experience_years} years` : "—"],
                 ["Industry / Category", detail.title_category || "—"],
@@ -364,7 +409,7 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
               ].map(([k, v]) => (
                 <div key={k as string}>
                   <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div>
-                  <div className="mt-0.5 break-words font-medium capitalize" style={{ color: t.text }}>{(v as string) || "—"}</div>
+                  <div className="mt-0.5 break-words font-medium" style={{ color: t.text }}>{(v as string) || "—"}</div>
                 </div>
               ))}
             </div>
@@ -392,14 +437,21 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
                     Copy JSON
                   </Btn>
                 </div>
-                <pre className="p-3 border-2 rounded fm text-[11px] leading-relaxed overflow-x-auto max-h-60" style={{ borderColor: t.border, background: t.inset, color: t.text }}>
+                <pre className="p-3 border-2 rounded fm text-[11px] leading-relaxed overflow-x-auto max-h-52" style={{ borderColor: t.border, background: t.inset, color: t.text }}>
                   {JSON.stringify(detail.resume_data, null, 2)}
                 </pre>
               </div>
             )}
+
+            {/* Modal Bottom Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t-2" style={{ borderColor: t.border }}>
+              <Btn variant="primary" onClick={() => setDetail(null)} className="px-6 py-2 text-xs">
+                Close
+              </Btn>
+            </div>
           </div>
         )}
-      </Drawer>
+      </Modal>
     </div>
   );
 }
