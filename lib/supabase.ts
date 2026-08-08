@@ -1,8 +1,24 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseUrl = 
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 
+  process.env.SUPABASE_URL || 
+  '';
+
+const supabaseAnonKey = 
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 
+  process.env.SUPABASE_ANON_KEY || 
+  process.env.SUPABASE_KEY || 
+  '';
+
+const supabaseServiceKey = 
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 
+  process.env.SUPABASE_SERVICE_KEY || 
+  process.env.SUPABASE_SECRET_KEY || 
+  process.env.SUPABASE_SERVICE_ROLE || 
+  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || 
+  '';
 
 const mockClient = (table: string) => {
   const mockStore: Record<string, any[]> = (globalThis as any).__mockSupabaseStore || ((globalThis as any).__mockSupabaseStore = {});
@@ -111,19 +127,49 @@ const mockClient = (table: string) => {
         then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null })
       };
     },
-    select: () => chainable,
-    update: (updates: any) => ({
-      eq: (col: string, val: any) => {
-        mockStore[table] = mockStore[table].map((item: any) => item[col] === val ? { ...item, ...updates } : item);
-        return Promise.resolve({ data: null, error: null });
-      }
-    }),
-    delete: () => ({
-      eq: (col: string, val: any) => {
-        mockStore[table] = mockStore[table].filter((item: any) => item[col] !== val);
-        return Promise.resolve({ data: null, error: null });
-      }
-    }),
+    select: (cols = '*', opts?: { count?: string; head?: boolean }) => {
+      const data = getMockData();
+      return {
+        ...chainable,
+        order: () => chainable,
+        limit: () => chainable,
+        then: (resolve: (val: { data: any[] | null, error: null, count: number }) => void) => {
+          resolve({ data: opts?.head ? null : data, error: null, count: data.length });
+        }
+      };
+    },
+    update: (data: any) => {
+      return {
+        eq: (col: string, val: any) => {
+          let updated: any[] = [];
+          if (mockStore[table]) {
+            mockStore[table] = mockStore[table].map((item: any) => {
+              if (item[col] === val) {
+                const res = { ...item, ...data, updated_at: new Date().toISOString() };
+                updated.push(res);
+                return res;
+              }
+              return item;
+            });
+          }
+          return {
+            then: (resolve: (val: { data: any[] | null, error: null }) => void) => resolve({ data: updated, error: null })
+          };
+        }
+      };
+    },
+    delete: () => {
+      return {
+        eq: (col: string, val: any) => {
+          if (mockStore[table]) {
+            mockStore[table] = mockStore[table].filter((item: any) => item[col] !== val);
+          }
+          return {
+            then: (resolve: (val: { data: any[] | null, error: null }) => void) => resolve({ data: null, error: null })
+          };
+        }
+      };
+    },
     rpc: async () => ({ data: null, error: null })
   };
 };
@@ -150,10 +196,13 @@ export const supabase: SupabaseClient<any> = globalForSupabase.supabaseClient ||
 );
 
 // Server-side admin client to bypass RLS
+const effectiveServiceKey = supabaseServiceKey || supabaseAnonKey;
 const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
+const isRealDb = !!(supabaseUrl && (supabaseServiceKey || supabaseAnonKey));
+
 export const supabaseAdmin: SupabaseClient<any> = globalForSupabase.supabaseAdminClient || (
-  isRealAdmin
-    ? createClient<any>(supabaseUrl, supabaseServiceKey, {
+  isRealDb
+    ? createClient<any>(supabaseUrl, effectiveServiceKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false
@@ -167,16 +216,15 @@ if (process.env.NODE_ENV !== 'production') {
   globalForSupabase.supabaseAdminClient = supabaseAdmin;
 }
 
-/** True when supabaseAdmin is connected to a real database, false when using mock */
-export const isSupabaseConfigured = isRealAdmin;
+/** True when supabaseAdmin or supabase is connected to a real database, false when using mock */
+export const isSupabaseConfigured = isRealDb;
 
 // Warn loudly on server-side when using mock clients or throw in production runtime
-if (typeof window === 'undefined' && !isRealAdmin) {
+if (typeof window === 'undefined' && !isRealDb) {
   if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
     console.error('CRITICAL: Supabase service role key or URL is missing in production!');
   } else {
     console.warn('\n⚠️  [supabase] RUNNING WITH MOCK CLIENT — no database writes will persist!');
-    console.warn('   Set NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env.\n');
+    console.warn('   Set NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_SERVICE_ROLE_KEY) in env.\n');
   }
 }
-

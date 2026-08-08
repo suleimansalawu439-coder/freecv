@@ -131,9 +131,14 @@ export async function POST(request: Request) {
     }
 
     // ---- 1. PRIMARY DATABASE SAVE ----
-    let candidateId: string | null = null;
+    const generatedId = typeof crypto !== 'undefined' && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `cand_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+    let candidateId: string = generatedId;
 
     const candidatePayload: Record<string, any> = {
+      id: generatedId,
       email,
       name: fullName || 'Candidate',
       full_name: fullName || 'Candidate',
@@ -163,11 +168,16 @@ export async function POST(request: Request) {
       .select('id')
       .maybeSingle();
 
+    if (candErr) {
+      console.warn('[CRM opt-in] Candidates upsert notice:', candErr.message);
+    }
+
     if (cand?.id) {
       candidateId = cand.id;
     } else {
       // Fallback 1: Retry with standard essential columns in case of extra column mismatch
       const corePayload = {
+        id: candidateId,
         email,
         name: fullName || 'Candidate',
         full_name: fullName || 'Candidate',
@@ -181,7 +191,7 @@ export async function POST(request: Request) {
         updated_at: now,
       };
 
-      const { data: retryCand } = await supabaseAdmin
+      const { data: retryCand, error: retryErr } = await supabaseAdmin
         .from('candidates')
         .upsert(corePayload, { onConflict: 'email' })
         .select('id')
@@ -202,7 +212,7 @@ export async function POST(request: Request) {
           // Fallback 3: Minimal insert
           const { data: minCand } = await supabaseAdmin
             .from('candidates')
-            .upsert({ email, name: fullName || 'Candidate' }, { onConflict: 'email' })
+            .upsert({ id: candidateId, email, name: fullName || 'Candidate' }, { onConflict: 'email' })
             .select('id')
             .maybeSingle();
           if (minCand?.id) candidateId = minCand.id;

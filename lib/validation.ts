@@ -112,17 +112,17 @@ export function sanitizeResumeData(data: any): any {
 
 // API Request Validation Schemas
 export const JobClickTrackSchema = z.object({
-  job_url: z.string().min(1, 'job_url is required').max(2048),
-  job_title: z.string().max(255).optional(),
-  company: z.string().max(255).optional(),
-  user_name: z.string().max(255).optional(),
-  user_email: z.string().max(255).optional(),
-  device_type: z.string().max(50).optional(),
-  city: z.string().max(100).optional(),
-  location: z.string().max(255).optional(),
-  country: z.string().max(50).optional(),
-  cpc_value: z.number().nonnegative().optional(),
-  user_agent: z.string().max(512).optional(),
+  job_url: z.string().min(1, 'job_url is required').max(10000),
+  job_title: z.string().max(2000).optional().nullable(),
+  company: z.string().max(1000).optional().nullable(),
+  user_name: z.string().max(500).optional().nullable(),
+  user_email: z.string().max(500).optional().nullable(),
+  device_type: z.string().max(100).optional().nullable(),
+  city: z.string().max(500).optional().nullable(),
+  location: z.string().max(2000).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
+  cpc_value: z.number().nonnegative().optional().nullable(),
+  user_agent: z.string().max(3000).optional().nullable(),
 });
 
 export const AdminConfigSchema = z.object({

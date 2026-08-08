@@ -90,19 +90,30 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     const isTablet = /ipad|tablet/i.test(ua);
     const device_type = isMobile ? "mobile" : isTablet ? "tablet" : "desktop";
 
-    fetch("/api/jobs/track", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        job_url: job.link,
-        job_title: job.title,
-        company: job.company,
-        location: job.location,
-        user_name: data?.personalInfo?.fullName || "Candidate",
-        user_email: data?.personalInfo?.email || "",
-        device_type,
-      }),
-    }).catch(() => {});
+    const payload = JSON.stringify({
+      job_url: job.link || "",
+      job_title: job.title || "",
+      company: job.company || "",
+      location: job.location || (country !== "your region" ? country : ""),
+      user_name: data?.personalInfo?.fullName || "Candidate",
+      user_email: data?.personalInfo?.email || "",
+      device_type,
+    });
+
+    try {
+      fetch("/api/jobs/track", {
+        method: "POST",
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).catch(() => {});
+    } catch {
+      if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        try {
+          navigator.sendBeacon("/api/jobs/track", new Blob([payload], { type: "application/json" }));
+        } catch {}
+      }
+    }
   };
 
   if (!isOpen) return null;
