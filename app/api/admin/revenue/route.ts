@@ -11,11 +11,10 @@ const monthStart = () => new Date(new Date().getFullYear(), new Date().getMonth(
 export async function GET() {
   try { await requireAdmin(); } catch { return adminFail(); }
   const ms = monthStart();
-  const [subs, clicks, affClicks, affiliates, ledger, exp] = await Promise.all([
+  const [subs, clicks, allClicks, ledger, exp] = await Promise.all([
     supabaseAdmin.from('subscriptions').select('*, recruiters(company_name, contact_email)'),
-    supabaseAdmin.from('job_clicks').select('cpc_value, country, job_title, company').gte('created_at', ms),
-    supabaseAdmin.from('affiliate_clicks').select('ref_code, created_at'),
-    supabaseAdmin.from('affiliates').select('*').order('created_at', { ascending: false }),
+    supabaseAdmin.from('job_clicks').select('*').gte('created_at', ms),
+    supabaseAdmin.from('job_clicks').select('*').order('created_at', { ascending: false }).limit(2000),
     supabaseAdmin.from('revenue_ledger').select('*').order('created_at', { ascending: false }).limit(40),
     supabaseAdmin.from('expenditures').select('amount_minor, fx_to_usd').gte('spent_on', new Date().toISOString().slice(0, 10).replace(/-\d\d$/, '-01')),
   ]);
@@ -24,42 +23,47 @@ export async function GET() {
   const mrr = active.reduce((s: number, x: any) => s + toUSD(x.amount_minor || 0, x.currency, x.fx_to_usd), 0);
   const arr = mrr * 12;
 
-  const clicksAll = clicks.data || [];
-  const affMonth = clicksAll.reduce((s: number, c: any) => s + (Number(c.cpc_value) || 0), 0);
+  const clicksMonth = clicks.data || [];
+  const totalClicksAllTime = (allClicks.data || []).length;
+  const affMonth = clicksMonth.reduce((s: number, c: any) => s + (Number(c.cpc_value) || 0), 0);
+  const affAllTime = (allClicks.data || []).reduce((s: number, c: any) => s + (Number(c.cpc_value) || 0), 0);
   const affRun = (affMonth / Math.max(1, new Date().getDate())) * 30; // annualized monthly run-rate
+  
   const byCountry: Record<string, { clicks: number; usd: number }> = {};
-  clicksAll.forEach((c: any) => { const k = c.country || 'UNKNOWN'; (byCountry[k] ||= { clicks: 0, usd: 0 }).clicks++; byCountry[k].usd += Number(c.cpc_value) || 0; });
-
-  const allAffClicks = affClicks.data || [];
-  const affClicksThisMonth = allAffClicks.filter((ac: any) => ac.created_at >= ms).length;
-  const affClicksByRef: Record<string, number> = {};
-  allAffClicks.forEach((ac: any) => {
-    const ref = ac.ref_code || 'direct';
-    affClicksByRef[ref] = (affClicksByRef[ref] || 0) + 1;
+  (allClicks.data || []).forEach((c: any) => {
+    const k = c.country || 'UNKNOWN';
+    (byCountry[k] ||= { clicks: 0, usd: 0 }).clicks++;
+    byCountry[k].usd += Number(c.cpc_value) || 0;
   });
-
-  const partnersList = (affiliates.data || []).map((aff: any) => ({
-    name: aff.name,
-    ref_code: aff.ref_code,
-    commission_rate: aff.commission_rate,
-    clicks: affClicksByRef[aff.ref_code] || 0,
-    created_at: aff.created_at,
-  }));
 
   const expMonth = (exp.data || []).reduce((s: number, e: any) => s + (Number(e.amount_minor) || 0) * (Number(e.fx_to_usd) || 1) / 100, 0);
   const ledgerCash = (ledger.data || []).filter((l: any) => l.status === 'settled').reduce((s: number, l: any) => s + toUSD(l.amount_minor, l.currency, l.fx_to_usd), 0);
 
   return NextResponse.json({
-    mrr: +mrr.toFixed(2), arr: +arr.toFixed(2), activeSubs: active.length,
-    affiliateMonth: +affMonth.toFixed(2), affiliateRun: +affRun.toFixed(2),
+    mrr: +mrr.toFixed(2),
+    arr: +arr.toFixed(2),
+    activeSubs: active.length,
+    careerjetClicksMonth: clicksMonth.length,
+    careerjetClicksAllTime: totalClicksAllTime,
+    affiliateMonth: +affMonth.toFixed(2),
+    affiliateAllTime: +affAllTime.toFixed(2),
+    affiliateRun: +affRun.toFixed(2),
     blendedMonthly: +(mrr + affRun).toFixed(2),
-    expensesMonth: +expMonth.toFixed(2), netMonth: +(mrr + affMonth - expMonth).toFixed(2),
+    expensesMonth: +expMonth.toFixed(2),
+    netMonth: +(mrr + affMonth - expMonth).toFixed(2),
     ledgerCashAllTime: +ledgerCash.toFixed(2),
-    subBreakdown: active.map((s: any) => ({ company: s.recruiters?.company_name || '—', tier: s.tier, usd: +toUSD(s.amount_minor || 0, s.currency, s.fx_to_usd).toFixed(2), currency: s.currency })),
-    affByCountry: Object.entries(byCountry).map(([country, v]) => ({ country, ...v, usd: +v.usd.toFixed(2) })).sort((a, b) => b.usd - a.usd),
-    affiliateReferralClicksTotal: allAffClicks.length,
-    affiliateReferralClicksMonth: affClicksThisMonth,
-    affiliatePartners: partnersList,
+    subBreakdown: active.map((s: any) => ({
+      company: s.recruiters?.company_name || '—',
+      tier: s.tier,
+      usd: +toUSD(s.amount_minor || 0, s.currency, s.fx_to_usd).toFixed(2),
+      currency: s.currency
+    })),
+    affByCountry: Object.entries(byCountry).map(([country, v]) => ({
+      country,
+      ...v,
+      usd: +v.usd.toFixed(2)
+    })).sort((a, b) => b.usd - a.usd),
+    recentClicks: (allClicks.data || []).slice(0, 50),
     ledger: ledger.data || [],
     fxNote: 'FX rates are approximations; reconcile MRR/cash against Paystack + bank statements.',
   });

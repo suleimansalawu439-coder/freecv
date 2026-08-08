@@ -53,15 +53,35 @@ export async function POST(request: Request) {
       console.warn('[CRM opt-in] Supabase credentials not set — saving to in-memory store');
     }
 
-    const country = request.headers.get('x-vercel-ip-country') || 'Unknown';
-    const ua = request.headers.get('user-agent') || '';
-    const device_type = /mobi|iphone|ipod|android.*mobile/i.test(ua) ? 'mobile' : /ipad|tablet/i.test(ua) ? 'tablet' : 'desktop';
-    const sessionId = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
+    // Multi-source IP detection
+    const forwarded = request.headers.get('x-forwarded-for') || '';
+    const ip = forwarded.split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown';
+    const ua = request.headers.get('user-agent') || data?.device_type || '';
+    const device_type = data?.device_type || (/mobi|iphone|ipod|android.*mobile/i.test(ua) ? 'mobile' : /ipad|tablet/i.test(ua) ? 'tablet' : 'desktop');
 
     const fullName = String(data?.personalInfo?.fullName || data?.fullName || data?.name || '').trim();
     const jobTitle = String(data?.personalInfo?.jobTitle || data?.jobTitle || data?.current_title || '').trim();
-    const location = String(data?.personalInfo?.location || data?.location || '').trim();
+    const rawLocation = String(data?.personalInfo?.location || data?.location || '').trim();
     const website = String(data?.personalInfo?.website || data?.website || '').trim();
+
+    // Multi-source Country and City detection
+    let rawCountry = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || request.headers.get('x-country-code') || data?.country || '';
+    let city = '';
+    let country = String(rawCountry).toUpperCase().trim();
+
+    if (rawLocation) {
+      const parts = rawLocation.split(',').map((p: string) => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        city = parts[0];
+        if (!country || country === 'UNKNOWN') {
+          country = parts[parts.length - 1];
+        }
+      } else if (parts.length === 1) {
+        city = parts[0];
+      }
+    }
+    if (!country || country === 'UNKNOWN') country = 'US';
+
     const consents = data?.consents || {};
 
     const toBool = (v: any, fallback = true): boolean => {
@@ -72,6 +92,7 @@ export async function POST(request: Request) {
       return Boolean(v);
     };
 
+    // Default recruiter talent pool opt-in is TRUE unless explicitly set to false
     const consent_recruiter_share = toBool(
       consents.recruiterShare ??
       consents.consent_recruiter_share ??
@@ -109,7 +130,7 @@ export async function POST(request: Request) {
       calculatedYears = Math.min(40, data.experience.length * 2);
     }
 
-    // ---- 1. IMMEDIATE PRIMARY DATABASE SAVE (DO NOT WAIT FOR AI) ----
+    // ---- 1. PRIMARY DATABASE SAVE ----
     let candidateId: string | null = null;
 
     const candidatePayload: Record<string, any> = {
@@ -118,9 +139,9 @@ export async function POST(request: Request) {
       full_name: fullName || 'Candidate',
       job_title: jobTitle || 'Professional',
       current_title: jobTitle || 'Professional',
-      location: location || '',
-      city: location ? location.split(',')[0].trim() : '',
-      country: country || 'Unknown',
+      location: rawLocation || city || country,
+      city: city || rawLocation,
+      country: country,
       device_type,
       experience_years: calculatedYears,
       employment_status: 'Open to work',
@@ -135,7 +156,7 @@ export async function POST(request: Request) {
       updated_at: now,
     };
 
-    // 1. PRIMARY CANDIDATES TABLE UPSERT (With multi-tier schema fallback)
+    // 1. PRIMARY CANDIDATES TABLE UPSERT
     let { data: cand, error: candErr } = await supabaseAdmin
       .from('candidates')
       .upsert(candidatePayload, { onConflict: 'email' })
@@ -153,7 +174,7 @@ export async function POST(request: Request) {
         job_title: jobTitle || 'Professional',
         current_title: jobTitle || 'Professional',
         country: country || 'Unknown',
-        city: location ? location.split(',')[0].trim() : '',
+        city: city || (rawLocation ? rawLocation.split(',')[0].trim() : ''),
         skills: resumeSkills,
         resume_data: data,
         opted_in_at: now,
@@ -195,8 +216,8 @@ export async function POST(request: Request) {
         id: candidateId,
         full_name: fullName || 'Candidate',
         current_title: jobTitle || 'Professional',
-        country: country || 'Unknown',
-        city: location ? location.split(',')[0].trim() : '',
+        country: country || 'US',
+        city: city || rawLocation || '',
         experience_years: calculatedYears,
         employment_status: 'Open to work',
         preferred_work: 'Any',
@@ -237,11 +258,11 @@ export async function POST(request: Request) {
     // ---- 3. CONSENT AUDIT LOG ----
     try {
       await supabaseAdmin.from('consent_logs').insert({
-        session_id: sessionId,
+        session_id: ip || 'anon-session',
         email,
         consent_marketing: consent_recruiter_share || consent_email_jobs,
         consent_ai: true,
-        ip_address: sessionId,
+        ip_address: ip,
         user_agent: ua,
       });
     } catch (e) {

@@ -97,7 +97,7 @@ export function Pill({ children, color, bg }: { children: React.ReactNode; color
 
 /* ----------------------------- Controls ----------------------------- */
 export function Btn({ children, onClick, variant = "primary", disabled, type = "button", className = "" }:
-  { children: React.ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "danger"; disabled?: boolean; type?: "button" | "submit"; className?: string }) {
+  { children: React.ReactNode; onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void; variant?: "primary" | "ghost" | "danger"; disabled?: boolean; type?: "button" | "submit"; className?: string }) {
   const { t } = useAdminTheme();
   const base = "inline-flex items-center justify-center gap-2 border-[3px] px-4 py-2.5 fm text-[11px] font-bold uppercase tracking-widest transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50";
   const styles: React.CSSProperties =
@@ -215,9 +215,9 @@ export function Row({ children, onClick }: { children: React.ReactNode; onClick?
       onMouseEnter={(e) => (e.currentTarget.style.background = t.surface2)} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{children}</tr>
   );
 }
-export function Cell({ children, className = "", style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+export function Cell({ children, className = "", style, title }: { children: React.ReactNode; className?: string; style?: React.CSSProperties; title?: string }) {
   const { t } = useAdminTheme();
-  return <td className={cn("px-4 py-3", className)} style={{ color: t.text, ...style }}>{children}</td>;
+  return <td title={title} className={cn("px-4 py-3", className)} style={{ color: t.text, ...style }}>{children}</td>;
 }
 
 export function EmptyState({ icon, title, hint }: { icon?: React.ReactNode; title: string; hint?: string }) {

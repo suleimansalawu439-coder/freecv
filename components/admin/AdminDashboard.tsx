@@ -5,14 +5,14 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, BarChart3, Users, Building2, DollarSign, Target, Wallet,
-  Headphones, FileText, Settings as Cog, LogOut, Menu, X,
+  Headphones, FileText, Settings as Cog, LogOut, Menu, X, MousePointerClick,
 } from "lucide-react";
 import { Chakra_Petch, Sora, JetBrains_Mono } from "@/lib/fonts";
 import { AdminThemeProvider, useAdminTheme, ThemeToggle } from "./admin/theme";
 import { AdminStyle } from "./admin/ui";
 import {
   OverviewTab, AnalyticsTab, TalentTab, RecruitersTab, RevenueTab,
-  ExpensesTab, PipelineTab, SupportTab, BlogTab, SettingsTab,
+  AffiliatesTab, ExpensesTab, PipelineTab, SupportTab, BlogTab, SettingsTab,
 } from "./tabs";
 
 const disp = Chakra_Petch({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--fd", display: "swap" });
@@ -24,7 +24,8 @@ const TABS = [
   { id: "analytics", label: "Analytics", icon: BarChart3, hint: "traffic & behaviour" },
   { id: "talent", label: "Talent Pool", icon: Users, hint: "opt-in candidates" },
   { id: "recruiters", label: "Recruiters", icon: Building2, hint: "accounts & onboarding" },
-  { id: "revenue", label: "Revenue", icon: DollarSign, hint: "MRR · ARR · affiliate" },
+  { id: "affiliates", label: "Affiliates", icon: MousePointerClick, hint: "careerjet clicks & cpc" },
+  { id: "revenue", label: "Revenue", icon: DollarSign, hint: "MRR · ARR · subscriptions" },
   { id: "pipeline", label: "Pipeline", icon: Target, hint: "sales CRM" },
   { id: "expenses", label: "Expenses", icon: Wallet, hint: "spend ledger" },
   { id: "support", label: "Support", icon: Headphones, hint: "help desk" },
@@ -36,6 +37,7 @@ type TabId = (typeof TABS)[number]["id"];
 type Props = {
   candidates: any[]; analytics: any[]; aiLogs: any[];
   siteSettings?: any; featureFlags?: any[]; blogPosts?: any[];
+  appSettings?: Record<string, any>; jobClicks?: any[];
 };
 
 function RailContent({ tab, setTab, onNavigate }: { tab: TabId; setTab: (t: TabId) => void; onNavigate?: () => void }) {
@@ -114,12 +116,13 @@ function Shell(props: Props) {
       case "analytics": return <AnalyticsTab analytics={props.analytics} />;
       case "talent": return <TalentTab candidates={props.candidates} />;
       case "recruiters": return <RecruitersTab />;
+      case "affiliates": return <AffiliatesTab jobClicks={props.jobClicks || []} />;
       case "revenue": return <RevenueTab />;
       case "pipeline": return <PipelineTab onConvert={() => setTab("recruiters")} />;
       case "expenses": return <ExpensesTab />;
       case "support": return <SupportTab />;
       case "blog": return <BlogTab posts={props.blogPosts || []} />;
-      case "settings": return <SettingsTab siteSettings={props.siteSettings || {}} featureFlags={props.featureFlags || []} overview={overview} />;
+      case "settings": return <SettingsTab siteSettings={props.siteSettings || {}} featureFlags={props.featureFlags || []} appSettings={props.appSettings || {}} overview={overview} />;
     }
   };
 

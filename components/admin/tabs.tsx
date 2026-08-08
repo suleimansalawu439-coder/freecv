@@ -4,6 +4,7 @@ import {
   Users, DollarSign, TrendingUp, Briefcase, Headphones, FileText, Settings as Cog,
   BarChart3, Plus, Search, Mail, Globe, Building2, ArrowRight, ArrowLeft,
   Inbox, Wallet, Target, Activity, MousePointerClick, Layers, Cpu, CheckCircle, AlertCircle, RefreshCw,
+  Trash, Settings, Laptop, Smartphone, Tablet, ExternalLink, Download, Eye, Check, X, ShieldCheck, MapPin, Filter
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAdminTheme } from "./admin/theme";
@@ -49,43 +50,56 @@ export function OverviewTab({ candidates, analytics, aiLogs }: { candidates: any
   const optSpark = useMemo(() => {
     const m: Record<string, number> = {};
     for (let i = 6; i >= 0; i--) m[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0;
-    candidates.forEach((c) => { const d = (c.created_at || "").slice(0, 10); if (d in m) m[d]++; });
+    candidates.forEach((c) => { const d = (c.opted_in_at || c.created_at || "").slice(0, 10); if (d in m) m[d]++; });
     return Object.values(m);
   }, [candidates]);
+
   const device = useMemo(() => groupBy(analytics, "device_type"), [analytics]);
 
   return (
     <div className="space-y-7">
-      <Reveal><SectionLabel color={t.green}>mission control · this month</SectionLabel></Reveal>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Reveal><Kpi label="MRR (subscriptions)" value={<CountUp to={(o?.mrr ?? o?.blendedMonthly ?? 0) - (o?.affiliateRun ?? 0)} prefix="$" decimals={0} />} sub={`${o?.recruitersActive ?? 0} active seats`} accent={t.green} icon={<DollarSign size={16} />} spark={visits.slice(-7)} delta={12} /></Reveal>
-        <Reveal delay={60}><Kpi label="Affiliate run-rate" value={<CountUp to={o?.affiliateRun ?? 0} prefix="$" decimals={0} />} sub={`${usd(o?.affiliateThisMonth ?? 0)} MTD`} accent={t.gold} icon={<TrendingUp size={16} />} gauge={{ value: Math.min(100, (o?.affiliateRun ?? 0) / 5) }} /></Reveal>
-        <Reveal delay={120}><Kpi label="Spend MTD" value={<CountUp to={o?.expensesThisMonth ?? 0} prefix="$" decimals={0} />} sub={`AI ${usd(o?.aiCostThisMonth ?? 0)}`} accent={t.verm} icon={<Wallet size={16} />} delta={-4} /></Reveal>
-        <Reveal delay={180}><Kpi label="Open pipeline" value={<CountUp to={o?.pipelineOpen ?? 0} />} sub="deals in flight" accent={t.cob} icon={<Target size={16} />} spark={optSpark} /></Reveal>
+      {/* 4 core metrics */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Reveal><Kpi label="Talent pool" value={<CountUp to={candidates.length} />} sub={`${candidates.filter(c => c.consent_recruiter_share).length} recruiter-ready`} accent={t.cob} icon={<Users size={16} />} spark={optSpark} /></Reveal>
+        <Reveal delay={60}><Kpi label="MRR (seats)" value={<CountUp to={o?.mrr || 0} prefix="$" decimals={0} />} sub="subscriptions" accent={t.green} icon={<DollarSign size={16} />} delta={o?.mrr ? 12 : 0} /></Reveal>
+        <Reveal delay={120}><Kpi label="Job CPC run-rate" value={<CountUp to={o?.affiliateRun || 0} prefix="$" decimals={0} />} sub={`${usd(o?.affiliateMonth || 0)} MTD`} accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
+        <Reveal delay={180}><Kpi label="Total visits (30d)" value={<CountUp to={analytics.length} />} sub={`${funnel.sessions} unique sessions`} accent={t.verm} icon={<Activity size={16} />} /></Reveal>
       </div>
 
+      {/* Traffic line + Funnel side-by-side */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Reveal className="lg:col-span-2">
           <Card className="p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <SectionLabel>traffic · 14 days</SectionLabel>
-              <Pill color={t.cob}><Activity size={11} /> live</Pill>
-            </div>
-            <LineChart data={visits} labels={visitLabels} color={t.cob} height={220} />
+            <SectionLabel color={t.cob}>traffic · last 14 days</SectionLabel>
+            <LineChart data={visits} labels={visitLabels} color={t.cob} height={200} />
           </Card>
         </Reveal>
-        <Reveal delay={80}>
-          <Card className="flex h-full flex-col justify-between gap-4 p-5">
-            <SectionLabel color={t.gold}>conversion</SectionLabel>
-            <div className="flex items-center justify-around">
-              <RadialGauge value={optConv} color={t.gold} label="opt-in" size={118} />
-              <RadialGauge value={dlConv} color={t.green} label="download" size={118} />
+        <Reveal delay={100}>
+          <Card className="p-5">
+            <SectionLabel color={t.green}>conversion funnel</SectionLabel>
+            <div className="space-y-3 pt-1">
+              {[
+                { label: "Sessions", count: funnel.sessions, pct: 100, color: t.muted },
+                { label: "Started CV", count: funnel.started, pct: funnel.sessions ? Math.round((funnel.started / funnel.sessions) * 100) : 0, color: t.cob },
+                { label: "Downloaded CV", count: funnel.downloaded, pct: dlConv, color: t.green },
+                { label: "Talent Pool Opt-in", count: funnel.optIns, pct: optConv, color: t.gold },
+              ].map((step) => (
+                <div key={step.label} className="space-y-1">
+                  <div className="flex justify-between fm text-[11px]">
+                    <span style={{ color: t.muted }}>{step.label}</span>
+                    <span className="font-bold" style={{ color: step.color }}>{step.count.toLocaleString()} ({step.pct}%)</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden" style={{ background: t.inset }}>
+                    <div className="h-full transition-all duration-700" style={{ width: `${Math.min(100, step.pct)}%`, background: step.color }} />
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         </Reveal>
       </div>
 
+      {/* Talent snapshot / Devices / Pipeline */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Reveal><Card className="p-5"><SectionLabel color={t.verm}>talent pool</SectionLabel>
           <div className="space-y-3">
@@ -111,7 +125,6 @@ export function AnalyticsTab({ analytics }: { analytics: any[] }) {
   const templates = useMemo(() => topN(groupBy(analytics, "template_id"), 7), [analytics]);
   const browsers = useMemo(() => topN(groupBy(analytics, "browser"), 6), [analytics]);
 
-  /* weekday x daypart heatmap from real event timestamps */
   const heat = useMemo(() => {
     const g = Array.from({ length: 7 }, () => [0, 0, 0, 0]);
     analytics.forEach((e) => {
@@ -151,6 +164,8 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   const { t } = useAdminTheme();
   const [q, setQ] = useState("");
   const [country, setCountry] = useState("");
+  const [consentFilter, setConsentFilter] = useState("all");
+  const [deviceFilter, setDeviceFilter] = useState("all");
   const [detail, setDetail] = useState<any>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
@@ -160,17 +175,21 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
   const filtered = useMemo(() => {
     return candidates.filter((c) => {
       const matchCountry = !country || c.country === country;
+      const matchConsent = consentFilter === "all" ? true :
+        consentFilter === "consented" ? !!c.consent_recruiter_share : !c.consent_recruiter_share;
+      const matchDevice = deviceFilter === "all" ? true :
+        (c.device_type || "desktop").toLowerCase() === deviceFilter.toLowerCase();
       const skillsStr = Array.isArray(c.skills) ? c.skills.map((s: any) => typeof s === 'string' ? s : s?.name || '').join(' ') : '';
-      const term = `${c.full_name || ''} ${c.current_title || ''} ${c.email || ''} ${skillsStr}`.toLowerCase();
+      const term = `${c.full_name || ''} ${c.current_title || ''} ${c.email || ''} ${c.city || ''} ${skillsStr}`.toLowerCase();
       const matchQuery = !q || q.toLowerCase().split(/\s+/).every(w => term.includes(w));
-      return matchCountry && matchQuery;
+      return matchCountry && matchConsent && matchDevice && matchQuery;
     });
-  }, [candidates, q, country]);
+  }, [candidates, q, country, consentFilter, deviceFilter]);
 
   // Reset page to 1 on filter changes
   useEffect(() => {
     setPage(1);
-  }, [q, country, pageSize]);
+  }, [q, country, consentFilter, deviceFilter, pageSize]);
 
   const consented = candidates.filter((c) => c.consent_recruiter_share).length;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -181,71 +200,111 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
 
   const exportCSV = () => {
     const rows = [
-      ["Email", "Name", "Title", "Country", "City", "Exp (yrs)", "Score", "Recruiter Consent", "Email Jobs Consent", "Opted in"],
+      ["Email", "Full Name", "Title", "Category", "Country", "City", "Device", "Exp (yrs)", "Completeness", "Recruiter Consent", "Email Jobs Consent", "Opted In Date"],
       ...filtered.map((c) => [
         c.email,
         c.full_name,
         c.current_title,
+        c.title_category || "",
         c.country,
-        c.city,
+        c.city || c.location || "",
+        c.device_type || "desktop",
         c.experience_years,
         c.completeness_score,
         c.consent_recruiter_share ? "yes" : "no",
         c.consent_email_jobs ? "yes" : "no",
-        (c.opted_in_at || c.created_at || "").slice(0, 10)
+        (c.opted_in_at || c.created_at || "").slice(0, 19).replace("T", " ")
       ])
     ];
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([rows.map((r) => r.map((v) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" }));
+    a.href = URL.createObjectURL(new Blob([rows.map((r: any[]) => r.map((v: any) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" }));
     a.download = `cvyon_talent_pool_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
+  };
+
+  const getDeviceIcon = (dev?: string) => {
+    const d = (dev || "desktop").toLowerCase();
+    if (d === "mobile") return <Smartphone size={13} className="text-blue-500" />;
+    if (d === "tablet") return <Tablet size={13} className="text-purple-500" />;
+    return <Laptop size={13} className="text-emerald-500" />;
   };
 
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Reveal><Kpi label="Pool size" value={<CountUp to={candidates.length} />} accent={t.cob} icon={<Users size={16} />} /></Reveal>
+        <Reveal><Kpi label="Talent pool size" value={<CountUp to={candidates.length} />} accent={t.cob} icon={<Users size={16} />} /></Reveal>
         <Reveal delay={60}><Kpi label="Recruiter-consented" value={<CountUp to={consented} />} accent={t.green} gauge={{ value: candidates.length ? (consented / candidates.length) * 100 : 0 }} /></Reveal>
         <Reveal delay={120}><Kpi label="Avg completeness" value={<CountUp to={candidates.length ? Math.round(candidates.reduce((s, c) => s + (c.completeness_score || 0), 0) / candidates.length) : 0} suffix="%" />} accent={t.gold} /></Reveal>
-        <Reveal delay={180}><Kpi label="Countries" value={<CountUp to={countries.length} />} accent={t.verm} icon={<Globe size={16} />} /></Reveal>
+        <Reveal delay={180}><Kpi label="Countries represented" value={<CountUp to={countries.length} />} accent={t.verm} icon={<Globe size={16} />} /></Reveal>
       </div>
 
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <Reveal>
-          <SectionLabel color={t.verm}>talent pool crm</SectionLabel>
-          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length} candidates</p>
+          <SectionLabel color={t.verm}>talent pool CRM & candidate telemetry</SectionLabel>
+          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{filtered.length} of {candidates.length} candidates visible</p>
         </Reveal>
-        <Btn variant="ghost" onClick={exportCSV}><Layers size={14} /> Export CSV</Btn>
+        <Btn variant="ghost" onClick={exportCSV}><Download size={14} /> Export CSV</Btn>
       </div>
 
-      <Card className="flex flex-col gap-3 p-4 sm:flex-row">
-        <div className="relative flex-1">
+      {/* Filter toolbar */}
+      <Card className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4">
+        <div className="relative sm:col-span-2 lg:col-span-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate email, name, job title, or skills" className="!pl-9" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate, title, skills..." className="!pl-9 text-xs" />
         </div>
-        <Select value={country} onChange={(e) => setCountry(e.target.value)} className="sm:w-52">
-          <option value="">All countries</option>
+        <Select value={country} onChange={(e) => setCountry(e.target.value)} className="text-xs">
+          <option value="">All Countries</option>
           {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+        </Select>
+        <Select value={consentFilter} onChange={(e) => setConsentFilter(e.target.value)} className="text-xs">
+          <option value="all">All Consents</option>
+          <option value="consented">Recruiter Consented (Yes)</option>
+          <option value="opted_out">Opted Out (No)</option>
+        </Select>
+        <Select value={deviceFilter} onChange={(e) => setDeviceFilter(e.target.value)} className="text-xs">
+          <option value="all">All Devices</option>
+          <option value="desktop">Desktop</option>
+          <option value="mobile">Mobile</option>
+          <option value="tablet">Tablet</option>
         </Select>
       </Card>
 
       {filtered.length === 0 ? (
-        <Card><EmptyState icon={<Users size={32} />} title="No candidates match your search filter." hint="Candidates who create or download a CV appear here automatically." /></Card>
+        <Card><EmptyState icon={<Users size={32} />} title="No candidates match your filters." hint="Candidates who create or download a CV appear here automatically." /></Card>
       ) : (
         <>
-          <Table head={["Candidate", "Title", "Country", "Exp", "Score", "Consent", "Opted In"]}>
+          <Table head={["Candidate", "Title / Category", "Location", "Device", "Exp", "Score", "Consent", "Opted In", ""]}>
             {paginatedList.map((c) => (
               <Row key={c.id || c.email} onClick={() => setDetail(c)}>
                 <Cell>
                   <div className="font-semibold" style={{ color: t.text }}>{c.full_name || "Anonymous Candidate"}</div>
                   <div className="fm text-[11px]" style={{ color: t.faint }}>{c.email || "No email"}</div>
                 </Cell>
-                <Cell>{c.current_title || "—"}</Cell>
-                <Cell>{c.country || "—"}</Cell>
+                <Cell>
+                  <div>{c.current_title || "—"}</div>
+                  {c.title_category && <div className="fm text-[10px]" style={{ color: t.muted }}>{c.title_category}</div>}
+                </Cell>
+                <Cell>
+                  <div className="flex items-center gap-1">
+                    <span>{c.country || "—"}</span>
+                    {c.city && <span className="fm text-[10px]" style={{ color: t.faint }}>({c.city})</span>}
+                  </div>
+                </Cell>
+                <Cell>
+                  <div className="flex items-center gap-1.5 fm text-xs">
+                    {getDeviceIcon(c.device_type)}
+                    <span className="capitalize">{c.device_type || "desktop"}</span>
+                  </div>
+                </Cell>
                 <Cell className="fm text-[12px]">{c.experience_years ? `${c.experience_years}y` : "—"}</Cell>
                 <Cell><span className="fm text-[11px] font-bold" style={{ color: (c.completeness_score || 0) >= 80 ? t.green : t.gold }}>{c.completeness_score ?? 0}%</span></Cell>
-                <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill>no</Pill>}</Cell>
+                <Cell>{c.consent_recruiter_share ? <Pill color={t.green}>yes</Pill> : <Pill color={t.verm}>no</Pill>}</Cell>
                 <Cell><span className="fm text-[11px]" style={{ color: t.faint }}>{(c.opted_in_at || c.created_at || "").slice(0, 10) || "—"}</span></Cell>
+                <Cell>
+                  <Btn variant="ghost" onClick={(e) => { e.stopPropagation(); setDetail(c); }} className="text-xs py-1 px-2">
+                    <Eye size={13} /> View
+                  </Btn>
+                </Cell>
               </Row>
             ))}
           </Table>
@@ -275,13 +334,20 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
         </>
       )}
 
-
+      {/* Candidate Details Drawer */}
       <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.full_name || detail?.email || "Candidate Details"}>
         {detail && (
           <div className="space-y-6">
             <div className="flex flex-wrap gap-2">
-              <Pill color={detail.consent_recruiter_share ? t.green : t.verm}>{detail.consent_recruiter_share ? "Recruiter Consent: Agreed" : "Recruiter Consent: Opted Out"}</Pill>
+              <Pill color={detail.consent_recruiter_share ? t.green : t.verm}>
+                {detail.consent_recruiter_share ? "Recruiter Consent: Agreed" : "Recruiter Consent: Opted Out"}
+              </Pill>
               {detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}
+              {detail.device_type && (
+                <Pill color={t.cob}>
+                  {getDeviceIcon(detail.device_type)} <span className="capitalize">{detail.device_type}</span>
+                </Pill>
+              )}
               {detail.completeness_score && <Pill color={t.gold}>{detail.completeness_score}% Complete</Pill>}
             </div>
 
@@ -291,20 +357,21 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
                 ["Email", detail.email],
                 ["Job Title", detail.current_title],
                 ["Location / City", detail.city || detail.location || "—"],
+                ["Device Type", detail.device_type || "desktop"],
                 ["Experience", detail.experience_years ? `${detail.experience_years} years` : "—"],
                 ["Industry / Category", detail.title_category || "—"],
                 ["Opt-in Date", (detail.opted_in_at || detail.created_at || "").slice(0, 19).replace("T", " ")],
               ].map(([k, v]) => (
                 <div key={k as string}>
                   <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div>
-                  <div className="mt-0.5 break-words font-medium" style={{ color: t.text }}>{(v as string) || "—"}</div>
+                  <div className="mt-0.5 break-words font-medium capitalize" style={{ color: t.text }}>{(v as string) || "—"}</div>
                 </div>
               ))}
             </div>
 
             {Array.isArray(detail.skills) && detail.skills.length > 0 && (
               <div>
-                <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Skills</div>
+                <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Skills & Tech Stack</div>
                 <div className="flex flex-wrap gap-1.5">
                   {detail.skills.map((sk: any, i: number) => {
                     const name = typeof sk === "string" ? sk : sk?.name;
@@ -316,10 +383,18 @@ export function TalentTab({ candidates }: { candidates: any[] }) {
 
             {detail.resume_data && (
               <div>
-                <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Raw Summary / Profile</div>
-                <div className="p-3 border-2 rounded fb text-xs leading-relaxed overflow-x-auto max-h-48" style={{ borderColor: t.border, background: t.inset, color: t.text }}>
-                  {detail.resume_data?.summary || JSON.stringify(detail.resume_data?.personalInfo || detail.resume_data, null, 2)}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>Structured Resume Data</div>
+                  <Btn variant="ghost" className="text-[10px] py-0.5 px-2" onClick={() => {
+                    navigator.clipboard.writeText(JSON.stringify(detail.resume_data, null, 2));
+                    toast.success("Resume JSON copied to clipboard");
+                  }}>
+                    Copy JSON
+                  </Btn>
                 </div>
+                <pre className="p-3 border-2 rounded fm text-[11px] leading-relaxed overflow-x-auto max-h-60" style={{ borderColor: t.border, background: t.inset, color: t.text }}>
+                  {JSON.stringify(detail.resume_data, null, 2)}
+                </pre>
               </div>
             )}
           </div>
@@ -445,6 +520,282 @@ export function RecruitersTab() {
   );
 }
 
+/* ============================ AFFILIATES (CAREERJET CPC TELEMETRY) ============================ */
+export function AffiliatesTab({ jobClicks = [] }: { jobClicks?: any[] }) {
+  const { t } = useAdminTheme();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [deviceFilter, setDeviceFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  const loadData = () => {
+    setLoading(true);
+    api("/api/admin/affiliates")
+      .then((j) => {
+        setData(j);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const rawClicks = data?.recent || jobClicks || [];
+
+  const filteredClicks = useMemo(() => {
+    return rawClicks.filter((c: any) => {
+      const matchCountry = countryFilter === "all" ? true : (c.country || "").toUpperCase() === countryFilter.toUpperCase();
+      const matchDevice = deviceFilter === "all" ? true : (c.device_type || "desktop").toLowerCase() === deviceFilter.toLowerCase();
+      const term = `${c.user_name || ''} ${c.user_email || ''} ${c.job_title || ''} ${c.company || ''} ${c.city || ''}`.toLowerCase();
+      const matchQ = !q || q.toLowerCase().split(/\s+/).every(w => term.includes(w));
+      return matchCountry && matchDevice && matchQ;
+    });
+  }, [rawClicks, q, countryFilter, deviceFilter]);
+
+  const countries = useMemo(() => {
+    const set = new Set<string>();
+    rawClicks.forEach((c: any) => {
+      if (c.country) set.add(c.country.toUpperCase());
+    });
+    return Array.from(set).sort();
+  }, [rawClicks]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredClicks.length / pageSize));
+  const paginatedClicks = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredClicks.slice(start, start + pageSize);
+  }, [filteredClicks, page, pageSize]);
+
+  const exportCSV = () => {
+    const rows = [
+      ["Candidate Name", "Candidate Email", "Job Title", "Company", "Location / City", "Country", "Device", "CPC Value ($)", "Click Timestamp", "Job URL"],
+      ...filteredClicks.map((c: any) => [
+        c.user_name || "Candidate",
+        c.user_email || "",
+        c.job_title || "",
+        c.company || "",
+        c.city || "",
+        c.country || "US",
+        c.device_type || "desktop",
+        (Number(c.cpc_value) || 0).toFixed(2),
+        (c.created_at || "").slice(0, 19).replace("T", " "),
+        c.job_url || ""
+      ])
+    ];
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rows.map((r: any[]) => r.map((v: any) => `"${(v ?? "").toString().replace(/"/g, '""')}"`).join(",")).join("\n")], { type: "text/csv" }));
+    a.download = `cvyon_careerjet_job_clicks_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+  };
+
+  const getDeviceIcon = (dev?: string) => {
+    const d = (dev || "desktop").toLowerCase();
+    if (d === "mobile") return <Smartphone size={13} className="text-blue-500" />;
+    if (d === "tablet") return <Tablet size={13} className="text-purple-500" />;
+    return <Laptop size={13} className="text-emerald-500" />;
+  };
+
+  const totalClicks = data?.totals?.clicks ?? rawClicks.length;
+  const totalUsd = data?.totals?.usd ?? (rawClicks.reduce((s: number, c: any) => s + (Number(c.cpc_value) || 0), 0)).toFixed(2);
+  const mtdClicks = data?.last30?.clicks ?? rawClicks.length;
+  const mtdUsd = data?.last30?.usd ?? totalUsd;
+  const projMonthly = data?.projectedMonthly?.usd ?? totalUsd;
+
+  return (
+    <div className="space-y-7">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <Reveal>
+          <SectionLabel color={t.gold}>careerjet job clicks & CPC monetization</SectionLabel>
+          <p className="fb text-xs" style={{ color: t.muted }}>
+            Granular candidate telemetry & click-through performance for monetized CareerJet opportunities.
+          </p>
+        </Reveal>
+        <div className="flex items-center gap-2">
+          <Btn variant="ghost" onClick={loadData} className="text-xs">
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+          </Btn>
+          <Btn variant="ghost" onClick={exportCSV} className="text-xs">
+            <Download size={13} /> Export CSV
+          </Btn>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Reveal><Kpi label="Total Job Clicks" value={<CountUp to={totalClicks} />} sub="all-time telemetry" accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
+        <Reveal delay={60}><Kpi label="30-Day Clicks" value={<CountUp to={mtdClicks} />} sub={`$${mtdUsd} earned MTD`} accent={t.green} icon={<Activity size={16} />} /></Reveal>
+        <Reveal delay={120}><Kpi label="Monthly Run Rate" value={`$${projMonthly}`} sub="projected 30d run-rate" accent={t.cob} icon={<TrendingUp size={16} />} /></Reveal>
+        <Reveal delay={180}><Kpi label="Est. Total Revenue" value={`$${totalUsd}`} sub="blended CPC model" accent={t.verm} icon={<DollarSign size={16} />} /></Reveal>
+      </div>
+
+      {/* CPC Breakdown by Country & Top Jobs */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Reveal>
+          <Card className="p-5">
+            <SectionLabel color={t.gold}>cpc performance by country</SectionLabel>
+            {(!data?.byCountry || data.byCountry.length === 0) ? (
+              <p className="fb text-sm" style={{ color: t.faint }}>No country click data yet.</p>
+            ) : (
+              <div className="space-y-2 mt-2">
+                <Table head={["Country", "Clicks", "Avg CPC", "Est. Revenue"]}>
+                  {data.byCountry.slice(0, 8).map((c: any) => (
+                    <Row key={c.country}>
+                      <Cell className="font-bold">{c.country}</Cell>
+                      <Cell className="fm text-xs">{c.clicks}</Cell>
+                      <Cell className="fm text-xs text-amber-500 font-medium">{c.avgCpc}</Cell>
+                      <Cell className="fm text-xs font-bold text-green-500">${c.usd}</Cell>
+                    </Row>
+                  ))}
+                </Table>
+              </div>
+            )}
+          </Card>
+        </Reveal>
+
+        <Reveal delay={80}>
+          <Card className="p-5">
+            <SectionLabel color={t.green}>top converting opportunities</SectionLabel>
+            {(!data?.topJobs || data.topJobs.length === 0) ? (
+              <p className="fb text-sm" style={{ color: t.faint }}>No job conversions logged yet.</p>
+            ) : (
+              <div className="space-y-2 mt-2">
+                <Table head={["Job Title", "Company", "Clicks", "Revenue"]}>
+                  {data.topJobs.slice(0, 8).map((j: any, i: number) => (
+                    <Row key={i}>
+                      <Cell>
+                        <div className="font-semibold truncate max-w-[180px]" title={j.title}>{j.title}</div>
+                      </Cell>
+                      <Cell className="truncate max-w-[120px]" title={j.company}>{j.company}</Cell>
+                      <Cell className="fm text-xs font-bold">{j.clicks}</Cell>
+                      <Cell className="fm text-xs font-bold text-green-500">${(j.cents / 100).toFixed(2)}</Cell>
+                    </Row>
+                  ))}
+                </Table>
+              </div>
+            )}
+          </Card>
+        </Reveal>
+      </div>
+
+      {/* Filter and Live Job Telemetry Table */}
+      <Reveal delay={120}>
+        <div className="space-y-4">
+          <SectionLabel color={t.cob}>live job click telemetry & candidate logs</SectionLabel>
+          
+          <Card className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4">
+            <div className="relative">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search candidate, job, company..." className="!pl-9 text-xs" />
+            </div>
+            <Select value={countryFilter} onChange={(e) => setCountryFilter(e.target.value)} className="text-xs">
+              <option value="all">All Countries</option>
+              {countries.map((c) => <option key={c} value={c}>{c}</option>)}
+            </Select>
+            <Select value={deviceFilter} onChange={(e) => setDeviceFilter(e.target.value)} className="text-xs">
+              <option value="all">All Devices</option>
+              <option value="desktop">Desktop</option>
+              <option value="mobile">Mobile</option>
+              <option value="tablet">Tablet</option>
+            </Select>
+          </Card>
+
+          {loading ? (
+            <Spinner />
+          ) : filteredClicks.length === 0 ? (
+            <Card><EmptyState icon={<MousePointerClick size={32} />} title="No job clicks recorded yet." hint="When candidates search and apply for jobs in the builder, telemetry logs appear here." /></Card>
+          ) : (
+            <>
+              <Table head={["Candidate", "Opportunity / Company", "Location", "Device", "CPC Value", "Timestamp", ""]}>
+                {paginatedClicks.map((c: any, idx: number) => (
+                  <Row key={c.id || idx}>
+                    <Cell>
+                      <div className="font-semibold" style={{ color: t.text }}>{c.user_name || "Candidate"}</div>
+                      <div className="fm text-[11px]" style={{ color: t.faint }}>{c.user_email || "—"}</div>
+                    </Cell>
+                    <Cell>
+                      <div className="font-medium truncate max-w-[220px]" title={c.job_title}>{c.job_title || "Opportunity"}</div>
+                      <div className="fm text-[11px]" style={{ color: t.muted }}>{c.company || "—"}</div>
+                    </Cell>
+                    <Cell>
+                      <div className="flex items-center gap-1">
+                        <Globe size={11} className="text-amber-500" />
+                        <span>{c.country || "US"}</span>
+                        {c.city && <span className="fm text-[10px]" style={{ color: t.faint }}>({c.city})</span>}
+                      </div>
+                    </Cell>
+                    <Cell>
+                      <div className="flex items-center gap-1.5 fm text-xs capitalize">
+                        {getDeviceIcon(c.device_type)}
+                        <span>{c.device_type || "desktop"}</span>
+                      </div>
+                    </Cell>
+                    <Cell>
+                      <span className="fm text-xs font-bold text-green-500">
+                        ${(Number(c.cpc_value) || 0.12).toFixed(2)}
+                      </span>
+                    </Cell>
+                    <Cell>
+                      <span className="fm text-[11px]" style={{ color: t.faint }}>
+                        {(c.created_at || "").slice(0, 16).replace("T", " ") || "Just now"}
+                      </span>
+                    </Cell>
+                    <Cell>
+                      {c.job_url ? (
+                        <a
+                          href={c.job_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs border px-2 py-1 hover:bg-white/10 transition-colors"
+                          style={{ borderColor: t.border, color: t.cob }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink size={12} /> Open Job
+                        </a>
+                      ) : (
+                        <span className="fm text-[11px]" style={{ color: t.faint }}>—</span>
+                      )}
+                    </Cell>
+                  </Row>
+                ))}
+              </Table>
+
+              {/* Pagination */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                <div className="fm text-xs" style={{ color: t.muted }}>
+                  Showing {Math.min((page - 1) * pageSize + 1, filteredClicks.length)}–{Math.min(page * pageSize, filteredClicks.length)} of {filteredClicks.length} clicks
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={String(pageSize)} onChange={(e) => setPageSize(Number(e.target.value))} className="w-24 text-xs py-1">
+                    <option value="25">25 / page</option>
+                    <option value="50">50 / page</option>
+                    <option value="100">100 / page</option>
+                  </Select>
+                  <Btn variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className="text-xs py-1 px-2.5">
+                    <ArrowLeft size={13} /> Prev
+                  </Btn>
+                  <span className="fm text-xs font-bold px-1" style={{ color: t.text }}>
+                    {page} / {totalPages}
+                  </span>
+                  <Btn variant="ghost" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className="text-xs py-1 px-2.5">
+                    Next <ArrowRight size={13} />
+                  </Btn>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </Reveal>
+    </div>
+  );
+}
+
 /* ============================ REVENUE ============================ */
 export function RevenueTab() {
   const { t } = useAdminTheme();
@@ -454,23 +805,23 @@ export function RevenueTab() {
 
   const mix = [
     { label: "Subscriptions (MRR)", value: Math.round(r.mrr), color: t.green },
-    { label: "Affiliate (run-rate)", value: Math.round(r.affiliateRun), color: t.gold }
+    { label: "CareerJet CPC (run-rate)", value: Math.round(r.affiliateRun), color: t.gold }
   ];
 
   return (
     <div className="space-y-7">
-      <Reveal><SectionLabel color={t.green}>revenue · reconciled</SectionLabel></Reveal>
+      <Reveal><SectionLabel color={t.green}>revenue · reconciled financial performance</SectionLabel></Reveal>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Reveal><Kpi label="MRR" value={<CountUp to={r.mrr} prefix="$" decimals={0} />} sub="recurring seats" accent={t.green} icon={<DollarSign size={16} />} /></Reveal>
         <Reveal delay={60}><Kpi label="ARR" value={<CountUp to={r.arr} prefix="$" decimals={0} />} sub="MRR × 12" accent={t.cob} icon={<TrendingUp size={16} />} /></Reveal>
-        <Reveal delay={120}><Kpi label="Affiliate run-rate" value={<CountUp to={r.affiliateRun} prefix="$" decimals={0} />} sub={`${usd(r.affiliateMonth)} MTD`} accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
+        <Reveal delay={120}><Kpi label="CareerJet CPC Run-rate" value={<CountUp to={r.affiliateRun} prefix="$" decimals={0} />} sub={`${usd(r.affiliateMonth)} MTD`} accent={t.gold} icon={<MousePointerClick size={16} />} /></Reveal>
         <Reveal delay={180}><Kpi label="Net MTD" value={<CountUp to={r.netMonth} prefix="$" decimals={0} />} sub={`blended ${usd(r.blendedMonthly)}`} accent={r.netMonth >= 0 ? t.green : t.verm} icon={<Wallet size={16} />} delta={r.netMonth >= 0 ? 8 : -8} /></Reveal>
       </div>
 
       <Reveal>
         <Card className="border-[3px] p-4" style={{ borderColor: t.gold }}>
           <p className="fb text-sm" style={{ color: t.muted }}>
-            <b style={{ color: t.gold }}>Reconciliation:</b> {r.fxNote} Affiliate income is a CPC/CPA run-rate — shown alongside MRR, never folded into it.
+            <b style={{ color: t.gold }}>Reconciliation Policy:</b> {r.fxNote || "Affiliate income is a CPC run-rate from CareerJet job clicks — shown alongside subscription MRR, never folded into it."}
           </p>
         </Card>
       </Reveal>
@@ -484,8 +835,8 @@ export function RevenueTab() {
         </Reveal>
         <Reveal delay={80}>
           <Card className="p-5">
-            <SectionLabel color={t.green}>active subscriptions</SectionLabel>
-            {r.subBreakdown.length === 0 ? (
+            <SectionLabel color={t.green}>active recruiter subscriptions</SectionLabel>
+            {(!r.subBreakdown || r.subBreakdown.length === 0) ? (
               <p className="fb text-sm" style={{ color: t.faint }}>No active seats.</p>
             ) : (
               <div className="space-y-2">
@@ -501,38 +852,19 @@ export function RevenueTab() {
         </Reveal>
       </div>
 
-      {/* Affiliate Referral Network */}
+      {/* CareerJet CPC Monetization Card */}
       <Reveal delay={100}>
         <Card className="p-5">
           <div className="flex justify-between items-center mb-3">
-            <SectionLabel color={t.gold}>affiliate referral partners</SectionLabel>
-            <Pill color={t.gold}>{r.affiliateReferralClicksTotal ?? 0} total referral clicks</Pill>
+            <SectionLabel color={t.gold}>careerjet job clicks cpc by country (mtd)</SectionLabel>
+            <Pill color={t.gold}>{r.affiliateClicksMonth ?? 0} clicks MTD</Pill>
           </div>
-          {(!r.affiliatePartners || r.affiliatePartners.length === 0) ? (
-            <p className="fb text-sm" style={{ color: t.faint }}>No affiliate partners registered yet. Partners who share ?ref=CODE will appear here.</p>
+          {(!r.affByCountry || r.affByCountry.length === 0) ? (
+            <p className="fb text-sm" style={{ color: t.faint }}>No job clicks recorded yet this month.</p>
           ) : (
-            <Table head={["Partner Name", "Referral Code", "Commission Rate", "Total Clicks", "Registered"]}>
-              {r.affiliatePartners.map((aff: any) => (
-                <Row key={aff.ref_code}>
-                  <Cell className="font-semibold">{aff.name}</Cell>
-                  <Cell><span className="fm text-[12px] font-bold text-amber-500">{aff.ref_code}</span></Cell>
-                  <Cell className="fm text-[12px]">{aff.commission_rate}%</Cell>
-                  <Cell className="fm text-[12px] font-bold">{aff.clicks}</Cell>
-                  <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(aff.created_at || "").slice(0, 10)}</Cell>
-                </Row>
-              ))}
-            </Table>
-          )}
-        </Card>
-      </Reveal>
-
-      <Reveal delay={120}>
-        <Card className="p-5">
-          <SectionLabel color={t.gold}>job clicks cpc by country (mtd)</SectionLabel>
-          {r.affByCountry.length === 0 ? (
-            <p className="fb text-sm" style={{ color: t.faint }}>No clicks yet.</p>
-          ) : (
-            <Bars data={r.affByCountry.slice(0, 8).map((c: any) => ({ label: `${c.country} · ${c.clicks}`, value: Math.round(c.usd * 100) }))} color={t.gold} />
+            <div className="space-y-3">
+              <Bars data={r.affByCountry.slice(0, 8).map((c: any) => ({ label: `${c.country} · ${c.clicks} clicks`, value: Math.round(c.usd * 100) }))} color={t.gold} />
+            </div>
           )}
         </Card>
       </Reveal>
@@ -540,7 +872,7 @@ export function RevenueTab() {
       <Reveal delay={140}>
         <Card className="p-5">
           <SectionLabel>revenue ledger</SectionLabel>
-          {r.ledger.length === 0 ? (
+          {(!r.ledger || r.ledger.length === 0) ? (
             <p className="fb text-sm" style={{ color: t.faint }}>No ledger entries.</p>
           ) : (
             <Table head={["Source", "Ref", "Amount", "Status", "When"]}>
@@ -611,7 +943,6 @@ export function ExpensesTab() {
     </div>
   );
 }
-import { Trash, Settings } from "lucide-react";
 
 /* ============================ PIPELINE ============================ */
 const STAGES = [["lead", "Lead"], ["contacted", "Contacted"], ["qualified", "Potential client"], ["proposal", "Proposal"], ["customer", "Customer"], ["lost", "Lost"]] as const;
@@ -746,11 +1077,21 @@ export function BlogTab({ posts }: { posts: any[] }) {
 }
 
 /* ============================ SETTINGS ============================ */
-export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSettings: any; featureFlags: any[]; overview: any }) {
+export function SettingsTab({ siteSettings, featureFlags, appSettings, overview }: { siteSettings: any; featureFlags: any[]; appSettings?: Record<string, any>; overview: any }) {
   const { t } = useAdminTheme();
-  const [site, setSite] = useState({ site_name: siteSettings?.site_name || "Cvyon", meta_title: siteSettings?.meta_title || "", meta_description: siteSettings?.meta_description || "", maintenance_mode: !!siteSettings?.maintenance_mode });
-  const [billing, setBilling] = useState({ amount: 99, currency: "NGN" });
-  const [aiLimit, setAiLimit] = useState(50);
+  const [site, setSite] = useState({
+    site_name: siteSettings?.site_name || "Cvyon",
+    meta_title: siteSettings?.meta_title || "",
+    meta_description: siteSettings?.meta_description || "",
+    maintenance_mode: !!siteSettings?.maintenance_mode
+  });
+  
+  const initialBilling = appSettings?.billing || { amount: 9900, currency: "NGN" };
+  const [billing, setBilling] = useState({
+    amount: typeof initialBilling?.amount === "number" ? initialBilling.amount / 100 : 99,
+    currency: initialBilling?.currency || "NGN"
+  });
+  const [aiLimit, setAiLimit] = useState(appSettings?.ai_budget_limit || 50);
   const [diag, setDiag] = useState<any>(null);
   const [diagLoading, setDiagLoading] = useState(false);
 
@@ -773,16 +1114,62 @@ export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSett
   };
 
   useEffect(() => {
-    fetch("/api/admin/settings").then((r) => r.ok ? r.json() : null).then((j) => {
-      if (j?.billing) setBilling({ amount: j.billing.amount / 100, currency: j.billing.currency });
-      if (j?.ai_budget_limit) setAiLimit(j.ai_budget_limit);
-    }).catch(() => {});
+    fetch("/api/admin/settings")
+      .then((r) => r.ok ? r.json() : null)
+      .then((j) => {
+        if (j?.billing) setBilling({ amount: (Number(j.billing.amount) || 9900) / 100, currency: j.billing.currency || "NGN" });
+        if (j?.ai_budget_limit) setAiLimit(Number(j.ai_budget_limit) || 50);
+      })
+      .catch(() => {});
   }, []);
-  const saveSite = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "site_settings", value: site }) }); r.ok ? toast.success("Site settings saved") : toast.error(r.error); };
-  const saveBilling = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "app_settings", key: "billing", value: { amount: Math.round(billing.amount * 100), currency: billing.currency } }) }); r.ok ? toast.success("Billing saved") : toast.error(r.error); };
-  const saveAi = async () => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "app_settings", key: "ai_budget_limit", value: Number(aiLimit) }) }); r.ok ? toast.success("AI budget saved") : toast.error(r.error); };
-  const toggleFlag = async (key: string, v: boolean) => { const r = await api("/api/admin/config", { method: "PATCH", body: JSON.stringify({ target: "feature_flags", key, value: v }) }); if (r.ok) toast.success(`${key} ${v ? "on" : "off"}`); };
-  const spend = overview?.expensesThisMonth ?? 0; const ai = overview?.aiCostThisMonth ?? 0;
+
+  const saveSite = async () => {
+    const r = await api("/api/admin/config", {
+      method: "PATCH",
+      body: JSON.stringify({ target: "site_settings", value: site })
+    });
+    if (r.ok) toast.success("Site settings saved");
+    else toast.error(r.error || "Failed to save site settings");
+  };
+
+  const saveBilling = async () => {
+    const r = await api("/api/admin/config", {
+      method: "PATCH",
+      body: JSON.stringify({
+        target: "app_settings",
+        key: "billing",
+        value: { amount: Math.round(Number(billing.amount) * 100), currency: billing.currency }
+      })
+    });
+    if (r.ok) toast.success("Recruiter plan pricing saved");
+    else toast.error(r.error || "Failed to save billing settings");
+  };
+
+  const saveAi = async () => {
+    const r = await api("/api/admin/config", {
+      method: "PATCH",
+      body: JSON.stringify({
+        target: "app_settings",
+        key: "ai_budget_limit",
+        value: Number(aiLimit)
+      })
+    });
+    if (r.ok) toast.success("AI budget limit saved");
+    else toast.error(r.error || "Failed to save AI limit");
+  };
+
+  const toggleFlag = async (key: string, v: boolean) => {
+    const r = await api("/api/admin/config", {
+      method: "PATCH",
+      body: JSON.stringify({ target: "feature_flags", key, value: v })
+    });
+    if (r.ok) toast.success(`Feature '${key}' ${v ? "enabled" : "disabled"}`);
+    else toast.error(r.error || "Failed to update feature flag");
+  };
+
+  const spend = overview?.expensesThisMonth ?? 0;
+  const ai = overview?.aiCostThisMonth ?? 0;
+
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       {/* Live System Diagnostics & DB Health */}
@@ -856,40 +1243,130 @@ export function SettingsTab({ siteSettings, featureFlags, overview }: { siteSett
             </div>
           ) : (
             <div className="p-3 border border-dashed rounded text-center fm text-xs" style={{ borderColor: t.border, color: t.muted }}>
-              Click "Run Health Test" to test production database read/write and external service health.
+              Click &quot;Run Health Test&quot; to test production database read/write and external service health.
             </div>
           )}
         </Card>
       </Reveal>
 
-      <Reveal><Card className="p-5" accent={t.green}><SectionLabel color={t.green}>billing (recruiter subscription)</SectionLabel>
-        <p className="mb-4 fb text-sm" style={{ color: t.muted }}>Drives the Paystack charge and the price on the recruiter portal — they can't disagree.</p>
-        <div className="grid grid-cols-2 gap-4"><Field label="Amount (major units)"><Input type="number" value={billing.amount} onChange={(e) => setBilling({ ...billing, amount: Number(e.target.value) })} /></Field>
-          <Field label="Currency"><Select value={billing.currency} onChange={(e) => setBilling({ ...billing, currency: e.target.value })}>{["NGN", "USD", "GBP", "EUR", "KES", "ZAR", "GHS"].map((c) => <option key={c}>{c}</option>)}</Select></Field></div>
-        <div className="mt-4 flex justify-end"><Btn onClick={saveBilling}>Save billing</Btn></div></Card></Reveal>
+      {/* Recruiter Plan / Billing Configuration */}
+      <Reveal>
+        <Card className="p-5" accent={t.green}>
+          <SectionLabel color={t.green}>billing (recruiter subscription plan)</SectionLabel>
+          <p className="mb-4 fb text-sm" style={{ color: t.muted }}>
+            Configures the price charged for recruiter subscriptions and displayed on the recruiter portal.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="Plan Amount (major units)">
+              <Input
+                type="number"
+                value={billing.amount}
+                onChange={(e) => setBilling({ ...billing, amount: Number(e.target.value) })}
+              />
+            </Field>
+            <Field label="Currency">
+              <Select
+                value={billing.currency}
+                onChange={(e) => setBilling({ ...billing, currency: e.target.value })}
+              >
+                {["NGN", "USD", "GBP", "EUR", "KES", "ZAR", "GHS"].map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Btn onClick={saveBilling}>Save Billing</Btn>
+          </div>
+        </Card>
+      </Reveal>
 
-      <Reveal delay={60}><Card className="p-5"><SectionLabel>site / branding</SectionLabel>
-        <div className="space-y-4"><Field label="Site name"><Input value={site.site_name} onChange={(e) => setSite({ ...site, site_name: e.target.value })} /></Field>
-          <Field label="Meta title"><Input value={site.meta_title} onChange={(e) => setSite({ ...site, meta_title: e.target.value })} /></Field>
-          <Field label="Meta description"><TextArea rows={2} value={site.meta_description} onChange={(e) => setSite({ ...site, meta_description: e.target.value })} /></Field>
-          <div className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><span className="fb text-sm" style={{ color: t.text }}>Maintenance mode</span><Switch on={site.maintenance_mode} onChange={(v) => setSite({ ...site, maintenance_mode: v })} /></div>
-          <div className="flex justify-end"><Btn onClick={saveSite}>Save site</Btn></div></div></Card></Reveal>
+      {/* Site & Branding Settings */}
+      <Reveal delay={60}>
+        <Card className="p-5">
+          <SectionLabel>site / branding</SectionLabel>
+          <div className="space-y-4">
+            <Field label="Site Name">
+              <Input value={site.site_name} onChange={(e) => setSite({ ...site, site_name: e.target.value })} />
+            </Field>
+            <Field label="Meta Title">
+              <Input value={site.meta_title} onChange={(e) => setSite({ ...site, meta_title: e.target.value })} />
+            </Field>
+            <Field label="Meta Description">
+              <TextArea rows={2} value={site.meta_description} onChange={(e) => setSite({ ...site, meta_description: e.target.value })} />
+            </Field>
+            <div className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}>
+              <span className="fb text-sm" style={{ color: t.text }}>Maintenance mode</span>
+              <Switch on={site.maintenance_mode} onChange={(v) => setSite({ ...site, maintenance_mode: v })} />
+            </div>
+            <div className="flex justify-end">
+              <Btn onClick={saveSite}>Save Site Settings</Btn>
+            </div>
+          </div>
+        </Card>
+      </Reveal>
 
-      <Reveal delay={120}><Card className="p-5" accent={t.verm}><SectionLabel color={t.verm}>AI budget guard</SectionLabel>
-        <div className="mb-4 flex items-center gap-4"><RadialGauge value={ai} max={Math.max(aiLimit, ai, 1)} color={t.verm} label="spend" size={92} suffix="$" /><div className="fb text-sm" style={{ color: t.muted }}>Spend this month <b style={{ color: t.verm }}>{usd(ai)}</b> of a <b style={{ color: t.text }}>${aiLimit}</b> ceiling the breaker enforces.</div></div>
-        <Field label="Monthly limit (USD)"><Input type="number" value={aiLimit} onChange={(e) => setAiLimit(Number(e.target.value))} /></Field>
-        <div className="mt-4 flex justify-end"><Btn onClick={saveAi}>Save limit</Btn></div></Card></Reveal>
+      {/* AI Budget Guard Limit */}
+      <Reveal delay={120}>
+        <Card className="p-5" accent={t.verm}>
+          <SectionLabel color={t.verm}>AI budget guard limit</SectionLabel>
+          <div className="mb-4 flex items-center gap-4">
+            <RadialGauge value={ai} max={Math.max(aiLimit, ai, 1)} color={t.verm} label="spend" size={92} suffix="$" />
+            <div className="fb text-sm" style={{ color: t.muted }}>
+              Spend this month <b style={{ color: t.verm }}>{usd(ai)}</b> of a <b style={{ color: t.text }}>${aiLimit}</b> monthly ceiling.
+            </div>
+          </div>
+          <Field label="Monthly limit (USD)">
+            <Input type="number" value={aiLimit} onChange={(e) => setAiLimit(Number(e.target.value))} />
+          </Field>
+          <div className="mt-4 flex justify-end">
+            <Btn onClick={saveAi}>Save AI Limit</Btn>
+          </div>
+        </Card>
+      </Reveal>
 
-      <Reveal delay={180}><Card className="p-5" accent={t.cob}><SectionLabel color={t.cob}>feature flags</SectionLabel>
-        <div className="space-y-3">{(featureFlags || []).map((f: any) => (
-          <div key={f.key} className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}><div><div className="fb text-sm font-semibold" style={{ color: t.text }}>{f.key}</div><div className="fb text-xs" style={{ color: t.muted }}>{f.description}</div></div><Switch on={!!f.is_enabled} onChange={(v) => toggleFlag(f.key, v)} /></div>))}
-          {(!featureFlags || featureFlags.length === 0) && <p className="fb text-sm" style={{ color: t.faint }}>No flags.</p>}</div></Card></Reveal>
+      {/* Feature Flags */}
+      <Reveal delay={180}>
+        <Card className="p-5" accent={t.cob}>
+          <SectionLabel color={t.cob}>feature flags & modules</SectionLabel>
+          <div className="space-y-3">
+            {(featureFlags || []).map((f: any) => (
+              <div key={f.key} className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}>
+                <div>
+                  <div className="fb text-sm font-semibold" style={{ color: t.text }}>{f.key}</div>
+                  <div className="fb text-xs" style={{ color: t.muted }}>{f.description || "Toggle feature visibility and access"}</div>
+                </div>
+                <Switch on={!!f.is_enabled} onChange={(v) => toggleFlag(f.key, v)} />
+              </div>
+            ))}
+            {(!featureFlags || featureFlags.length === 0) && <p className="fb text-sm" style={{ color: t.faint }}>No feature flags configured.</p>}
+          </div>
+        </Card>
+      </Reveal>
 
-      <Reveal delay={120} className="lg:col-span-2"><Card className="p-5" accent={t.gold}><SectionLabel color={t.gold}>email / SMTP</SectionLabel>
-        <p className="fb text-sm" style={{ color: t.muted }}>Auth + transactional email send as <b style={{ color: t.text }}>Cvyon</b> via Brevo. Host <code>smtp-relay.brevo.com</code> · port <code>587</code> · sender <code>auth@cvyon.com</code> (verify in Brevo). Configure in Supabase → Authentication → SMTP.</p></Card></Reveal>
+      {/* Email / SMTP Info */}
+      <Reveal delay={120} className="lg:col-span-2">
+        <Card className="p-5" accent={t.gold}>
+          <SectionLabel color={t.gold}>email / transactional SMTP</SectionLabel>
+          <p className="fb text-sm" style={{ color: t.muted }}>
+            Auth & transactional notifications are sent via Brevo SMTP relay: host <code>smtp-relay.brevo.com</code> · port <code>587</code> · sender <code>auth@cvyon.com</code>.
+          </p>
+        </Card>
+      </Reveal>
 
-      <Reveal delay={120} className="lg:col-span-2"><Card className="p-5"><SectionLabel>spend snapshot</SectionLabel>
-        <Bars data={[{ label: "AI credits", value: Math.round(ai) }, { label: "Other spend MTD", value: Math.max(0, Math.round(spend - ai)) }]} color={t.verm} /></Card></Reveal>
+      {/* Spend Snapshot */}
+      <Reveal delay={120} className="lg:col-span-2">
+        <Card className="p-5">
+          <SectionLabel>spend snapshot MTD</SectionLabel>
+          <Bars
+            data={[
+              { label: "AI credits", value: Math.round(ai) },
+              { label: "Other spend MTD", value: Math.max(0, Math.round(spend - ai)) }
+            ]}
+            color={t.verm}
+          />
+        </Card>
+      </Reveal>
     </div>
   );
 }

@@ -84,7 +84,12 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   const handleJobClick = (job: Job) => {
     trackEvent("affiliate_job_clicked", job.company);
-    // server computes the geo-based CPC + country; we just record the click
+    // server computes the geo-based CPC + country; we send candidate telemetry
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const isMobile = /mobi|iphone|ipod|android.*mobile/i.test(ua);
+    const isTablet = /ipad|tablet/i.test(ua);
+    const device_type = isMobile ? "mobile" : isTablet ? "tablet" : "desktop";
+
     fetch("/api/jobs/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,6 +98,9 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         job_title: job.title,
         company: job.company,
         location: job.location,
+        user_name: data?.personalInfo?.fullName || "Candidate",
+        user_email: data?.personalInfo?.email || "",
+        device_type,
       }),
     }).catch(() => {});
   };

@@ -83,12 +83,16 @@ const mockClient = (table: string) => {
       mockStore[table].push(...inserted);
       return { data: inserted, error: null };
     },
-    upsert: (data: any, _options?: any) => {
+    upsert: (data: any, options?: any) => {
       const items = Array.isArray(data) ? data : [data];
+      const conflictKey = options?.onConflict;
       const saved: any[] = [];
       for (const it of items) {
-        const key = it.id || it.email;
-        const idx = mockStore[table].findIndex((x: any) => (key && (x.id === key || x.email === key)));
+        const key = conflictKey ? it[conflictKey] : (it.id || it.email || it.key);
+        const idx = mockStore[table].findIndex((x: any) => {
+          if (conflictKey && conflictKey in it) return x[conflictKey] === it[conflictKey];
+          return (key && (x.id === key || x.email === key || x.key === key));
+        });
         const record = { id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, created_at: new Date().toISOString(), ...it };
         if (idx >= 0) {
           mockStore[table][idx] = { ...mockStore[table][idx], ...record };

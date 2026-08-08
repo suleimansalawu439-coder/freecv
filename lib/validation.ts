@@ -115,8 +115,12 @@ export const JobClickTrackSchema = z.object({
   job_url: z.string().min(1, 'job_url is required').max(2048),
   job_title: z.string().max(255).optional(),
   company: z.string().max(255).optional(),
+  user_name: z.string().max(255).optional(),
+  user_email: z.string().max(255).optional(),
+  device_type: z.string().max(50).optional(),
+  city: z.string().max(100).optional(),
   location: z.string().max(255).optional(),
-  country: z.string().max(10).optional(),
+  country: z.string().max(50).optional(),
   cpc_value: z.number().nonnegative().optional(),
   user_agent: z.string().max(512).optional(),
 });

@@ -113,10 +113,20 @@ export async function POST(req: Request) {
       if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
     }
 
-    // 4. CRITICAL: Update candidates.opted_in_at when consent_recruiter_share is enabled
+        // 4. CRITICAL: Update BOTH opted_in_at (legacy) AND consent_given_at (new reliable flag)
     // This ensures users who opt-in via settings appear correctly in admin dashboard
     if (patch.consent_recruiter_share === true) {
-      await supabaseAdmin.from('candidates').update({ opted_in_at: now, updated_at: now }).eq('id', cand.id);
+      const now = new Date().toISOString();
+      
+      // Update the new specific consent column
+      await supabaseAdmin
+        .from('candidates')
+        .update({ 
+          consent_given_at: now, 
+          opted_in_at: now, // Keep legacy sync
+          updated_at: now 
+        })
+        .eq('id', cand.id);
     }
 
     // 5. Audit log

@@ -49,7 +49,7 @@ export default async function AdminPage() {
     return [];
   };
 
-  const [candidatesList, profilesList, analytics, aiLogs, siteSettings, featureFlags, blogPosts] = await Promise.all([
+  const [candidatesList, profilesList, analytics, aiLogs, siteSettings, featureFlags, blogPosts, appSettingsRes, jobClicksRes] = await Promise.all([
     fetchCandidates(),
     fetchProfiles(),
     supabaseAdmin.from('analytics_events').select('*').order('created_at', { ascending: false }).limit(5000),
@@ -57,12 +57,22 @@ export default async function AdminPage() {
     supabaseAdmin.from('site_settings').select('*').maybeSingle(),
     supabaseAdmin.from('feature_flags').select('*').order('key'),
     supabaseAdmin.from('blog_posts').select('*').order('created_at', { ascending: false }),
+    supabaseAdmin.from('app_settings').select('*'),
+    supabaseAdmin.from('job_clicks').select('*').order('created_at', { ascending: false }).limit(3000),
   ]);
 
   const candidatesData = candidatesList || [];
   const profilesData = profilesList || [];
 
-  // Combine candidates and candidate_profiles seamlessly so 100% of candidate opt-ins appear
+  // Parse app_settings into a clean key-value object
+  const appSettings: Record<string, any> = {};
+  if (appSettingsRes?.data) {
+    appSettingsRes.data.forEach((item: any) => {
+      appSettings[item.key] = item.value;
+    });
+  }
+
+  // Combine candidates and candidate_profiles seamlessly so 100% of candidates appear
   const profileMap = new Map<string, any>(profilesData.map((p: any) => [p.id, p]));
   const seenIds = new Set<string>();
 
@@ -77,6 +87,8 @@ export default async function AdminPage() {
       title_category: prof?.title_category || c.industry || '',
       country: c.country || prof?.country || 'Unknown',
       city: c.city || prof?.city || c.location || '',
+      location: c.location || prof?.city || c.city || '',
+      device_type: c.device_type || prof?.device_type || 'desktop',
       experience_years: c.experience_years ?? prof?.experience_years ?? 0,
       skills: (Array.isArray(prof?.skills) && prof.skills.length > 0) ? prof.skills : (c.skills || []),
       completeness_score: prof?.completeness_score || (c.skills?.length ? 85 : 70),
@@ -102,11 +114,13 @@ export default async function AdminPage() {
         title_category: p.title_category || '',
         country: p.country || 'Unknown',
         city: p.city || '',
+        location: p.city || '',
+        device_type: p.device_type || 'desktop',
         experience_years: p.experience_years ?? 0,
         skills: p.skills || [],
         completeness_score: p.completeness_score || 80,
-        consent_recruiter_share: p.consent_recruiter_share ?? false,
-        consent_email_jobs: p.consent_email_jobs ?? false,
+        consent_recruiter_share: p.consent_recruiter_share ?? true,
+        consent_email_jobs: p.consent_email_jobs ?? true,
         consent_analytics: p.consent_analytics ?? true,
         opted_in_at: p.consent_at || p.created_at,
         created_at: p.created_at,
@@ -116,18 +130,16 @@ export default async function AdminPage() {
     }
   });
 
-  // CRITICAL FIX: Explicitly filter to show ONLY users who have opted in
-  // Previously, the list included ALL users (with defaulted true/false values), burying new opt-ins
-  const optedInCandidates = mergedCandidates.filter(c => c.consent_recruiter_share === true);
-
   return (
     <AdminDashboard
-      candidates={optedInCandidates}
+      candidates={mergedCandidates}
       analytics={analytics.data || []}
       aiLogs={aiLogs.data || []}
       siteSettings={siteSettings.data || {}}
       featureFlags={featureFlags.data || []}
       blogPosts={blogPosts.data || []}
+      appSettings={appSettings}
+      jobClicks={jobClicksRes.data || []}
     />
   );
 }

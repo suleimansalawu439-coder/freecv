@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin, adminFail } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get('admin_session');
-    if (!session?.value) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    try { await requireAdmin(); } catch { return adminFail(); }
 
     const { data, error } = await supabaseAdmin
       .from('app_settings')
@@ -29,18 +25,14 @@ export async function GET() {
     }
 
     return NextResponse.json(settings);
-  } catch (err) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get('admin_session');
-    if (!session?.value) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    try { await requireAdmin(); } catch { return adminFail(); }
 
     const body = await req.json();
     const { key, value } = body;
@@ -51,14 +43,14 @@ export async function POST(req: Request) {
 
     const { error } = await supabaseAdmin
       .from('app_settings')
-      .upsert({ key, value, updated_at: new Date().toISOString() });
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: true, ok: true });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
