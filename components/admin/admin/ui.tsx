@@ -210,25 +210,10 @@ export function Modal({ open, onClose, title, children, wide }:
 
 export function Drawer({ open, onClose, title, children }:
   { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  const { t } = useAdminTheme();
-  useEffect(() => {
-    if (!open) return;
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", k); const prev = document.body.style.overflow; document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", k); document.body.style.overflow = prev; };
-  }, [open, onClose]);
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[200] flex justify-end bg-black/65 backdrop-blur-sm" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="adm-drawer adm-scroll flex h-full w-full max-w-xl flex-col border-l-[3px]"
-        style={{ background: t.bg, borderColor: t.borderStrong }}>
-        <div className="flex items-center justify-between border-b-[3px] px-6 py-4" style={{ borderColor: t.border, background: t.surface }}>
-          <h3 className="fd truncate text-lg tracking-tight" style={{ color: t.text }}>{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="grid h-8 w-8 place-items-center border-2" style={{ borderColor: t.border, color: t.muted }}><X size={16} /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
-      </div>
-    </div>
+    <Modal open={open} onClose={onClose} title={title} wide>
+      {children}
+    </Modal>
   );
 }
 

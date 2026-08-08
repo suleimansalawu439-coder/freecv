@@ -131,96 +131,103 @@ export async function POST(request: Request) {
     }
 
     // ---- 1. PRIMARY DATABASE SAVE ----
-    const generatedId = typeof crypto !== 'undefined' && crypto.randomUUID 
-      ? crypto.randomUUID() 
-      : `cand_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    let candidateId: string | null = null;
 
-    let candidateId: string = generatedId;
-
-    const candidatePayload: Record<string, any> = {
-      id: generatedId,
-      email,
-      name: fullName || 'Candidate',
-      full_name: fullName || 'Candidate',
-      job_title: jobTitle || 'Professional',
-      current_title: jobTitle || 'Professional',
-      location: rawLocation || city || country,
-      city: city || rawLocation,
-      country: country,
-      device_type,
-      experience_years: calculatedYears,
-      employment_status: 'Open to work',
-      preferred_work: 'Any',
-      skills: resumeSkills,
-      linkedin: website.includes('linkedin') ? website : '',
-      github: website.includes('github') ? website : '',
-      portfolio: (!website.includes('linkedin') && !website.includes('github')) ? website : '',
-      resume_data: data,
-      template_id: data?.templateId || 'Executive',
-      opted_in_at: now,
-      updated_at: now,
-    };
-
-    // 1. PRIMARY CANDIDATES TABLE UPSERT
-    let { data: cand, error: candErr } = await supabaseAdmin
+    // Check if candidate with this email already exists
+    const { data: existingCandidate } = await supabaseAdmin
       .from('candidates')
-      .upsert(candidatePayload, { onConflict: 'email' })
       .select('id')
+      .eq('email', email)
       .maybeSingle();
 
-    if (candErr) {
-      console.warn('[CRM opt-in] Candidates upsert notice:', candErr.message);
-    }
+    if (existingCandidate?.id) {
+      candidateId = existingCandidate.id;
+      // Update existing candidate record WITHOUT mutating the primary key id
+      const updatePayload = {
+        name: fullName || 'Candidate',
+        full_name: fullName || 'Candidate',
+        job_title: jobTitle || 'Professional',
+        current_title: jobTitle || 'Professional',
+        location: rawLocation || city || country,
+        city: city || rawLocation,
+        country: country,
+        device_type,
+        experience_years: calculatedYears,
+        skills: resumeSkills,
+        linkedin: website.includes('linkedin') ? website : '',
+        github: website.includes('github') ? website : '',
+        portfolio: (!website.includes('linkedin') && !website.includes('github')) ? website : '',
+        resume_data: data,
+        template_id: data?.templateId || 'Executive',
+        opted_in_at: now,
+        updated_at: now,
+      };
 
-    if (cand?.id) {
-      candidateId = cand.id;
+      const { error: updateErr } = await supabaseAdmin
+        .from('candidates')
+        .update(updatePayload)
+        .eq('id', candidateId);
+
+      if (updateErr) {
+        console.warn('[CRM opt-in] Candidates update notice:', updateErr.message);
+        // Fallback minimal update
+        await supabaseAdmin
+          .from('candidates')
+          .update({ name: fullName || 'Candidate', full_name: fullName || 'Candidate', resume_data: data, updated_at: now })
+          .eq('id', candidateId);
+      }
     } else {
-      // Fallback 1: Retry with standard essential columns in case of extra column mismatch
-      const corePayload = {
-        id: candidateId,
+      // Insert brand new candidate record
+      const insertPayload: Record<string, any> = {
         email,
         name: fullName || 'Candidate',
         full_name: fullName || 'Candidate',
         job_title: jobTitle || 'Professional',
         current_title: jobTitle || 'Professional',
-        country: country || 'Unknown',
-        city: city || (rawLocation ? rawLocation.split(',')[0].trim() : ''),
+        location: rawLocation || city || country,
+        city: city || rawLocation,
+        country: country,
+        device_type,
+        experience_years: calculatedYears,
+        employment_status: 'Open to work',
+        preferred_work: 'Any',
         skills: resumeSkills,
+        linkedin: website.includes('linkedin') ? website : '',
+        github: website.includes('github') ? website : '',
+        portfolio: (!website.includes('linkedin') && !website.includes('github')) ? website : '',
         resume_data: data,
+        template_id: data?.templateId || 'Executive',
         opted_in_at: now,
         updated_at: now,
       };
 
-      const { data: retryCand, error: retryErr } = await supabaseAdmin
+      const { data: newCand, error: insertErr } = await supabaseAdmin
         .from('candidates')
-        .upsert(corePayload, { onConflict: 'email' })
+        .insert(insertPayload)
         .select('id')
         .maybeSingle();
 
-      if (retryCand?.id) {
-        candidateId = retryCand.id;
+      if (newCand?.id) {
+        candidateId = newCand.id;
       } else {
-        // Fallback 2: Direct lookup by email
-        const { data: existingCand } = await supabaseAdmin
+        console.warn('[CRM opt-in] Candidates insert notice:', insertErr?.message);
+        // Retry with core columns only
+        const { data: retryNew } = await supabaseAdmin
           .from('candidates')
+          .insert({ email, name: fullName || 'Candidate', full_name: fullName || 'Candidate', resume_data: data, country, opted_in_at: now, updated_at: now })
           .select('id')
-          .eq('email', email)
           .maybeSingle();
-        if (existingCand?.id) {
-          candidateId = existingCand.id;
+        if (retryNew?.id) {
+          candidateId = retryNew.id;
         } else {
-          // Fallback 3: Minimal insert
-          const { data: minCand } = await supabaseAdmin
-            .from('candidates')
-            .upsert({ id: candidateId, email, name: fullName || 'Candidate' }, { onConflict: 'email' })
-            .select('id')
-            .maybeSingle();
-          if (minCand?.id) candidateId = minCand.id;
+          // Re-lookup by email in case of race condition
+          const { data: raceCand } = await supabaseAdmin.from('candidates').select('id').eq('email', email).maybeSingle();
+          if (raceCand?.id) candidateId = raceCand.id;
         }
       }
     }
 
-    // 2. CANDIDATE_PROFILES SYNC (With multi-tier fallback)
+    // 2. CANDIDATE_PROFILES SYNC
     if (candidateId) {
       const profilePayload: Record<string, any> = {
         id: candidateId,
@@ -252,6 +259,7 @@ export async function POST(request: Request) {
         .upsert(profilePayload, { onConflict: 'id' });
 
       if (profErr) {
+        console.warn('[CRM opt-in] candidate_profiles upsert notice:', profErr.message);
         // Fallback: core profile update
         await supabaseAdmin.from('candidate_profiles').upsert({
           id: candidateId,

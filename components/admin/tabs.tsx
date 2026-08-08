@@ -540,17 +540,49 @@ export function RecruitersTab() {
         )}
       </Modal>
 
-      <Drawer open={!!detail} onClose={() => setDetail(null)} title={detail?.company_name || "Recruiter"}>
+      <Modal open={!!detail} onClose={() => { setDetail(null); setEdit(null); }} title={detail?.company_name || "Recruiter Details"}>
         {detail && !edit && (
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-2"><Pill color={detail.status === "churned" ? t.verm : t.green}>{detail.status}</Pill>{(detail.subscriptions || []).some((s: any) => s.status === "active") && <Pill color={t.cob}>subscribed</Pill>}{detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}</div>
-            <div className="grid grid-cols-2 gap-4 fb text-sm">{[["Contact", detail.contact_name], ["Email", detail.contact_email || detail.email], ["Phone", detail.phone], ["Website", detail.website], ["Location", detail.location], ["Size", detail.company_size], ["Industry", detail.industry], ["Onboarded by", detail.onboarded_by]].map(([k, v]) => (
-              <div key={k as string}><div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div><div className="mt-0.5 break-words" style={{ color: t.text }}>{(v as string) || "—"}</div></div>))}</div>
-            {detail.notes && <div><div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>Notes</div><p className="mt-1 whitespace-pre-wrap fb text-sm" style={{ color: t.text }}>{detail.notes}</p></div>}
-            <div><div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Subscriptions</div>
-              {(detail.subscriptions || []).length === 0 ? <p className="fb text-sm" style={{ color: t.faint }}>None.</p> : (detail.subscriptions || []).map((s: any) => (
-                <div key={s.id} className="mb-2 flex items-center justify-between border-2 p-3 fb text-sm" style={{ borderColor: t.border }}><span style={{ color: t.text }}>{s.tier} · {s.currency} {s.amount_minor ? (s.amount_minor / 100) : "—"}</span><Pill color={s.status === "active" ? t.green : t.muted}>{s.status}</Pill></div>))}</div>
-            <Btn variant="ghost" onClick={() => setEdit({ ...detail })}><Settings size={14} /> Edit details</Btn>
+            <div className="flex flex-wrap gap-2">
+              <Pill color={detail.status === "churned" ? t.verm : t.green}>{detail.status}</Pill>
+              {(detail.subscriptions || []).some((s: any) => s.status === "active") && <Pill color={t.cob}>subscribed</Pill>}
+              {detail.country && <Pill><Globe size={11} /> {detail.country}</Pill>}
+            </div>
+            <div className="grid grid-cols-2 gap-4 fb text-sm">
+              {[["Contact", detail.contact_name], ["Email", detail.contact_email || detail.email], ["Phone", detail.phone], ["Website", detail.website], ["Location", detail.location], ["Size", detail.company_size], ["Industry", detail.industry], ["Onboarded by", detail.onboarded_by]].map(([k, v]) => (
+                <div key={k as string}>
+                  <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>{k}</div>
+                  <div className="mt-0.5 break-words" style={{ color: t.text }}>{(v as string) || "—"}</div>
+                </div>
+              ))}
+            </div>
+            {detail.notes && (
+              <div>
+                <div className="fm text-[10px] uppercase tracking-widest" style={{ color: t.muted }}>Notes</div>
+                <p className="mt-1 whitespace-pre-wrap fb text-sm" style={{ color: t.text }}>{detail.notes}</p>
+              </div>
+            )}
+            <div>
+              <div className="fm text-[10px] uppercase tracking-widest mb-2" style={{ color: t.muted }}>Subscriptions</div>
+              {(detail.subscriptions || []).length === 0 ? (
+                <p className="fb text-sm" style={{ color: t.faint }}>None active.</p>
+              ) : (
+                (detail.subscriptions || []).map((s: any) => (
+                  <div key={s.id} className="mb-2 flex items-center justify-between border-2 p-3 fb text-sm" style={{ borderColor: t.border }}>
+                    <span style={{ color: t.text }}>{s.tier} · {s.currency} {s.amount_minor ? (s.amount_minor / 100) : "—"}</span>
+                    <Pill color={s.status === "active" ? t.green : t.muted}>{s.status}</Pill>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-4 border-t-2" style={{ borderColor: t.border }}>
+              <Btn variant="ghost" onClick={() => setEdit({ ...detail })}>
+                <Settings size={14} /> Edit details
+              </Btn>
+              <Btn variant="primary" onClick={() => { setDetail(null); setEdit(null); }}>
+                Close
+              </Btn>
+            </div>
           </div>
         )}
         {edit && (
@@ -567,7 +599,7 @@ export function RecruitersTab() {
             <div className="sm:col-span-2 flex justify-end gap-2"><Btn variant="ghost" onClick={() => setEdit(null)}>Cancel</Btn><Btn onClick={saveEdit}>Save</Btn></div>
           </div>
         )}
-      </Drawer>
+      </Modal>
     </div>
   );
 }
@@ -842,6 +874,61 @@ export function AffiliatesTab({ jobClicks = [] }: { jobClicks?: any[] }) {
               </div>
             </>
           )}
+        </div>
+      </Reveal>
+
+      {/* Affiliate Partner Referral Program (?ref=CODE) Section */}
+      <Reveal delay={160}>
+        <div className="space-y-4 pt-4 border-t-2" style={{ borderColor: t.border }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <SectionLabel color={t.green}>affiliate referral partner network (?ref=code)</SectionLabel>
+              <p className="fb text-xs" style={{ color: t.muted }}>
+                Traffic, conversions, and registered promoters from affiliate invite links.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Pill color={t.cob}>{data?.referrals?.totalClicks ?? 0} Referral Clicks</Pill>
+              <Pill color={t.green}>{data?.referrals?.partnersCount ?? 0} Partners</Pill>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Card className="p-5">
+              <SectionLabel color={t.cob}>active affiliate partners</SectionLabel>
+              {(!data?.referrals?.partners || data.referrals.partners.length === 0) ? (
+                <p className="fb text-sm" style={{ color: t.faint }}>No affiliate partners registered yet. Users sharing ?ref=CODE will appear here.</p>
+              ) : (
+                <Table head={["Partner Name", "Ref Code", "Commission", "Registered"]}>
+                  {data.referrals.partners.map((p: any) => (
+                    <Row key={p.id || p.ref_code}>
+                      <Cell className="font-semibold">{p.name || p.ref_code}</Cell>
+                      <Cell className="fm text-xs text-amber-500 font-bold">{p.ref_code}</Cell>
+                      <Cell className="fm text-xs">{p.commission_rate ?? 20}%</Cell>
+                      <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(p.created_at || "").slice(0, 10)}</Cell>
+                    </Row>
+                  ))}
+                </Table>
+              )}
+            </Card>
+
+            <Card className="p-5">
+              <SectionLabel color={t.gold}>recent referral clicks</SectionLabel>
+              {(!data?.referrals?.recentClicks || data.referrals.recentClicks.length === 0) ? (
+                <p className="fb text-sm" style={{ color: t.faint }}>No referral link clicks logged yet.</p>
+              ) : (
+                <Table head={["Ref Code", "IP Address", "Timestamp"]}>
+                  {data.referrals.recentClicks.slice(0, 8).map((rc: any, i: number) => (
+                    <Row key={rc.id || i}>
+                      <Cell className="font-bold text-amber-500">{rc.ref_code}</Cell>
+                      <Cell className="fm text-xs text-stone-400">{rc.ip_address || "—"}</Cell>
+                      <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(rc.created_at || "").slice(0, 16).replace("T", " ")}</Cell>
+                    </Row>
+                  ))}
+                </Table>
+              )}
+            </Card>
+          </div>
         </div>
       </Reveal>
     </div>
