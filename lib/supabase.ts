@@ -65,51 +65,84 @@ const mockClient = (table: string) => {
     }
   };
 
-  const chainable: any = {
-    eq: (col: string, val: any) => {
-      return {
-        ...chainable,
-        then: (resolve: (val: { data: any[], error: null }) => void) => {
-          const list = getMockData().filter((item: any) => item[col] === val);
-          resolve({ data: list, error: null });
-        },
-        maybeSingle: () => {
-          const list = getMockData().filter((item: any) => item[col] === val);
-          return Promise.resolve({ data: list[0] || null, error: null });
-        },
-        single: () => {
-          const list = getMockData().filter((item: any) => item[col] === val);
-          return Promise.resolve({ data: list[0] || null, error: null });
-        }
-      };
-    },
-    order: () => chainable,
-    limit: () => chainable,
-    select: () => chainable,
-    maybeSingle: () => Promise.resolve({ data: getMockData()[0] || null, error: null }),
-    single: () => Promise.resolve({ data: getMockData()[0] || null, error: null }),
-    then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: getMockData(), error: null }),
-    catch: (resolve: (err: unknown) => void) => resolve(null)
+  const createFilterQuery = (dataList: any[]) => {
+    let current = [...dataList];
+    const builder: any = {
+      eq: (col: string, val: any) => {
+        current = current.filter((item: any) => item[col] === val);
+        return builder;
+      },
+      ilike: (col: string, val: string) => {
+        const needle = (val || '').replace(/%/g, '').toLowerCase();
+        current = current.filter((item: any) => String(item[col] || '').toLowerCase().includes(needle));
+        return builder;
+      },
+      textSearch: (_col: string, _query: string) => builder,
+      order: (col: string, opts?: { ascending?: boolean }) => {
+        const asc = opts?.ascending !== false;
+        current.sort((a, b) => {
+          const valA = a[col] ?? 0;
+          const valB = b[col] ?? 0;
+          return asc ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        });
+        return builder;
+      },
+      limit: (n: number) => {
+        current = current.slice(0, n);
+        return builder;
+      },
+      range: (from: number, to: number) => {
+        current = current.slice(from, to + 1);
+        return builder;
+      },
+      select: (_cols = '*') => builder,
+      maybeSingle: () => Promise.resolve({ data: current[0] || null, error: null }),
+      single: () => Promise.resolve({ data: current[0] || null, error: null }),
+      then: (resolve: (val: { data: any[], error: null, count: number }) => void) => {
+        resolve({ data: current, error: null, count: current.length });
+      },
+      catch: (resolve: (err: unknown) => void) => resolve(null)
+    };
+    return builder;
   };
 
   return {
-    insert: async (data: any) => {
+    insert: (data: any) => {
       const items = Array.isArray(data) ? data : [data];
-      const inserted = items.map((it: any) => ({ id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, created_at: new Date().toISOString(), ...it }));
+      const inserted = items.map((it: any) => ({
+        id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        created_at: it.created_at || new Date().toISOString(),
+        ...it
+      }));
+      if (!mockStore[table]) mockStore[table] = [];
       mockStore[table].push(...inserted);
-      return { data: inserted, error: null };
+
+      return {
+        select: (_fields?: string) => ({
+          maybeSingle: () => Promise.resolve({ data: inserted[0] || null, error: null }),
+          single: () => Promise.resolve({ data: inserted[0] || null, error: null }),
+          then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: inserted, error: null }),
+          catch: (resolve: (err: unknown) => void) => resolve(null)
+        }),
+        maybeSingle: () => Promise.resolve({ data: inserted[0] || null, error: null }),
+        single: () => Promise.resolve({ data: inserted[0] || null, error: null }),
+        then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: inserted, error: null }),
+        catch: (resolve: (err: unknown) => void) => resolve(null)
+      };
     },
     upsert: (data: any, options?: any) => {
       const items = Array.isArray(data) ? data : [data];
       const conflictKey = options?.onConflict;
       const saved: any[] = [];
+      if (!mockStore[table]) mockStore[table] = [];
+
       for (const it of items) {
         const key = conflictKey ? it[conflictKey] : (it.id || it.email || it.key);
         const idx = mockStore[table].findIndex((x: any) => {
           if (conflictKey && conflictKey in it) return x[conflictKey] === it[conflictKey];
           return (key && (x.id === key || x.email === key || x.key === key));
         });
-        const record = { id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, created_at: new Date().toISOString(), ...it };
+        const record = { id: it.id || `mock_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`, created_at: new Date().toISOString(), ...it };
         if (idx >= 0) {
           mockStore[table][idx] = { ...mockStore[table][idx], ...record };
           saved.push(mockStore[table][idx]);
@@ -124,19 +157,23 @@ const mockClient = (table: string) => {
           single: () => Promise.resolve({ data: saved[0] || null, error: null }),
           then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null })
         }),
-        then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null })
+        maybeSingle: () => Promise.resolve({ data: saved[0] || null, error: null }),
+        single: () => Promise.resolve({ data: saved[0] || null, error: null }),
+        then: (resolve: (val: { data: any[], error: null }) => void) => resolve({ data: saved, error: null }),
+        catch: (resolve: (err: unknown) => void) => resolve(null)
       };
     },
-    select: (cols = '*', opts?: { count?: string; head?: boolean }) => {
+    select: (_cols = '*', opts?: { count?: string; head?: boolean }) => {
       const data = getMockData();
-      return {
-        ...chainable,
-        order: () => chainable,
-        limit: () => chainable,
-        then: (resolve: (val: { data: any[] | null, error: null, count: number }) => void) => {
-          resolve({ data: opts?.head ? null : data, error: null, count: data.length });
-        }
-      };
+      if (opts?.head) {
+        return {
+          ...createFilterQuery([]),
+          then: (resolve: (val: { data: null, error: null, count: number }) => void) => {
+            resolve({ data: null, error: null, count: data.length });
+          }
+        };
+      }
+      return createFilterQuery(data);
     },
     update: (data: any) => {
       return {
@@ -161,7 +198,7 @@ const mockClient = (table: string) => {
     delete: () => {
       return {
         eq: (col: string, val: any) => {
-          if (mockStore[table]) {
+          if (val !== undefined && mockStore[table]) {
             mockStore[table] = mockStore[table].filter((item: any) => item[col] !== val);
           }
           return {

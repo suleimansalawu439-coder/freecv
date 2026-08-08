@@ -177,8 +177,13 @@ export async function POST(request: Request) {
           .eq('id', candidateId);
       }
     } else {
+      // Generate standard UUID for the new candidate
+      const generatedId = crypto.randomUUID();
+      candidateId = generatedId;
+
       // Insert brand new candidate record
       const insertPayload: Record<string, any> = {
+        id: generatedId,
         email,
         name: fullName || 'Candidate',
         full_name: fullName || 'Candidate',
@@ -209,12 +214,12 @@ export async function POST(request: Request) {
 
       if (newCand?.id) {
         candidateId = newCand.id;
-      } else {
-        console.warn('[CRM opt-in] Candidates insert notice:', insertErr?.message);
-        // Retry with core columns only
+      } else if (insertErr) {
+        console.warn('[CRM opt-in] Candidates insert notice:', insertErr.message);
+        // Fallback insert without extra columns
         const { data: retryNew } = await supabaseAdmin
           .from('candidates')
-          .insert({ email, name: fullName || 'Candidate', full_name: fullName || 'Candidate', resume_data: data, country, opted_in_at: now, updated_at: now })
+          .insert({ id: generatedId, email, name: fullName || 'Candidate', full_name: fullName || 'Candidate', resume_data: data, country, opted_in_at: now, updated_at: now })
           .select('id')
           .maybeSingle();
         if (retryNew?.id) {

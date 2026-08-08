@@ -130,6 +130,13 @@ export default async function AdminPage() {
     }
   });
 
+  // Sort strictly newest-to-oldest
+  mergedCandidates.sort((a, b) => {
+    const timeA = new Date(a.opted_in_at || a.created_at || 0).getTime();
+    const timeB = new Date(b.opted_in_at || b.created_at || 0).getTime();
+    return timeB - timeA;
+  });
+
   return (
     <AdminDashboard
       candidates={mergedCandidates}
