@@ -364,7 +364,7 @@ export default function Executive({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.subSection}>
-                <Text style={styles.sectionTitle}>Expertise</Text>
+                <Text style={styles.sectionTitle}>Skills</Text>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((s) => (
                     <Text key={s.id} style={styles.skillText}>{s.name}</Text>

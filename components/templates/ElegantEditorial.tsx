@@ -228,7 +228,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.sectionBlock}>
-                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Expertise</Text>
+                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Skills</Text>
                 {data.skills.map((s) => (
                   <View key={s.id} style={styles.skillRow}>
                     <View style={[styles.skillDot, { backgroundColor: c }]} />

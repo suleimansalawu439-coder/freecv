@@ -29,6 +29,12 @@ export interface RateLimitOptions {
   identifier?: string;
 }
 
+export const RATE_LIMITS = {
+  ADMIN_LOGIN: { limit: 5, windowMs: 60_000 } as RateLimitOptions,
+  WEBHOOK: { limit: 100, windowMs: 60_000 } as RateLimitOptions,
+  DEFAULT: { limit: 20, windowMs: 10_000 } as RateLimitOptions,
+};
+
 /**
  * Checks rate limit using Upstash Redis if configured, otherwise falls back to in-memory sliding window.
  */

@@ -373,7 +373,7 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 ? (
               <View style={styles.section}>
-                <Text style={styles.sectionHeading}>Expertise</Text>
+                <Text style={styles.sectionHeading}>Skills</Text>
                 {data.skills.map((s) => (
                   <Text key={s.id} style={styles.skillText}>{s.name}</Text>
                 ))}

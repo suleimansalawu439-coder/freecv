@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Lock } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,14 +21,16 @@ export default function AdminLogin() {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password })
+      body: JSON.stringify({ email, password })
     });
 
     if (res.ok) {
+      toast.success("Authenticated successfully");
       router.push('/admin');
       router.refresh();
     } else {
-      setError('Invalid master password.');
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || 'Invalid credentials.');
       setIsLoading(false);
     }
   };
@@ -35,7 +39,6 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-black flex items-center justify-center font-sans p-6 text-white">
       <div className="w-full max-w-md">
         <div className="bg-[#111] border-2 border-[#333] p-8 sm:p-12 shadow-2xl relative overflow-hidden">
-          {/* Brutalist accents */}
           <div className="absolute top-0 left-0 w-full h-2 bg-[#ff3333]" />
           <div className="absolute top-0 right-0 w-16 h-16 border-b-2 border-l-2 border-[#333] transform translate-x-8 -translate-y-8 rotate-45" />
 
@@ -55,14 +58,26 @@ export default function AdminLogin() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Master Password</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Admin Email</label>
+              <input 
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-black border-2 border-[#333] px-5 py-4 text-white font-mono focus:outline-none focus:border-white transition-colors"
+                placeholder="admin@cvyon.com"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password</label>
               <input 
                 type="password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-black border-2 border-[#333] px-5 py-4 text-white font-mono focus:outline-none focus:border-white transition-colors"
                 placeholder="••••••••"
-                autoFocus
               />
             </div>
 

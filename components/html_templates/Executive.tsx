@@ -134,7 +134,7 @@ export default function Executive({ data }: { data: ResumeData }) {
 
           {data.skills.length > 0 && (
             <div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Expertise</h2>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Skills</h2>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {data.skills.map(s => (
                   <span key={s.id} className="text-[11px] font-bold font-sans uppercase tracking-wider">{s.name}</span>

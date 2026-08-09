@@ -1225,12 +1225,21 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
     maintenance_mode: !!siteSettings?.maintenance_mode
   });
   
-  const initialBilling = appSettings?.billing || { amount: 9900, currency: "NGN" };
+  const parseSetting = (val: any, defaultVal: any) => {
+    if (!val) return defaultVal;
+    if (typeof val === 'string') {
+      try { return JSON.parse(val) || defaultVal; } catch { return defaultVal; }
+    }
+    return val;
+  };
+
+  const initialBilling = parseSetting(appSettings?.billing, { amount: 9900, currency: "NGN" });
   const [billing, setBilling] = useState({
     amount: typeof initialBilling?.amount === "number" ? initialBilling.amount / 100 : 99,
     currency: initialBilling?.currency || "NGN"
   });
-  const [aiLimit, setAiLimit] = useState(appSettings?.ai_budget_limit || 50);
+  const initialAiLimit = parseSetting(appSettings?.ai_budget_limit, 50);
+  const [aiLimit, setAiLimit] = useState(Number(initialAiLimit) || 50);
   const [diag, setDiag] = useState<any>(null);
   const [diagLoading, setDiagLoading] = useState(false);
 
@@ -1256,8 +1265,14 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
     fetch("/api/admin/settings")
       .then((r) => r.ok ? r.json() : null)
       .then((j) => {
-        if (j?.billing) setBilling({ amount: (Number(j.billing.amount) || 9900) / 100, currency: j.billing.currency || "NGN" });
-        if (j?.ai_budget_limit) setAiLimit(Number(j.ai_budget_limit) || 50);
+        if (j?.billing) {
+          const parsedBilling = parseSetting(j.billing, { amount: 9900, currency: "NGN" });
+          setBilling({ amount: (Number(parsedBilling.amount) || 9900) / 100, currency: parsedBilling.currency || "NGN" });
+        }
+        if (j?.ai_budget_limit) {
+          const parsedAi = parseSetting(j.ai_budget_limit, 50);
+          setAiLimit(Number(parsedAi) || 50);
+        }
       })
       .catch(() => {});
   }, []);

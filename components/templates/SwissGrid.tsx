@@ -245,7 +245,7 @@ export default function SwissGrid({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>Expertise</Text>
+                <Text style={[styles.sectionTitle, { color: themeColor }]}>Skills</Text>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((skill) => (
                     <Text key={skill.id} style={styles.skillBadge}>{skill.name}</Text>

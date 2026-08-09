@@ -137,7 +137,7 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
 
           {data.skills.length > 0 && (
             <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Expertise</h2>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Skills</h2>
               <div className="flex flex-col gap-2">
                 {data.skills.map(s => (
                   <span key={s.id} className="text-sm font-bold uppercase tracking-wider">{s.name}</span>

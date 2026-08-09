@@ -115,7 +115,7 @@ export default function Diplomat({ data }: { data: ResumeData }) {
           {/* Skills */}
           {data.skills.length > 0 && (
             <div>
-              <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>Core Expertise</h2>
+              <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>Skills</h2>
               <div className="flex flex-wrap gap-x-2 gap-y-1.5">
                 {data.skills.map(s => (
                   <span key={s.id} className="text-[10px] font-sans font-medium px-2 py-0.5 border" style={{ borderColor: `${c}40`, color: c }}>

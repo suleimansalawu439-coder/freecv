@@ -1,47 +1,39 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import crypto from 'crypto';
-import { signAdminToken } from '@/lib/auth';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: Request) {
   try {
-    // 1. Strict Brute Force Protection (5 attempts per minute per IP)
+    // 1. Strict Brute Force Protection
     const rateLimit = await checkRateLimit(request, {
-      limit: 5,
-      windowMs: 60_000,
+      ...RATE_LIMITS.ADMIN_LOGIN,
       identifier: 'ip'
     });
     if (rateLimit) return rateLimit;
 
-    const { password } = await request.json().catch(() => ({}));
-    const adminPassword = process.env.ADMIN_PASSWORD;
-
-    if (!adminPassword) {
-      return NextResponse.json({ success: false, error: 'Server misconfiguration: missing ADMIN_PASSWORD' }, { status: 500 });
+    const { email, password } = await request.json().catch(() => ({}));
+    if (!email || !password) {
+      return NextResponse.json({ success: false, error: 'Email and password required' }, { status: 400 });
     }
 
-    // 2. Timing-safe password comparison
-    const passwordBuffer = Buffer.from(String(password || ''));
-    const adminPasswordBuffer = Buffer.from(adminPassword);
-
-    const isMatch = passwordBuffer.length === adminPasswordBuffer.length &&
-      crypto.timingSafeEqual(passwordBuffer, adminPasswordBuffer);
-
-    if (isMatch) {
-      const token = await signAdminToken();
-      
-      const cookieStore = await cookies();
-      cookieStore.set('admin_session', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 60 * 60 * 24 * 7 // 1 week
-      });
-      return NextResponse.json({ success: true });
+    const adminEmails = (process.env.ADMIN_EMAILS || 'hamis@cvyon.com').split(',').map(e => e.trim().toLowerCase());
+    if (!adminEmails.includes(email.toLowerCase())) {
+      // Fake rejection for non-admins to prevent email enumeration
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
-    return NextResponse.json({ success: false, error: 'Invalid password' }, { status: 401 });
+    const supabase = await createClient();
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.session) {
+      return NextResponse.json({ success: false, error: error?.message || 'Invalid credentials' }, { status: 401 });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
   }

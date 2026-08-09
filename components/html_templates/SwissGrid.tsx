@@ -37,7 +37,7 @@ export default function SwissGrid({ data }: { data: ResumeData }) {
 
           {data.skills.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Expertise</h2>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[var(--theme-color)] mb-4 border-b-2 border-black pb-1">Skills</h2>
               <div className="flex flex-wrap gap-2">
                 {data.skills.map(skill => (
                   <span key={skill.id} className="text-xs font-bold bg-white border border-gray-300 px-2 py-1">{skill.name}</span>
@@ -90,7 +90,7 @@ export default function SwissGrid({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}\n
+        )}
           {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
             section.items.length > 0 && (
               <div key={section.id} className="mb-6">

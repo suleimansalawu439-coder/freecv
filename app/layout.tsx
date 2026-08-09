@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com'),
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
-  description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Enjoy free unlimited downloads, ATS-friendly templates, and absolutely no sign up required.",
+  description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
   keywords: ["Free Resume Builder", "ATS Friendly Resume Builder", "No Sign Up Resume Maker", "Free PDF Resume Creator", "No Hidden Fees Resume Builder"],
   icons: {
     icon: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Enjoy free unlimited downloads, ATS-friendly templates, and absolutely no sign up required.",
+    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
     url: "https://cvyon.com",
     siteName: "Cvyon",
     type: "website",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Free unlimited downloads, no sign up required.",
+    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
     images: ["/og-image.jpg"],
   },
 };

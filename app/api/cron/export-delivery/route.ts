@@ -76,12 +76,12 @@ export async function GET(request: Request) {
         throw new Error(`Brevo API Error: ${JSON.stringify(errData)}`);
       }
     } else {
-      console.warn('No BREVO_API_KEY found, skipping actual email send. Generated CSV for', candidates.length, 'candidates.');
+      logger.warn('export-delivery', `No BREVO_API_KEY found, skipping actual email send. Generated CSV for ${candidates.length} candidates.`);
     }
 
     return NextResponse.json({ success: true, candidatesSent: candidates.length });
   } catch (error: any) {
-    console.error('Export Delivery Cron Error:', error);
+    logger.error('export-delivery', 'Export Delivery Cron Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

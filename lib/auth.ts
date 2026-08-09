@@ -8,26 +8,7 @@ function getSecretKey() {
   return new TextEncoder().encode(secretKeyString);
 }
 
-export async function signAdminToken() {
-  const key = getSecretKey();
-  return await new SignJWT({ role: 'admin' })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(key);
-}
-
-export async function verifyAdminToken(token: string) {
-  try {
-    const key = getSecretKey();
-    const { payload } = await jwtVerify(token, key, {
-      algorithms: ['HS256'],
-    });
-    return payload?.role === 'admin';
-  } catch (error) {
-    return false;
-  }
-}
+// Admin JWTs are deprecated. Admin uses Supabase Auth.
 
 export async function signUserToken(email: string) {
   const key = getSecretKey();

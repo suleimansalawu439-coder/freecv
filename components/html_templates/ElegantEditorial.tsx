@@ -39,7 +39,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
           {data.skills.length > 0 && (
             <div className="mb-10">
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
-                Expertise
+                Skills
               </h3>
               <ul className="space-y-2">
                 {data.skills.map(s => (

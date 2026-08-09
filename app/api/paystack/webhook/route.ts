@@ -110,7 +110,7 @@ async function emailInvoice(d: any, reference: string) {
   const email = d?.customer?.email;
   if (!apiKey || !email) return;
   try {
-    const pdfBuffer = await generateInvoicePdfBuffer({
+    const pdfPromise = generateInvoicePdfBuffer({
       reference, amount: d?.amount, currency: d?.currency || 'NGN',
       email, company: d?.customer?.business_name || d?.metadata?.company_name || '',
       date: new Date().toISOString(),
@@ -118,6 +118,12 @@ async function emailInvoice(d: any, reference: string) {
       customerEmail: email,
       planName: planName(d)
     });
+
+    const timeoutPromise = new Promise<Buffer | null>((_, reject) => 
+      setTimeout(() => reject(new Error('PDF generation timed out')), 5000)
+    );
+
+    const pdfBuffer = await Promise.race([pdfPromise, timeoutPromise]) as Buffer | null;
     if (!pdfBuffer) return;
     await fetch('https://api.brevo.com/v3/transactional/email', {
       method: 'POST',
@@ -209,8 +215,16 @@ export async function processPaystackEvent(event: any): Promise<boolean> {
   return true;
 }
 
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
+
 /* ================================================================== */
 export async function POST(req: Request) {
+  const rateLimit = await checkRateLimit(req, {
+    ...RATE_LIMITS.WEBHOOK,
+    identifier: 'ip'
+  });
+  if (rateLimit) return rateLimit;
+
   let event: any = null;
   try {
     const rawBody = await req.text();

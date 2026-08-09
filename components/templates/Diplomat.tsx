@@ -335,7 +335,7 @@ export default function Diplomat({ data }: TemplateProps) {
           {/* Core Expertise / Skills */}
           {data.skills && data.skills.length > 0 && (
             <View style={styles.column}>
-              <Text style={[styles.colTitle, { color: c }]}>Core Expertise</Text>
+              <Text style={[styles.colTitle, { color: c }]}>Skills</Text>
               <View style={styles.skillsWrap}>
                 {data.skills.map(s => (
                   <Text
