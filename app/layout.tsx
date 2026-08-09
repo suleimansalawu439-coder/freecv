@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com'),
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
-  description: "Build a premium, ATS-friendly resume directly in your browser. Zero hidden fees, no sign up required, instant PDF download. 100% privacy with local storage.",
+  description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Enjoy free unlimited downloads, ATS-friendly templates, and absolutely no sign up required.",
   keywords: ["Free Resume Builder", "ATS Friendly Resume Builder", "No Sign Up Resume Maker", "Free PDF Resume Creator", "No Hidden Fees Resume Builder"],
   icons: {
     icon: [
@@ -19,25 +19,25 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "Create a beautiful, ATS-friendly resume without hidden fees. Instant PDF download, no sign up required.",
+    description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Enjoy free unlimited downloads, ATS-friendly templates, and absolutely no sign up required.",
     url: "https://cvyon.com",
     siteName: "Cvyon",
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Cvyon — Free AI Résumé Builder",
-        type: "image/png",
+        type: "image/jpeg",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "Create a beautiful, ATS-friendly resume without hidden fees.",
-    images: ["/og-image.png"],
+    description: "The free premium resume builder that uses an ATS Grader to ensure outstanding output. Free unlimited downloads, no sign up required.",
+    images: ["/og-image.jpg"],
   },
 };
 
