@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generateContentWithRetry } from '@/lib/ai-retry';
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
         const result = await mammoth.extractRawText({ buffer });
         extractedText = result.value;
       } catch (err) {
-        console.error('DOCX Parse error:', err);
+        logger.error('standalone-ats-score', 'DOCX Parse error:', err);
         return NextResponse.json({ error: 'Failed to read DOCX. Ensure the file is valid.' }, { status: 400 });
       }
     } else {
@@ -83,7 +84,7 @@ export async function POST(req: Request) {
         return NextResponse.json(cached.response_data);
       }
     } catch (e) {
-      console.warn("Supabase cache read failed", e);
+      logger.warn('standalone-ats-score', "Supabase cache read failed", e);
     }
 
     // JD Analysis
@@ -131,17 +132,17 @@ export async function POST(req: Request) {
           expires_at: expiresAt.toISOString()
         });
       } catch (e) {
-        console.warn("Supabase cache write failed", e);
+        logger.warn('standalone-ats-score', "Supabase cache write failed", e);
       }
       
       return NextResponse.json(result);
     } catch (parseError) {
-      console.error('Failed to parse JSON from AI response:', parseError);
+      logger.error('standalone-ats-score', 'Failed to parse JSON from AI response:', parseError);
       return NextResponse.json({ error: 'AI returned malformed output. Please try again.' }, { status: 500 });
     }
 
   } catch (error: any) {
-    console.error('Standalone ATS error:', error);
+    logger.error('standalone-ats-score', 'Standalone ATS error:', error);
     return NextResponse.json({ error: error.message || 'An unexpected error occurred' }, { status: 500 });
   }
 }

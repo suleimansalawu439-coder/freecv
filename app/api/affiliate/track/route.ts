@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
         });
 
       if (clickErr) {
-        console.error("affiliate_clicks insert error:", clickErr);
+        logger.error('track', "affiliate_clicks insert error:", clickErr);
         return NextResponse.json({ error: "Failed to record affiliate click", details: clickErr.message }, { status: 500 });
       }
 
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
         });
 
       if (jobErr) {
-        console.error("job_clicks insert error:", jobErr);
+        logger.error('track', "job_clicks insert error:", jobErr);
         return NextResponse.json({ error: "Failed to record job click" }, { status: 500 });
       }
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: "Either ref_code or job_url is required" }, { status: 400 });
   } catch (err: any) {
-    console.error("Affiliate tracking error:", err);
+    logger.error('track', "Affiliate tracking error:", err);
     return NextResponse.json({ error: err.message || "Server Error" }, { status: 500 });
   }
 }

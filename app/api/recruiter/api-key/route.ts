@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ api_key: updated.api_key });
   } catch (error: any) {
-    console.error(error);
+    logger.error('api-key', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

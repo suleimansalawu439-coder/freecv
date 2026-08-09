@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { GoogleGenAI } from '@google/genai';
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     if (!isSupabaseConfigured) {
-      console.warn('[CRM opt-in] Supabase credentials not set — saving to in-memory store');
+      logger.warn('optin', '[CRM opt-in] Supabase credentials not set — saving to in-memory store');
     }
 
     // Multi-source IP detection
@@ -179,7 +180,7 @@ export async function POST(request: Request) {
         .eq('id', candidateId);
 
       if (updateErr) {
-        console.warn('[CRM opt-in] Candidates update notice:', updateErr.message);
+        logger.warn('optin', '[CRM opt-in] Candidates update notice:', updateErr.message);
         // Fallback minimal update
         await supabaseAdmin
           .from('candidates')
@@ -225,7 +226,7 @@ export async function POST(request: Request) {
       if (newCand?.id) {
         candidateId = newCand.id;
       } else if (insertErr) {
-        console.warn('[CRM opt-in] Candidates insert notice:', insertErr.message);
+        logger.warn('optin', '[CRM opt-in] Candidates insert notice:', insertErr.message);
         // Fallback insert without extra columns
         const { data: retryNew } = await supabaseAdmin
           .from('candidates')
@@ -274,7 +275,7 @@ export async function POST(request: Request) {
         .upsert(profilePayload, { onConflict: 'id' });
 
       if (profErr) {
-        console.warn('[CRM opt-in] candidate_profiles upsert notice:', profErr.message);
+        logger.warn('optin', '[CRM opt-in] candidate_profiles upsert notice:', profErr.message);
         // Fallback: core profile update
         await supabaseAdmin.from('candidate_profiles').upsert({
           id: candidateId,
@@ -299,7 +300,7 @@ export async function POST(request: Request) {
         user_agent: ua,
       });
     } catch (e) {
-      console.warn('[CRM opt-in] consent_logs insert failed (non-fatal)', e);
+      logger.warn('optin', '[CRM opt-in] consent_logs insert failed (non-fatal)', e);
     }
 
     // ---- 4. BACKGROUND AI ENRICHMENT (Strict 2.5s non-blocking timeout) ----
@@ -357,7 +358,7 @@ export async function POST(request: Request) {
           ]);
         } catch (e) {
           // AI enrichment failed or timed out — candidate is already saved safely
-          console.warn('[CRM opt-in] Background AI enrichment skipped/timed out (non-fatal):', e);
+          logger.warn('optin', '[CRM opt-in] Background AI enrichment skipped/timed out (non-fatal):', e);
         }
       })();
 
@@ -372,7 +373,7 @@ export async function POST(request: Request) {
       completeness: score
     });
   } catch (error: any) {
-    console.error('[CRM opt-in] fatal error:', error);
+    logger.error('optin', '[CRM opt-in] fatal error:', error);
     return NextResponse.json({ error: 'Internal Server Error', message: error?.message || 'Unknown error' }, { status: 500 });
   }
 }

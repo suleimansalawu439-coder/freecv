@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
       recentEvents: events.slice(0, 10)
     });
   } catch (error: any) {
-    console.error('Analytics fetch error:', error);
+    logger.error('analytics', 'Analytics fetch error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

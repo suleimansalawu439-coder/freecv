@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
     const brevoApiKey = process.env.BREVO_API_KEY;
     
     if (!brevoApiKey) {
-      console.warn("BREVO_API_KEY is not set. Cannot send email.");
+      logger.warn('export', "BREVO_API_KEY is not set. Cannot send email.");
       return NextResponse.json({ error: 'BREVO_API_KEY not configured' }, { status: 500 });
     }
 
@@ -91,13 +92,13 @@ export async function GET(request: Request) {
 
     if (!brevoResponse.ok) {
       const errData = await brevoResponse.text();
-      console.error("Brevo Error:", errData);
+      logger.error('export', "Brevo Error:", errData);
       throw new Error('Failed to send email via Brevo');
     }
 
     return NextResponse.json({ success: true, message: `Email sent with ${candidates.length} candidates.` });
   } catch (error: any) {
-    console.error("Cron Export Error:", error);
+    logger.error('export', "Cron Export Error:", error);
     return NextResponse.json({ error: 'Failed to run export cron' }, { status: 500 });
   }
 }

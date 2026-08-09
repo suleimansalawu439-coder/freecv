@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { verifyUserToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, message: 'Your data has been successfully deleted.' });
   } catch (error) {
-    console.error('Delete User Error:', error);
+    logger.error('delete', 'Delete User Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

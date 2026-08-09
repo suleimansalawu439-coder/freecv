@@ -237,14 +237,18 @@ const effectiveServiceKey = supabaseServiceKey || supabaseAnonKey;
 const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
 const isRealDb = !!(supabaseUrl && (supabaseServiceKey || supabaseAnonKey));
 
-// Warn when admin client falls back to anon key (RLS will block reads/updates)
+// Warn or throw when admin client falls back to anon key (RLS will block reads/updates)
 if (typeof window === 'undefined' && supabaseUrl && !supabaseServiceKey && supabaseAnonKey) {
-  console.warn(
-    '\n🔴 [supabase] WARNING: SUPABASE_SERVICE_ROLE_KEY is missing!',
-    '\n   supabaseAdmin is using the anon key, which means RLS policies will block SELECT/UPDATE on candidates.',
-    '\n   Set SUPABASE_SERVICE_ROLE_KEY in your Vercel environment variables.',
-    '\n   Find it in: Supabase Dashboard → Project Settings → API → service_role secret key\n'
-  );
+  const msg = '\n🔴 [supabase] CRITICAL WARNING: SUPABASE_SERVICE_ROLE_KEY is missing!\n' +
+              '   supabaseAdmin is using the anon key, which means RLS policies will block SELECT/UPDATE on candidates.\n' +
+              '   Set SUPABASE_SERVICE_ROLE_KEY in your environment variables.\n' +
+              '   Find it in: Supabase Dashboard → Project Settings → API → service_role secret key\n';
+  
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
+    throw new Error('CRITICAL: Supabase service role key is missing in production. Halting to prevent silent data loss.');
+  } else {
+    console.warn(msg);
+  }
 }
 
 export const supabaseAdmin: SupabaseClient<any> = globalForSupabase.supabaseAdminClient || (

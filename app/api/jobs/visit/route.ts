@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       // Fallback: in case table doesn't have newer columns yet, insert standard columns
-      console.warn("Supabase full job_clicks insert error, trying fallback:", error.message);
+      logger.warn('track', "Supabase full job_clicks insert error, trying fallback:", error.message);
       const fallbackPayload = {
         job_url,
         job_title: job_title || '',
@@ -90,14 +91,14 @@ export async function POST(req: NextRequest) {
       };
       const { error: fallbackError } = await supabaseAdmin.from('job_clicks').insert(fallbackPayload);
       if (fallbackError) {
-        console.error("Supabase job_clicks fallback error:", fallbackError);
+        logger.error('track', "Supabase job_clicks fallback error:", fallbackError);
         return NextResponse.json({ error: "Failed to record click" }, { status: 500 });
       }
     }
 
     return NextResponse.json({ success: true, country, cpc_value, device_type });
   } catch (err: any) {
-    console.error("Job tracking error:", err);
+    logger.error('track', "Job tracking error:", err);
     return NextResponse.json({ error: err.message || "Server Error" }, { status: 500 });
   }
 }

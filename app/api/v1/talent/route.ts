@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -117,7 +118,7 @@ export async function GET(req: Request) {
       data
     });
   } catch (error: any) {
-    console.error('API error:', error);
+    logger.error('talent', 'API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

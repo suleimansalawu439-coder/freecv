@@ -4,9 +4,8 @@
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogContext {
-  [key: string]: unknown;
-}
+// Relaxed to any to allow easy migration from permissive console.* statements
+type LogContext = any;
 
 const SENSITIVE_KEYS = ['password', 'token', 'secret', 'authorization', 'cookie', 'cvv', 'card'];
 

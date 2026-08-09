@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -48,14 +49,14 @@ export async function POST(request: Request) {
           })
         });
       } catch (emailError) {
-        console.error('Failed to dispatch support email:', emailError);
+        logger.error('support', 'Failed to dispatch support email:', emailError);
         // We don't fail the request if the email fails, as the ticket is safely in the DB
       }
     }
 
     return NextResponse.json({ success: true, ticket });
   } catch (error: any) {
-    console.error('Support ticket error:', error);
+    logger.error('support', 'Support ticket error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

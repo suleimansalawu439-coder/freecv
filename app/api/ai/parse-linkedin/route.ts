@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(parsedData);
 
   } catch (error: any) {
-    console.error('LinkedIn Parse Error:', error);
+    logger.error('parse-linkedin', 'LinkedIn Parse Error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

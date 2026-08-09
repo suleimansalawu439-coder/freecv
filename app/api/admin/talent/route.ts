@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { requireAdmin, adminFail } from '@/lib/admin-auth';
@@ -134,7 +135,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
-    console.error('Error fetching talent candidates:', err);
+    logger.error('talent', 'Error fetching talent candidates:', err);
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 });
   }
 }

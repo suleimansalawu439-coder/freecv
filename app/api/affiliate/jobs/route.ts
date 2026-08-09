@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 
 /* ---- country code (from Vercel geo header) -> name + CareerJet locale ---- */
@@ -169,7 +170,7 @@ export async function POST(req: Request) {
           }
         }
       } catch (proxyErr) {
-        console.warn('Careerjet proxy fetch notice, falling back to partner feeds:', proxyErr);
+        logger.warn('jobs', 'Careerjet proxy fetch notice, falling back to partner feeds:', proxyErr);
       }
     }
 
@@ -184,7 +185,7 @@ export async function POST(req: Request) {
       suggestions,
     });
   } catch (error: any) {
-    console.error('Affiliate jobs route error:', error);
+    logger.error('jobs', 'Affiliate jobs route error:', error);
     return NextResponse.json({ success: false, data: [], error: error?.message || 'unknown' }, { status: 500 });
   }
 }

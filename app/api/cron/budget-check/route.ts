@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
         .update({ is_enabled: false })
         .eq('key', 'ai_circuit_breaker');
         
-      console.warn(`[CRITICAL] AI Budget Exceeded. Total Cost: $${totalCost.toFixed(4)}. Limit: $${budgetLimit}. AI features have been disabled.`);
+      logger.warn('budget-check', `[CRITICAL] AI Budget Exceeded. Total Cost: $${totalCost.toFixed(4)}. Limit: $${budgetLimit}. AI features have been disabled.`);
     } else {
       // Re-enable if under budget (e.g. at the start of a new month)
       await supabaseAdmin
@@ -55,7 +56,7 @@ export async function GET(request: Request) {
       circuitBreakerTripped
     });
   } catch (error: any) {
-    console.error('Budget Check Cron Error:', error);
+    logger.error('budget-check', 'Budget Check Cron Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

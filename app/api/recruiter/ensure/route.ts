@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true, created: true });
   } catch (e: any) {
-    console.error('recruiter/ensure error', e);
+    logger.error('ensure', 'recruiter/ensure error', e);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

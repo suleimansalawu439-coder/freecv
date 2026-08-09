@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { processPaystackEvent } from '@/app/api/paystack/webhook/route';
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
       .limit(20);
 
     if (error) {
-      console.error('[cron/webhooks] Fetch queue error:', error);
+      logger.error('webhooks', '[cron/webhooks] Fetch queue error:', error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
@@ -81,7 +82,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ success: true, processed: results.length, results });
   } catch (error: any) {
-    console.error('[cron/webhooks] Worker unhandled error:', error);
+    logger.error('webhooks', '[cron/webhooks] Worker unhandled error:', error);
     return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }
 }

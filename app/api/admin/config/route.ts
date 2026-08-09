@@ -1,3 +1,4 @@
+import { logAdminAction } from '@/lib/audit';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { requireAdmin, adminFail } from '@/lib/admin-auth';
@@ -34,6 +35,7 @@ export async function handleConfig(req: Request) {
     } else {
       return NextResponse.json({ error: 'unknown target' }, { status: 400 });
     }
+    await logAdminAction({ action: 'UPDATE_CONFIG', target_table: target, target_id: key || id || 'bulk', metadata: { key, value } });
     return NextResponse.json({ ok: true, success: true });
   } catch (e: any) {
     console.error('[Admin Config Error]', e);

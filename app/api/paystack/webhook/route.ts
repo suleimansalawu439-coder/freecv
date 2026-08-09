@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase';
 import { generateInvoicePdfBuffer } from '@/lib/invoice-generator';
+import { FX_RATES } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 // Webhooks use node crypto (+ the invoice buffer), so they must run on nodejs.
 export const runtime = 'nodejs';
@@ -11,11 +13,7 @@ export const runtime = 'nodejs';
  *  Stored per-row as fx_to_usd so historical numbers never drift when
  *  you update this table later.
  * ------------------------------------------------------------------ */
-const FX: Record<string, number> = {
-  USD: 1, NGN: 1 / 1550, GBP: 1.27, EUR: 1.08, KES: 0.0077,
-  ZAR: 0.055, GHS: 0.065, INR: 0.012, CAD: 0.73, AUD: 0.66,
-};
-const fxFor = (cur?: string) => FX[(cur || 'USD').toUpperCase()] ?? 1;
+const fxFor = (cur?: string) => FX_RATES[(cur || 'USD').toUpperCase()] ?? 1;
 const planName = (d: any) => d?.plan?.name || d?.plan || d?.subscription?.plan?.name || 'pro';
 
 /* ------------------------------------------------------------------ *
@@ -32,7 +30,7 @@ async function claim(eventId: string): Promise<boolean> {
   } catch (e: any) {
     const msg = (e?.message || e?.code || '').toString().toLowerCase();
     if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) return false;
-    console.warn('[webhook] claim error, proceeding anyway:', e?.message);
+    logger.warn('webhook', '[webhook] claim error, proceeding anyway:', e?.message);
     return true;
   }
 }
@@ -58,7 +56,7 @@ async function rememberCustomerCode(recruiterId: string, d: any) {
     await supabaseAdmin.from('recruiters')
       .update({ paystack_customer_code: custCode }).eq('id', recruiterId);
   } catch (e: any) {
-    console.warn('[webhook] customer-code save skipped:', e?.message);
+    logger.warn('webhook', '[webhook] customer-code save skipped:', e?.message);
   }
 }
 
@@ -85,7 +83,7 @@ async function upsertSubscription(subscriptionCode: string, recruiterId: string,
         fx_to_usd: fxFor(cur), paid_at: new Date().toISOString(),
       }).eq('paystack_subscription_code', subscriptionCode);
     } catch (e: any) {
-      console.warn('[webhook] sub money-cols update skipped (run business-layer migration?):', e?.message);
+      logger.warn('webhook', '[webhook] sub money-cols update skipped (run business-layer migration?):', e?.message);
     }
   }
 }
@@ -101,7 +99,7 @@ async function recordCash(reference: string, recruiterId: string | null, amount:
       period_start: new Date().toISOString(),
     });
   } catch (e: any) {
-    console.warn('[webhook] revenue_ledger insert skipped:', e?.message);
+    logger.warn('webhook', '[webhook] revenue_ledger insert skipped:', e?.message);
   }
 }
 
@@ -112,11 +110,13 @@ async function emailInvoice(d: any, reference: string) {
   const email = d?.customer?.email;
   if (!apiKey || !email) return;
   try {
-    const gen = generateInvoicePdfBuffer as unknown as (opts: any) => Promise<any>;
-    const pdfBuffer = await gen({
+    const pdfBuffer = await generateInvoicePdfBuffer({
       reference, amount: d?.amount, currency: d?.currency || 'NGN',
       email, company: d?.customer?.business_name || d?.metadata?.company_name || '',
       date: new Date().toISOString(),
+      customerName: d?.customer?.first_name || 'Customer',
+      customerEmail: email,
+      planName: planName(d)
     });
     if (!pdfBuffer) return;
     await fetch('https://api.brevo.com/v3/transactional/email', {
@@ -130,9 +130,9 @@ async function emailInvoice(d: any, reference: string) {
         attachment: [{ name: `Invoice-${reference}.pdf`, content: pdfBuffer.toString('base64') }],
       }),
     });
-    console.log('[webhook] invoice emailed to', email);
+    logger.info('webhook', '[webhook] invoice emailed to', email);
   } catch (err) {
-    console.error('[webhook] invoice email failed (non-fatal):', (err as any)?.message);
+    logger.error('webhook', '[webhook] invoice email failed (non-fatal):', (err as any)?.message);
   }
 }
 
@@ -153,7 +153,7 @@ export async function processPaystackEvent(event: any): Promise<boolean> {
         await rememberCustomerCode(recruiterId, d);
         await upsertSubscription(subscriptionCode, recruiterId, d);
       } else {
-        console.warn('[webhook] subscription.create: could not resolve recruiter for', subscriptionCode);
+        logger.warn('webhook', '[webhook] subscription.create: could not resolve recruiter for', subscriptionCode);
       }
       break;
     }
@@ -185,7 +185,7 @@ export async function processPaystackEvent(event: any): Promise<boolean> {
             fx_to_usd: amount != null ? fxFor(cur) : undefined,
           }).eq('paystack_subscription_code', subscriptionCode);
         } catch (e: any) {
-          console.warn('[webhook] renewal extend skipped:', e?.message);
+          logger.warn('webhook', '[webhook] renewal extend skipped:', e?.message);
         }
       }
 
@@ -217,20 +217,23 @@ export async function POST(req: Request) {
     const signature = req.headers.get('x-paystack-signature');
     if (!signature) return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
 
-    const secret = process.env.PAYSTACK_SECRET_KEY as string;
-    if (!secret) { console.error('[webhook] PAYSTACK_SECRET_KEY is not set'); return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 }); }
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) {
+      logger.error('webhook', 'PAYSTACK_SECRET_KEY is not set');
+      return NextResponse.json({ error: 'Internal Service Error' }, { status: 500 });
+    }
 
     const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
     if (hash !== signature) return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
 
     event = JSON.parse(rawBody);
-    console.log('[webhook] Paystack event received:', event.event);
+    logger.info('webhook', `Paystack event received: ${event.event}`);
 
     await processPaystackEvent(event);
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error: any) {
-    console.error('[webhook] Paystack webhook processing failed, enqueueing for retry:', error);
+    logger.error('webhook', 'Paystack webhook processing failed, enqueueing for retry:', { error });
     if (event) {
       try {
         await supabaseAdmin.from('webhook_event_queue').insert({
@@ -243,7 +246,7 @@ export async function POST(req: Request) {
           next_retry_at: new Date(Date.now() + 60 * 1000).toISOString(),
         });
       } catch (queueErr) {
-        console.error('[webhook] Failed to enqueue event:', queueErr);
+        logger.error('webhook', '[webhook] Failed to enqueue event:', queueErr);
       }
     }
     return NextResponse.json({ error: 'Webhook Error Queued' }, { status: 500 });

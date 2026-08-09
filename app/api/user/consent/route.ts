@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { verifyUserToken } from '@/lib/auth';
@@ -143,7 +144,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, consents: patch });
   } catch (error: any) {
-    console.error('consent update error', error);
+    logger.error('consent', 'consent update error', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { Redis } from '@upstash/redis';
@@ -58,7 +59,7 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
         return NextResponse.json(cached.response_data);
       }
     } catch (e) {
-      console.warn("Supabase cache read failed", e);
+      logger.warn('ats-score', "Supabase cache read failed", e);
     }
 
     const jdPrompt = `USER INPUT (JOB DESCRIPTION):\n${jobDescription}`;
@@ -93,16 +94,16 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
           expires_at: expiresAt.toISOString()
         });
       } catch (e) {
-        console.warn("Supabase cache write failed", e);
+        logger.warn('ats-score', "Supabase cache write failed", e);
       }
     } catch (parseError) {
-      console.error('Failed to parse JSON from AI response after retries:', parseError);
+      logger.error('ats-score', 'Failed to parse JSON from AI response after retries:', parseError);
       return NextResponse.json({ error: 'AI returned malformed output. Please try again.' }, { status: 500 });
     }
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error('ATS Score Error:', error);
+    logger.error('ats-score', 'ATS Score Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate ATS score' }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
@@ -125,9 +126,9 @@ export async function GET(request: Request) {
               tags: ['job-match'],
             }),
           });
-          if (!r.ok) { console.warn('brevo send failed', email, r.status); skipped++; continue; }
+          if (!r.ok) { logger.warn('job-match', `brevo send failed for ${email} with status ${r.status}`); skipped++; continue; }
         } else {
-          console.warn('No BREVO_API_KEY; would send to', email);
+          logger.warn('job-match', 'No BREVO_API_KEY; would send to', email);
         }
 
         // metric
@@ -136,12 +137,12 @@ export async function GET(request: Request) {
           country: code || 'UNKNOWN', metadata: { candidate_id: p.id, jobs: jobs.length },
         });
         sent++;
-      } catch (e) { console.error('per-candidate error', e); skipped++; }
+      } catch (e) { logger.error('job-match', 'per-candidate error', e); skipped++; }
     }
 
     return NextResponse.json({ success: true, sent, skipped, considered: profiles.length });
   } catch (error: any) {
-    console.error('job-match cron error', error);
+    logger.error('job-match', 'job-match cron error', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -13,7 +13,19 @@ const styles = StyleSheet.create({
   totalValue: { fontSize: 18, fontWeight: 'bold' },
 });
 
-const Invoice = ({ data }: { data: any }) => (
+export interface InvoiceData {
+  reference: string;
+  amount: number;
+  currency: string;
+  email: string;
+  company: string;
+  date: string;
+  customerName?: string;
+  customerEmail?: string;
+  planName?: string;
+}
+
+const Invoice = ({ data }: { data: InvoiceData }) => (
   <Document>
     <Page size="A4" style={styles.page}>
       <Text style={styles.header}>TAX INVOICE</Text>
@@ -54,7 +66,7 @@ const Invoice = ({ data }: { data: any }) => (
   </Document>
 );
 
-export async function generateInvoicePdfBuffer(data: any): Promise<Buffer> {
+export async function generateInvoicePdfBuffer(data: InvoiceData): Promise<Buffer> {
   const pdfBuffer = await renderToBuffer(<Invoice data={data} />);
   return pdfBuffer;
 }

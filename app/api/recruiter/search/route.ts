@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 
@@ -61,7 +62,7 @@ export async function GET(req: Request) {
     });
 
   } catch (e: any) {
-    console.error('recruiter/search error', e);
+    logger.error('search', 'recruiter/search error', e);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

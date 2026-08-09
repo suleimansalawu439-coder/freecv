@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { verifyUserToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error('Export User Error:', error);
+    logger.error('export', 'Export User Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

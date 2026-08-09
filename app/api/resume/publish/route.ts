@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       });
 
     if (insertError) {
-      console.error('Supabase Insert Error:', insertError);
+      logger.error('publish', 'Supabase Insert Error:', insertError);
       throw new Error('Failed to save to database.');
     }
 
@@ -50,7 +51,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    console.error('Publish API Error:', error);
+    logger.error('publish', 'Publish API Error:', error);
     return NextResponse.json(
       { error: error.message || 'An error occurred while publishing.' },
       { status: 500 }

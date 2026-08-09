@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generateContentWithRetry } from '@/lib/ai-retry';
@@ -124,7 +125,7 @@ JSON Schema to match:
 
     return NextResponse.json(parsedData);
   } catch (error: any) {
-    console.error('Resume Import Error:', error);
+    logger.error('import-resume', 'Resume Import Error:', error);
     return NextResponse.json(
       { error: error.message || 'An error occurred during resume import.' },
       { status: 500 }

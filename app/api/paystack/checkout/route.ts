@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { cookies } from 'next/headers';
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: result.data.authorization_url, authorization_url: result.data.authorization_url });
   } catch (error: any) {
-    console.error('Paystack checkout error:', error);
+    logger.error('checkout', 'Paystack checkout error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

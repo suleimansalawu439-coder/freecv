@@ -1,0 +1,124 @@
+openapi: 3.0.3
+info:
+  title: Cvyon Platform API
+  version: 1.0.0
+  description: >
+    The core API powering the Cvyon Resume Builder, Admin Dashboard, and third-party integrations (Paystack, CareerJet).
+servers:
+  - url: https://www.cvyon.com/api
+    description: Production Server
+  - url: http://localhost:3000/api
+    description: Local Development
+
+paths:
+  /crm/optin:
+    post:
+      summary: Opt-in a candidate
+      description: Adds a candidate to the talent pool if they consent to receiving job emails.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                jobTitle:
+                  type: string
+                industry:
+                  type: string
+                country:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Successfully opted in
+        '400':
+          description: Invalid payload or demo email rejected
+
+  /ai/generate:
+    post:
+      summary: Generate AI Resume Content
+      description: Uses Google Gemini to optimize resume bullets.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prompt:
+                  type: string
+      responses:
+        '200':
+          description: Successful generation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+
+  /paystack/webhook:
+    post:
+      summary: Paystack Webhook Handler
+      description: Receives asynchronous events from Paystack (e.g., successful charges) to update subscriptions and generate invoices.
+      responses:
+        '200':
+          description: Webhook acknowledged
+        '400':
+          description: Invalid signature
+
+  /cron/export-delivery:
+    get:
+      summary: Weekly Talent Pool Export
+      description: Generates a CSV of candidates who opted in over the last 7 days and emails it to recruiters via Brevo.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Export successful
+
+  /admin/config:
+    post:
+      summary: Update Global Configuration
+      description: Mutates app settings, site settings, or feature flags. Requires admin authentication.
+      security:
+        - AdminCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target:
+                  type: string
+                  enum: [app_settings, site_settings, feature_flags]
+                key:
+                  type: string
+                value:
+                  type: string
+      responses:
+        '200':
+          description: Successfully updated config
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Secret token for protecting cron endpoints (CRON_SECRET)
+    AdminCookie:
+      type: apiKey
+      in: cookie
+      name: admin_session
+      description: JWT cookie issued after successful admin login

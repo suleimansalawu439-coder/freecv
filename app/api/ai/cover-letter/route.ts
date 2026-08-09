@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 import { trackEvent } from '@/lib/analytics';
@@ -41,7 +42,7 @@ Do NOT include generic placeholders like [Company Name] if it's in the text.`;
 
     return NextResponse.json({ coverLetter: result.coverLetter || result.text || result });
   } catch (error: any) {
-    console.error('Cover Letter AI Error:', error);
+    logger.error('cover-letter', 'Cover Letter AI Error:', error);
     return NextResponse.json(
       { error: 'Failed to generate cover letter. Please try again.' },
       { status: 500 }

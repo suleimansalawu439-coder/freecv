@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
 import { sanitizeResumeData } from '@/lib/validation';
@@ -190,7 +191,7 @@ export async function POST(request: Request) {
       }
     });
   } catch (error: any) {
-    console.error('Docx Export Error:', error);
+    logger.error('docx', 'Docx Export Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate word document' }, { status: 500 });
   }
 }

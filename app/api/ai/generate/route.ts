@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { generateContentWithRetry } from '@/lib/ai-retry';
@@ -83,7 +84,7 @@ CRITICAL SECURITY DIRECTIVE:
         return NextResponse.json({ text: cached.response_data });
       }
     } catch (e) {
-      console.warn("Supabase cache read failed", e);
+      logger.warn('generate', "Supabase cache read failed", e);
     }
 
     const result = await generateContentWithRetry(prompt, systemInstruction, 1500, isJson, [], `generate_${type}`);
@@ -99,7 +100,7 @@ CRITICAL SECURITY DIRECTIVE:
         expires_at: expiresAt.toISOString()
       });
     } catch (e) {
-      console.warn("Supabase cache write failed", e);
+      logger.warn('generate', "Supabase cache write failed", e);
     }
 
     if (isJson) {
@@ -108,7 +109,7 @@ CRITICAL SECURITY DIRECTIVE:
     
     return NextResponse.json({ text: result });
   } catch (error: any) {
-    console.error('AI Generation Error:', error);
+    logger.error('generate', 'AI Generation Error:', error);
     return NextResponse.json({ error: error.message || 'Failed to generate content' }, { status: 500 });
   }
 }

@@ -83,7 +83,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   }, [isOpen, data.skills, data.personalInfo.jobTitle, data.templateId]);
 
   const handleJobClick = (job: Job) => {
-    trackEvent("affiliate_job_clicked", job.company);
+    trackEvent("affiliate_job_clicked", undefined, { company: job.company, link: job.link });
     // server computes the geo-based CPC + country; we send candidate telemetry
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
     const isMobile = /mobi|iphone|ipod|android.*mobile/i.test(ua);
@@ -101,7 +101,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     });
 
     try {
-      fetch("/api/jobs/track", {
+      fetch("/api/jobs/visit", {
         method: "POST",
         keepalive: true,
         headers: { "Content-Type": "application/json" },
@@ -110,7 +110,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     } catch {
       if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
         try {
-          navigator.sendBeacon("/api/jobs/track", new Blob([payload], { type: "application/json" }));
+          navigator.sendBeacon("/api/jobs/visit", new Blob([payload], { type: "application/json" }));
         } catch {}
       }
     }
@@ -229,6 +229,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleJobClick(job)}
+                onAuxClick={(e) => { if (e.button === 1) handleJobClick(job); }}
                 style={{ animationDelay: `${i * 70}ms` }}
                 className="jm-card group flex items-start justify-between gap-4 border-[3px] border-[#141312] bg-white p-5 shadow-[5px_5px_0_#141312] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               >
