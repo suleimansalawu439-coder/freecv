@@ -237,6 +237,16 @@ const effectiveServiceKey = supabaseServiceKey || supabaseAnonKey;
 const isRealAdmin = !!(supabaseUrl && supabaseServiceKey);
 const isRealDb = !!(supabaseUrl && (supabaseServiceKey || supabaseAnonKey));
 
+// Warn when admin client falls back to anon key (RLS will block reads/updates)
+if (typeof window === 'undefined' && supabaseUrl && !supabaseServiceKey && supabaseAnonKey) {
+  console.warn(
+    '\n🔴 [supabase] WARNING: SUPABASE_SERVICE_ROLE_KEY is missing!',
+    '\n   supabaseAdmin is using the anon key, which means RLS policies will block SELECT/UPDATE on candidates.',
+    '\n   Set SUPABASE_SERVICE_ROLE_KEY in your Vercel environment variables.',
+    '\n   Find it in: Supabase Dashboard → Project Settings → API → service_role secret key\n'
+  );
+}
+
 export const supabaseAdmin: SupabaseClient<any> = globalForSupabase.supabaseAdminClient || (
   isRealDb
     ? createClient<any>(supabaseUrl, effectiveServiceKey, {
@@ -248,10 +258,9 @@ export const supabaseAdmin: SupabaseClient<any> = globalForSupabase.supabaseAdmi
     : { from: mockClient, rpc: async () => ({ data: null, error: null }) } as unknown as SupabaseClient<any>
 );
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForSupabase.supabaseClient = supabase;
-  globalForSupabase.supabaseAdminClient = supabaseAdmin;
-}
+// Cache globally to prevent connection churn in ALL environments
+globalForSupabase.supabaseClient = supabase;
+globalForSupabase.supabaseAdminClient = supabaseAdmin;
 
 /** True when supabaseAdmin or supabase is connected to a real database, false when using mock */
 export const isSupabaseConfigured = isRealDb;

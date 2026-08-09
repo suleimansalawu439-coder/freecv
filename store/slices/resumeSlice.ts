@@ -7,12 +7,12 @@ export const initialData: ResumeData = {
   templateId: 'Executive',
   theme: { color: '#2563eb' },
   personalInfo: {
-    fullName: "Jane Doe",
-    jobTitle: "Senior Product Designer",
-    email: "jane@cvyon.dev",
-    phone: "(555) 123-4567",
-    location: "San Francisco, CA",
-    website: "janedoe.com",
+    fullName: "",
+    jobTitle: "",
+    email: "",
+    phone: "",
+    location: "",
+    website: "",
   },
   summary: "Detail-oriented Product Designer with 6+ years of experience crafting premium digital experiences. Passionate about brutalist minimalism and accessible design systems.",
   experience: [

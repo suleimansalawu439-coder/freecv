@@ -127,6 +127,12 @@ const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
 };
 
 // --- Main Page ---
+const BLOCKED_EMAILS = ['jane@cvyon.dev', 'your.email@example.com', 'test@test.com', 'example@example.com', 'user@example.com', ''];
+function isRealUserEmail(email?: string): boolean {
+  const e = (email || '').trim().toLowerCase();
+  return !!(e && e.includes('@') && e.length >= 5 && !BLOCKED_EMAILS.includes(e));
+}
+
 export default function FreeCVApp() {
   const [isHydrated, setIsHydrated] = useState(false);
   const onboardingAppliedRef = useRef(false);
@@ -411,7 +417,7 @@ export default function FreeCVApp() {
 
   const handleDocxExport = async () => {
     try {
-      if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+      if (isRealUserEmail(data.personalInfo.email)) {
         try {
           fetch('/api/crm/optin', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
             .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
@@ -453,7 +459,7 @@ export default function FreeCVApp() {
 
   const handleDownload = async () => {
     trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('pdf'));
-    if (data.personalInfo.email) {
+    if (isRealUserEmail(data.personalInfo.email)) {
       try {
         fetch('/api/crm/optin', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
           .then(r => { if (!r.ok) r.text().then(t => console.error('[CRM opt-in] HTTP', r.status, t)); })
@@ -583,8 +589,7 @@ export default function FreeCVApp() {
                   value={data.personalInfo.email} 
                   onChange={(e: any) => updatePersonalInfo({ email: e.target.value })} 
                   onBlur={() => {
-                    const em = data.personalInfo?.email?.trim();
-                    if (em && em.includes('@') && em.length >= 5) {
+                    if (isRealUserEmail(data.personalInfo?.email)) {
                       fetch('/api/crm/optin', {
                         method: 'POST',
                         keepalive: true,
@@ -606,7 +611,7 @@ export default function FreeCVApp() {
                     const newShare = !data.consents.recruiterShare;
                     const nextConsents = { ...data.consents, recruiterShare: newShare };
                     setConsents(nextConsents);
-                    if (data.personalInfo.email && data.personalInfo.email.includes('@')) {
+                    if (isRealUserEmail(data.personalInfo.email)) {
                       fetch('/api/crm/optin', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },

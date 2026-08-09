@@ -1,8 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { supabaseAdmin } from '@/lib/supabase';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export interface MediaPart {
@@ -48,6 +46,12 @@ export async function generateContentWithRetry<T = unknown>(
     try {
       const parts: MediaPart[] = [{ text: systemInstruction + '\n\n' + prompt }];
       if (mediaParts.length > 0) parts.push(...mediaParts);
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY environment variable is missing.');
+      }
+      const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',

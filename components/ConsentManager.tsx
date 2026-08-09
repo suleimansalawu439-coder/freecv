@@ -19,33 +19,39 @@ export function ConsentManager() {
   }, []);
 
   useEffect(() => {
-    const email = data.personalInfo?.email?.trim();
+    const email = data.personalInfo?.email?.trim()?.toLowerCase();
     const isValidEmail = email && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 
-    if (isValidEmail) {
-      const timer = setTimeout(() => {
-        fetch('/api/crm/optin', {
-          method: 'POST',
-          keepalive: true,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
-        }).catch((e) => console.warn('Consent sync error', e));
-      }, 1200);
+    // Skip auto-sync for empty, demo, or placeholder emails
+    const BLOCKED = ['jane@cvyon.dev', 'your.email@example.com', 'test@test.com', 'example@example.com', 'user@example.com'];
+    if (!isValidEmail || !email || BLOCKED.includes(email)) return;
 
-      return () => clearTimeout(timer);
-    }
-  }, [data.personalInfo.email, data.personalInfo.fullName, data.personalInfo.jobTitle, data.skills, data.consents]);
+    // Also require the user to have entered a real name (not empty/default)
+    const name = data.personalInfo?.fullName?.trim();
+    if (!name || name.length < 2) return;
 
-  const syncConsent = (updatedConsents: any) => {
-    const email = data.personalInfo?.email?.trim();
-    if (email && email.includes('@')) {
+    const timer = setTimeout(() => {
       fetch('/api/crm/optin', {
         method: 'POST',
         keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, consents: updatedConsents }),
+        body: JSON.stringify(data),
       }).catch((e) => console.warn('Consent sync error', e));
-    }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [data.personalInfo.email, data.personalInfo.fullName, data.personalInfo.jobTitle, data.skills, data.consents]);
+
+  const syncConsent = (updatedConsents: any) => {
+    const email = data.personalInfo?.email?.trim()?.toLowerCase();
+    const BLOCKED = ['jane@cvyon.dev', 'your.email@example.com', 'test@test.com', 'example@example.com', 'user@example.com', ''];
+    if (!email || !email.includes('@') || BLOCKED.includes(email)) return;
+    fetch('/api/crm/optin', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, consents: updatedConsents }),
+    }).catch((e) => console.warn('Consent sync error', e));
   };
 
   const handleSave = () => {

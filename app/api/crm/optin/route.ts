@@ -49,6 +49,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
     }
 
+    // Block demo/placeholder emails from polluting the database
+    const BLOCKED_EMAILS = [
+      'jane@cvyon.dev', 'your.email@example.com', 'test@test.com',
+      'example@example.com', 'user@example.com', 'name@example.com',
+      'email@example.com', 'placeholder@example.com',
+    ];
+    if (BLOCKED_EMAILS.includes(email)) {
+      return NextResponse.json({ skipped: true, reason: 'demo_email' });
+    }
+
     if (!isSupabaseConfigured) {
       console.warn('[CRM opt-in] Supabase credentials not set — saving to in-memory store');
     }
