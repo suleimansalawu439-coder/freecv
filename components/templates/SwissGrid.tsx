@@ -248,9 +248,7 @@ export default function SwissGrid({ data }: TemplateProps) {
                 <Text style={[styles.sectionTitle, { color: themeColor }]}>Expertise</Text>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((skill) => (
-                    <Text key={skill.id} style={styles.skillBadge}>
-                      {skill.name}
-                    </Text>
+                    <Text key={skill.id} style={styles.skillBadge}>{skill.name}</Text>
                   ))}
                 </View>
               </View>
@@ -294,9 +292,7 @@ export default function SwissGrid({ data }: TemplateProps) {
                   {data.references.map((ref) => (
                     <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
                       <Text style={styles.refName}>{ref.name}</Text>
-                      <Text style={styles.refTitle}>
-                        {ref.title} {ref.company ? `@ ${ref.company}` : ''}
-                      </Text>
+                      <Text style={styles.refTitle}>{ref.title} {ref.company ? `@ ${ref.company}` : ''}</Text>
                       {ref.contact && <Text style={styles.refContact}>{ref.contact}</Text>}
                     </View>
                   ))}

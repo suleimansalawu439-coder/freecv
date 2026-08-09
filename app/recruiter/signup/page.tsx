@@ -17,12 +17,19 @@ export default function RecruiterSignup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    const BANNED_DOMAINS = ["yopmail.com", "mailinator.com", "guerrillamail.com", "10minutemail.com", "tempmail.com"];
+    const domain = email.split('@')[1]?.toLowerCase();
+    if (BANNED_DOMAINS.includes(domain)) {
+      toast.error("Please use a permanent email address.");
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase.auth.signUp({
         email, password,
         options: {
-          emailRedirectTo: "https://cvyon.com/recruiter",   // confirmation lands on the portal
+          emailRedirectTo: "https://cvyon.com/recruiter",
           data: { company_name: company },
         },
       });
@@ -32,6 +39,15 @@ export default function RecruiterSignup() {
     } catch (err: any) {
       toast.error(err.message || "Sign up failed");
     } finally { setLoading(false); }
+  };
+
+  const handleOAuth = async (provider: 'google' | 'linkedin_oidc') => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: "https://cvyon.com/recruiter" }
+    });
+    if (error) { toast.error(error.message); setLoading(false); }
   };
 
   return (
@@ -53,24 +69,39 @@ export default function RecruiterSignup() {
             <Link href="/recruiter/login" className="riso-btn riso-btn-ghost mt-6 w-full">Go to sign in</Link>
           </div>
         ) : (
-          <form onSubmit={handleSignup} className="riso-card mt-8 space-y-5 p-7">
-            <div>
-              <label className="riso-label">Company name</label>
-              <input required value={company} onChange={e => setCompany(e.target.value)} className="riso-input mt-2" placeholder="Acme Talent" />
+          <div className="riso-card mt-8 p-7 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => handleOAuth('google')} className="riso-btn bg-white text-[#141312] border-[3px] border-[#141312] hover:bg-[#141312] hover:text-white transition-colors flex items-center justify-center gap-2">
+                Google
+              </button>
+              <button onClick={() => handleOAuth('linkedin_oidc')} className="riso-btn bg-white text-[#141312] border-[3px] border-[#141312] hover:bg-[#141312] hover:text-white transition-colors flex items-center justify-center gap-2">
+                LinkedIn
+              </button>
             </div>
-            <div>
-              <label className="riso-label">Work email</label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="riso-input mt-2" placeholder="you@company.com" />
+            
+            <div className="flex items-center gap-4 before:h-px before:flex-1 before:bg-[#141312]/20 after:h-px after:flex-1 after:bg-[#141312]/20">
+              <span className="fm text-[10px] uppercase tracking-widest text-[#141312]/50">or email</span>
             </div>
-            <div>
-              <label className="riso-label">Password</label>
-              <input type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} className="riso-input mt-2" placeholder="At least 8 characters" />
-            </div>
-            <button type="submit" disabled={loading} className="riso-btn w-full">
-              {loading ? <Loader2 size={16} className="animate-spin" /> : "Create account"} <ArrowRight size={16} />
-            </button>
-            <p className="fm text-center text-[10px] uppercase tracking-[0.16em] text-[#141312]/45">by continuing you agree to our terms & privacy policy</p>
-          </form>
+
+            <form onSubmit={handleSignup} className="space-y-5">
+              <div>
+                <label className="riso-label">Company name</label>
+                <input required value={company} onChange={e => setCompany(e.target.value)} className="riso-input mt-2" placeholder="Acme Talent" />
+              </div>
+              <div>
+                <label className="riso-label">Work email</label>
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="riso-input mt-2" placeholder="you@company.com" />
+              </div>
+              <div>
+                <label className="riso-label">Password</label>
+                <input type="password" required minLength={8} value={password} onChange={e => setPassword(e.target.value)} className="riso-input mt-2" placeholder="At least 8 characters" />
+              </div>
+              <button type="submit" disabled={loading} className="riso-btn w-full">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : "Create account"} <ArrowRight size={16} />
+              </button>
+              <p className="fm text-center text-[10px] uppercase tracking-[0.16em] text-[#141312]/45">by continuing you agree to our terms & privacy policy</p>
+            </form>
+          </div>
         )}
 
         <p className="mt-6 text-center text-sm text-[#141312]/60">

@@ -235,12 +235,8 @@ export default function Diplomat({ data }: TemplateProps) {
               style={[styles.profilePic, { borderColor: c, borderWidth: 3 }]}
             />
           )}
-          <Text style={[styles.name, { color: c }]}>
-            {data.personalInfo.fullName}
-          </Text>
-          <Text style={styles.jobTitle}>
-            {data.personalInfo.jobTitle}
-          </Text>
+          <Text style={[styles.name, { color: c }]}>{data.personalInfo.fullName}</Text>
+          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
           <View style={styles.contactRow}>
             {data.personalInfo.email && (
               <Text style={styles.contactText}>{data.personalInfo.email}</Text>
@@ -276,21 +272,15 @@ export default function Diplomat({ data }: TemplateProps) {
         {/* Experience */}
         {data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: c }]}>
-              Professional Experience
-            </Text>
+            <Text style={[styles.sectionTitle, { color: c }]}>Professional Experience</Text>
             <View style={[styles.sectionDivider, { backgroundColor: c }]} />
             {data.experience.map(exp => (
               <View key={exp.id} style={styles.itemContainer}>
                 <View style={styles.itemHeader}>
                   <Text style={styles.itemRole}>{exp.role}</Text>
-                  <Text style={styles.itemDate}>
-                    {exp.startDate} — {exp.endDate}
-                  </Text>
+                  <Text style={styles.itemDate}>{exp.startDate} — {exp.endDate}</Text>
                 </View>
-                <Text style={[styles.companyName, { color: c }]}>
-                  {exp.company}
-                </Text>
+                <Text style={[styles.companyName, { color: c }]}>{exp.company}</Text>
                 {exp.description
                   .split('\n')
                   .filter(l => l.trim())
@@ -308,9 +298,7 @@ export default function Diplomat({ data }: TemplateProps) {
         {/* Projects */}
         {data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: c }]}>
-              Notable Projects
-            </Text>
+            <Text style={[styles.sectionTitle, { color: c }]}>Notable Projects</Text>
             <View style={[styles.sectionDivider, { backgroundColor: c }]} />
             {data.projects.map(proj => (
               <View key={proj.id} style={styles.itemContainer}>
@@ -356,9 +344,7 @@ export default function Diplomat({ data }: TemplateProps) {
                       styles.skillTag,
                       { borderColor: lightBorder, color: c }
                     ]}
-                  >
-                    {s.name}
-                  </Text>
+                  >{s.name}</Text>
                 ))}
               </View>
             </View>

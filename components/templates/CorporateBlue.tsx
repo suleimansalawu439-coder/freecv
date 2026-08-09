@@ -287,9 +287,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
                 <View key={exp.id} style={styles.expItem}>
                   <View style={styles.rowBetween}>
                     <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={styles.expDates}>
-                      {exp.startDate} – {exp.endDate}
-                    </Text>
+                    <Text style={styles.expDates}>{exp.startDate} – {exp.endDate}</Text>
                   </View>
                   <Text style={styles.expCompany}>{exp.company}</Text>
                   {exp.description &&
@@ -315,9 +313,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
                   {data.education.map((edu) => (
                     <View key={edu.id} style={styles.eduItem}>
                       <Text style={styles.eduDegree}>{edu.degree}</Text>
-                      <Text style={styles.eduSub}>
-                        {edu.school}, {edu.graduationYear}
-                      </Text>
+                      <Text style={styles.eduSub}>{edu.school}, {edu.graduationYear}</Text>
                     </View>
                   ))}
                 </View>
@@ -368,9 +364,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refCard}>
                     <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refTitle}>
-                      {ref.title} @ {ref.company}
-                    </Text>
+                    <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                     <Text style={styles.refContact}>{ref.contact}</Text>
                   </View>
                 ))}

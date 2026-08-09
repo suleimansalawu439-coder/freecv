@@ -281,9 +281,7 @@ export default function ModernGradient({ data }: TemplateProps) {
                     <Text style={styles.role}>{exp.role}</Text>
                     <Text style={[styles.company, { color: c }]}>{exp.company}</Text>
                   </View>
-                  <Text style={[styles.dateBadge, { color: c }]}>
-                    {exp.startDate} - {exp.endDate}
-                  </Text>
+                  <Text style={[styles.dateBadge, { color: c }]}>{exp.startDate} - {exp.endDate}</Text>
                 </View>
                 <View style={styles.bulletList}>
                   {exp.description

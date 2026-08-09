@@ -281,9 +281,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
                 <View key={exp.id} style={styles.experienceItem}>
                   <View style={styles.itemHeaderRow}>
                     <Text style={styles.roleTitle}>{exp.role}</Text>
-                    <Text style={styles.dateText}>
-                      {exp.startDate} - {exp.endDate}
-                    </Text>
+                    <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
                   </View>
                   <Text style={styles.companyName}>{exp.company}</Text>
                   {exp.description ? (
@@ -326,9 +324,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refCard}>
                     <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refTitle}>
-                      {ref.title} @ {ref.company}
-                    </Text>
+                    <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                     {ref.contact ? (
                       <Text style={styles.refContact}>{ref.contact}</Text>
                     ) : null}

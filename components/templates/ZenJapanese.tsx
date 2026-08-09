@@ -203,9 +203,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
         </View>
 
         {data.summary && (
-          <Text style={styles.summary}>
-            {data.summary}
-          </Text>
+          <Text style={styles.summary}>{data.summary}</Text>
         )}
 
         {data.experience.length > 0 && (
@@ -221,9 +219,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
                   <Text style={styles.expCompany}>{exp.company}</Text>
                   <View>
                     {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
-                      <Text key={i} style={styles.expDesc}>
-                        {l}
-                      </Text>
+                      <Text key={i} style={styles.expDesc}>{l}</Text>
                     ))}
                   </View>
                 </View>
@@ -250,9 +246,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
               <Text style={styles.sectionTitle}>skills</Text>
               <View style={styles.skillsContainer}>
                 {data.skills.map(s => (
-                  <Text key={s.id} style={styles.skillItem}>
-                    {s.name}
-                  </Text>
+                  <Text key={s.id} style={styles.skillItem}>{s.name}</Text>
                 ))}
               </View>
             </View>

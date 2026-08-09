@@ -296,9 +296,7 @@ export default function SwissDesign({ data }: TemplateProps) {
                       <View style={[styles.timelineDot, { borderColor: c }]} />
                       <View style={styles.expHeader}>
                         <Text style={styles.role}>{exp.role}</Text>
-                        <Text style={styles.dateBadge}>
-                          {exp.startDate} - {exp.endDate}
-                        </Text>
+                        <Text style={styles.dateBadge}>{exp.startDate} - {exp.endDate}</Text>
                       </View>
                       <Text style={styles.company}>{exp.company}</Text>
                       <View style={styles.bulletList}>
@@ -306,9 +304,7 @@ export default function SwissDesign({ data }: TemplateProps) {
                           .split('\n')
                           .filter(l => l.trim())
                           .map((line, j) => (
-                            <Text key={j} style={styles.bulletText}>
-                              {line}
-                            </Text>
+                            <Text key={j} style={styles.bulletText}>{line}</Text>
                           ))}
                       </View>
                     </View>

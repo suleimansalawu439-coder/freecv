@@ -267,9 +267,7 @@ export default function TypographyFirst({ data }: TemplateProps) {
                   <Text style={styles.roleTitle}>{exp.role}</Text>
                   <View style={styles.bulletList}>
                     {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
-                      <Text key={i} style={styles.bulletItem}>
-                        {line}
-                      </Text>
+                      <Text key={i} style={styles.bulletItem}>{line}</Text>
                     ))}
                   </View>
                 </View>
@@ -363,9 +361,7 @@ export default function TypographyFirst({ data }: TemplateProps) {
               {data.skills.length > 0 && (
                 <View style={styles.subColBlock}>
                   <Text style={styles.subSectionTitle}>Skills</Text>
-                  <Text style={styles.skillsText}>
-                    {data.skills.map(s => s.name).join(' • ')}
-                  </Text>
+                  <Text style={styles.skillsText}>{data.skills.map(s => s.name).join(' • ')}</Text>
                 </View>
               )}
             </View>

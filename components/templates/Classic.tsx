@@ -168,9 +168,7 @@ export default function Classic({ data }: TemplateProps) {
               <View key={exp.id} style={styles.itemContainer}>
                 <View style={styles.rowBetween}>
                   <Text style={styles.roleTitle}>{exp.role}</Text>
-                  <Text style={styles.dateText}>
-                    {exp.startDate} — {exp.endDate}
-                  </Text>
+                  <Text style={styles.dateText}>{exp.startDate} — {exp.endDate}</Text>
                 </View>
                 <Text style={styles.companyText}>{exp.company}</Text>
                 {exp.description
@@ -252,9 +250,7 @@ export default function Classic({ data }: TemplateProps) {
                     <View style={styles.rowBetween}>
                       <View>
                         <Text style={styles.roleTitle}>{ref.name}</Text>
-                        <Text style={styles.subText}>
-                          {ref.title} at {ref.company}
-                        </Text>
+                        <Text style={styles.subText}>{ref.title} at {ref.company}</Text>
                       </View>
                       <Text style={styles.dateText}>{ref.contact}</Text>
                     </View>
@@ -295,9 +291,7 @@ export default function Classic({ data }: TemplateProps) {
             {data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Skills</Text>
-                <Text style={styles.skillsText}>
-                  {data.skills.map((s) => s.name).join(' • ')}
-                </Text>
+                <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join(' • ')}</Text>
               </View>
             )}
           </View>

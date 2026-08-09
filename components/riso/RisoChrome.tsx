@@ -26,8 +26,7 @@ function cn(...inputs: ClassValue[]) {
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/build", label: "Builder" },
-  { href: "/grader", label: "ATS Grader" },
-  { href: "/cover-letter", label: "Cover Letter" },
+  { href: "/recruiter", label: "For Recruiters" },
 ];
 
 /* Best-effort page_view tracker. Uses a DYNAMIC import so that if

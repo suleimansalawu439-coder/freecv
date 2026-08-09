@@ -194,9 +194,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
                 {data.experience.map((exp) => (
                   <View key={exp.id} style={styles.expItem}>
                     <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={styles.expCompanyDate}>
-                      {exp.company} ({exp.startDate} - {exp.endDate})
-                    </Text>
+                    <Text style={styles.expCompanyDate}>{exp.company} ({exp.startDate} - {exp.endDate})</Text>
                     {exp.description ? (
                       <Text style={styles.expDesc}>{exp.description}</Text>
                     ) : null}
@@ -213,9 +211,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.eduItem}>
                     <Text style={styles.eduDegree}>{edu.degree}</Text>
-                    <Text style={styles.eduSchool}>
-                      {edu.school}, {edu.graduationYear}
-                    </Text>
+                    <Text style={styles.eduSchool}>{edu.school}, {edu.graduationYear}</Text>
                   </View>
                 ))}
               </View>
@@ -241,9 +237,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refItem}>
                     <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refTitle}>
-                      {ref.title} @ {ref.company}
-                    </Text>
+                    <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                     {ref.contact ? (
                       <Text style={styles.refContact}>{ref.contact}</Text>
                     ) : null}
@@ -265,9 +259,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
                             <View>
                               <Text style={styles.customItemTitle}>{item.title}</Text>
                               {item.subtitle ? (
-                                <Text style={styles.customItemSubtitle}>
-                                  {item.subtitle}
-                                </Text>
+                                <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>
                               ) : null}
                             </View>
                             {item.date ? (
@@ -275,9 +267,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
                             ) : null}
                           </View>
                           {item.description ? (
-                            <Text style={styles.customItemDesc}>
-                              {item.description}
-                            </Text>
+                            <Text style={styles.customItemDesc}>{item.description}</Text>
                           ) : null}
                         </View>
                       ))}

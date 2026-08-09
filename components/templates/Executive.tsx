@@ -245,9 +245,7 @@ export default function Executive({ data }: TemplateProps) {
               <View key={exp.id} style={styles.expItem}>
                 <View style={styles.expHeader}>
                   <Text style={styles.expRole}>{exp.role}</Text>
-                  <Text style={styles.expDates}>
-                    {exp.startDate} — {exp.endDate}
-                  </Text>
+                  <Text style={styles.expDates}>{exp.startDate} — {exp.endDate}</Text>
                 </View>
                 {exp.company && (
                   <Text style={styles.expCompany}>{exp.company}</Text>
@@ -317,9 +315,7 @@ export default function Executive({ data }: TemplateProps) {
                 {data.certifications.map((cert) => (
                   <View key={cert.id} style={{ marginBottom: 6 }}>
                     <Text style={styles.subTitle}>{cert.name}</Text>
-                    <Text style={styles.subDetail}>
-                      {cert.issuer} • {cert.date}
-                    </Text>
+                    <Text style={styles.subDetail}>{cert.issuer} • {cert.date}</Text>
                   </View>
                 ))}
               </View>
@@ -331,9 +327,7 @@ export default function Executive({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={{ marginBottom: 6 }}>
                     <Text style={styles.subTitle}>{ref.name}</Text>
-                    <Text style={styles.subDetail}>
-                      {ref.title} at {ref.company} • {ref.contact}
-                    </Text>
+                    <Text style={styles.subDetail}>{ref.title} at {ref.company} • {ref.contact}</Text>
                   </View>
                 ))}
               </View>
@@ -373,9 +367,7 @@ export default function Executive({ data }: TemplateProps) {
                 <Text style={styles.sectionTitle}>Expertise</Text>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillText}>
-                      {s.name}
-                    </Text>
+                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
                   ))}
                 </View>
               </View>

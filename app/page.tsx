@@ -23,9 +23,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#E8E7E1]" />}>
-      <LandingRiso />
-    </Suspense>
-  );
+  return <LandingRiso />;
 }

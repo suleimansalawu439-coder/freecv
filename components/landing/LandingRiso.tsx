@@ -70,16 +70,10 @@ function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: n
 
 const TICKER = ["NO PAYWALL", "NO WATERMARK", "NO SIGN‑UP TO DOWNLOAD", "RECRUITERS FUND IT — NOT YOU", "18 TEMPLATES", "AI ATS GRADER /100", "PDF + DOCX"];
 
-import { trackEvent } from "@/lib/analytics";
-import { useSearchParams } from "next/navigation";
+import { AnalyticsTracker } from "./AnalyticsTracker";
 
 export default function LandingRiso() {
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
-
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    trackEvent('landing_started', undefined, { source: searchParams.get('source') || 'direct' });
-  }, [searchParams]);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -92,6 +86,7 @@ export default function LandingRiso() {
   return (
     <div className={cn("cv-riso relative min-h-screen overflow-x-hidden text-[#141312]", body.className, display.className, head.className, mono.className)}
       style={{ background: "#E8E7E1", ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
+      <AnalyticsTracker />
       <style>{`
         .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
         .cv-riso .grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.06;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
@@ -292,8 +287,20 @@ export default function LandingRiso() {
       <footer className="relative overflow-hidden border-t-[3px] border-[#141312] bg-[#E8E7E1] px-5 pb-8 pt-14 lg:px-8">
         <div className="mx-auto max-w-[1240px]">
           <div className="grid grid-cols-2 gap-8 border-b-2 border-[#141312] pb-10 md:grid-cols-4">
-            {[["Product", ["Builder", "Templates", "ATS Grader", "Cover Letter"]], ["Company", ["Career Blog", "Recruiter Portal", "Why free"]], ["Legal", ["Privacy & GDPR", "Manage Data", "Terms"]], ["Connect", ["X / Twitter", "LinkedIn", "GitHub"]]].map(([h, items]) => (
-              <div key={h as string}><div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h}</div><ul className="space-y-2 text-sm">{(items as string[]).map((it) => (<li key={it}><a href="/build" className="ul">{it}</a></li>))}</ul></div>
+            {[
+              ["Product", [{ label: "Builder", href: "/build" }, { label: "Cover Letter", href: "/build?tab=cover" }]],
+              ["Company", [{ label: "Career Blog", href: "/blog" }, { label: "Recruiter Portal", href: "/recruiter" }, { label: "About", href: "/about" }]],
+              ["Legal", [{ label: "Privacy & GDPR", href: "/privacy" }, { label: "Manage Data", href: "/manage-data" }, { label: "Terms", href: "/terms" }]],
+              ["Connect", [{ label: "X / Twitter", href: "https://twitter.com/cvyon" }, { label: "LinkedIn", href: "https://linkedin.com/company/cvyon" }, { label: "GitHub", href: "https://github.com/cvyon" }]]
+            ].map(([h, items]) => (
+              <div key={h as string}>
+                <div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h as string}</div>
+                <ul className="space-y-2 text-sm">
+                  {(items as { label: string; href: string }[]).map((it) => (
+                    <li key={it.label}><a href={it.href} className="ul">{it.label}</a></li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
           <div className="flex flex-col items-start justify-between gap-4 pt-6 sm:flex-row sm:items-center">

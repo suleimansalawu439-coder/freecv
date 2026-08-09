@@ -259,9 +259,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
               <View key={exp.id} style={styles.experienceItem}>
                 <View style={styles.rowBetween}>
                   <Text style={styles.role}>{exp.role}</Text>
-                  <Text style={styles.date}>
-                    {exp.startDate} – {exp.endDate}
-                  </Text>
+                  <Text style={styles.date}>{exp.startDate} – {exp.endDate}</Text>
                 </View>
                 <Text style={styles.company}>{exp.company}</Text>
                 {exp.description ? (
@@ -289,9 +287,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
               {data.education.map((edu) => (
                 <View key={edu.id} style={styles.eduItem}>
                   <Text style={styles.eduDegree}>{edu.degree}</Text>
-                  <Text style={styles.eduSub}>
-                    {edu.school}, {edu.graduationYear}
-                  </Text>
+                  <Text style={styles.eduSub}>{edu.school}, {edu.graduationYear}</Text>
                 </View>
               ))}
             </View>
@@ -302,9 +298,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
               <Text style={styles.sectionHeader}>Skills</Text>
               <View style={styles.skillsWrap}>
                 {data.skills.map((s) => (
-                  <Text key={s.id} style={styles.skillTag}>
-                    {s.name}
-                  </Text>
+                  <Text key={s.id} style={styles.skillTag}>{s.name}</Text>
                 ))}
               </View>
             </View>
@@ -339,9 +333,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.refCard}>
                   <Text style={styles.refName}>{ref.name}</Text>
-                  <Text style={styles.refTitle}>
-                    {ref.title} @ {ref.company}
-                  </Text>
+                  <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                   <Text style={styles.refContact}>{ref.contact}</Text>
                 </View>
               ))}
@@ -361,9 +353,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
                           <View>
                             <Text style={styles.role}>{item.title}</Text>
                             {item.subtitle ? (
-                              <Text style={styles.customSubtitle}>
-                                {item.subtitle}
-                              </Text>
+                              <Text style={styles.customSubtitle}>{item.subtitle}</Text>
                             ) : null}
                           </View>
                           {item.date ? (
@@ -371,9 +361,7 @@ export default function SwissMinimal({ data }: TemplateProps) {
                           ) : null}
                         </View>
                         {item.description ? (
-                          <Text style={styles.customDesc}>
-                            {item.description}
-                          </Text>
+                          <Text style={styles.customDesc}>{item.description}</Text>
                         ) : null}
                       </View>
                     ))}

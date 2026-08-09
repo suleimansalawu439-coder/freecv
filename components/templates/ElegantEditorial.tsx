@@ -205,17 +205,13 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
             <View style={[styles.dividerLine, { backgroundColor: c }]} />
           </View>
           <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
-          <Text style={[styles.jobTitle, { color: c }]}>
-            {data.personalInfo.jobTitle}
-          </Text>
+          <Text style={[styles.jobTitle, { color: c }]}>{data.personalInfo.jobTitle}</Text>
         </View>
 
         <View style={styles.mainGrid}>
           <View style={[styles.leftColumn, { borderColor: `${c}33` }]}>
             <View style={styles.sectionBlock}>
-              <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>
-                Contact
-              </Text>
+              <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Contact</Text>
               {data.personalInfo.email ? (
                 <Text style={styles.contactText}>{data.personalInfo.email}</Text>
               ) : null}
@@ -232,9 +228,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.sectionBlock}>
-                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>
-                  Expertise
-                </Text>
+                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Expertise</Text>
                 {data.skills.map((s) => (
                   <View key={s.id} style={styles.skillRow}>
                     <View style={[styles.skillDot, { backgroundColor: c }]} />
@@ -246,16 +240,12 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
 
             {data.education && data.education.length > 0 && (
               <View style={styles.sectionBlock}>
-                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>
-                  Education
-                </Text>
+                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Education</Text>
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.itemBlock}>
                     <Text style={styles.itemTitle}>{edu.degree}</Text>
                     <Text style={styles.itemSubtitle}>{edu.school}</Text>
-                    <Text style={[styles.itemDate, { color: c }]}>
-                      {edu.graduationYear}
-                    </Text>
+                    <Text style={[styles.itemDate, { color: c }]}>{edu.graduationYear}</Text>
                   </View>
                 ))}
               </View>
@@ -267,9 +257,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                 (section) =>
                   section.items.length > 0 && (
                     <View key={section.id} style={styles.sectionBlock}>
-                      <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>
-                        {section.title}
-                      </Text>
+                      <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>{section.title}</Text>
                       {section.items.map((item) => (
                         <View key={item.id} style={styles.itemBlock}>
                           <Text style={styles.itemTitle}>{item.title}</Text>
@@ -303,9 +291,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   <View key={exp.id} style={styles.expBlock}>
                     <View style={styles.expHeaderRow}>
                       <Text style={styles.expRole}>{exp.role}</Text>
-                      <Text style={[styles.expDates, { color: c }]}>
-                        {exp.startDate} — {exp.endDate}
-                      </Text>
+                      <Text style={[styles.expDates, { color: c }]}>{exp.startDate} — {exp.endDate}</Text>
                     </View>
                     <Text style={styles.expCompany}>{exp.company}</Text>
                     {exp.description

@@ -234,9 +234,7 @@ export default function Elegant({ data }: TemplateProps) {
               <View key={exp.id} style={styles.itemContainer}>
                 <View style={styles.itemHeaderRow}>
                   <Text style={styles.roleTitle}>{exp.role}</Text>
-                  <Text style={styles.datesText}>
-                    {exp.startDate} — {exp.endDate}
-                  </Text>
+                  <Text style={styles.datesText}>{exp.startDate} — {exp.endDate}</Text>
                 </View>
                 <Text style={styles.companyText}>{exp.company}</Text>
                 <View style={styles.bulletList}>
@@ -343,9 +341,7 @@ export default function Elegant({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.gridItem}>
                     <Text style={styles.itemTitle}>{ref.name}</Text>
-                    <Text style={styles.itemSubtitle}>
-                      {ref.title} at {ref.company}
-                    </Text>
+                    <Text style={styles.itemSubtitle}>{ref.title} at {ref.company}</Text>
                     <Text style={styles.itemDate}>{ref.contact}</Text>
                   </View>
                 ))}
@@ -360,9 +356,7 @@ export default function Elegant({ data }: TemplateProps) {
                 <Text style={styles.sectionTitleLeft}>Skills</Text>
                 <View style={styles.skillsList}>
                   {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillText}>
-                      {s.name}
-                    </Text>
+                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
                   ))}
                 </View>
               </View>

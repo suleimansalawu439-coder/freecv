@@ -264,12 +264,8 @@ export default function TechPro({ data }: TemplateProps) {
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.expItem}>
                 <View style={styles.expHeader}>
-                  <Text style={styles.expRoleCompany}>
-                    {exp.role} @ {exp.company}
-                  </Text>
-                  <Text style={styles.expDates}>
-                    [{exp.startDate} .. {exp.endDate}]
-                  </Text>
+                  <Text style={styles.expRoleCompany}>{exp.role} @ {exp.company}</Text>
+                  <Text style={styles.expDates}>[{exp.startDate} .. {exp.endDate}]</Text>
                 </View>
                 {exp.description
                   .split('\n')
@@ -316,9 +312,7 @@ export default function TechPro({ data }: TemplateProps) {
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.eduItem}>
                     <Text style={styles.eduDegree}>{edu.degree}</Text>
-                    <Text style={styles.eduSchool}>
-                      {edu.school} [{edu.graduationYear}]
-                    </Text>
+                    <Text style={styles.eduSchool}>{edu.school} [{edu.graduationYear}]</Text>
                   </View>
                 ))}
               </View>
@@ -331,9 +325,7 @@ export default function TechPro({ data }: TemplateProps) {
                 {data.certifications.map((cert) => (
                   <View key={cert.id} style={styles.certItem}>
                     <Text style={styles.certName}>{cert.name}</Text>
-                    <Text style={styles.certDetails}>
-                      {cert.issuer} {'//'} {cert.date}
-                    </Text>
+                    <Text style={styles.certDetails}>{cert.issuer} {'//'} {cert.date}</Text>
                   </View>
                 ))}
               </View>
@@ -346,9 +338,7 @@ export default function TechPro({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refItem}>
                     <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refDetails}>
-                      {ref.title} at {ref.company} {'//'} {ref.contact}
-                    </Text>
+                    <Text style={styles.refDetails}>{ref.title} at {ref.company} {'//'} {ref.contact}</Text>
                   </View>
                 ))}
               </View>
@@ -393,9 +383,7 @@ export default function TechPro({ data }: TemplateProps) {
                 <Text style={styles.badgeTitle}>{'[ SKILLS ]'}</Text>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillBadge}>
-                      {s.name}
-                    </Text>
+                    <Text key={s.id} style={styles.skillBadge}>{s.name}</Text>
                   ))}
                 </View>
               </View>

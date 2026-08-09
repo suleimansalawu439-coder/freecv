@@ -146,9 +146,7 @@ export default function Academic({ data }: TemplateProps) {
             <Text style={styles.sectionTitle}>Academic & Professional Appointments</Text>
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.gridRow}>
-                <Text style={styles.gridLeft}>
-                  {exp.startDate} - {exp.endDate}
-                </Text>
+                <Text style={styles.gridLeft}>{exp.startDate} - {exp.endDate}</Text>
                 <View style={styles.gridRight}>
                   <Text style={styles.itemTitle}>{exp.role}</Text>
                   <Text style={styles.itemSubtitle}>{exp.company}</Text>
@@ -214,9 +212,7 @@ export default function Academic({ data }: TemplateProps) {
                 <View key={ref.id} style={styles.flexBetween}>
                   <Text style={styles.itemTitle}>
                     {ref.name}{' '}
-                    <Text style={styles.grayText}>
-                      ({ref.title} at {ref.company})
-                    </Text>
+                    <Text style={styles.grayText}>({ref.title} at {ref.company})</Text>
                   </Text>
                   <Text style={{ fontSize: 10 }}>{ref.contact}</Text>
                 </View>
@@ -248,9 +244,7 @@ export default function Academic({ data }: TemplateProps) {
                         ) : null}
                       </View>
                       {item.description ? (
-                        <Text style={{ fontSize: 10, marginTop: 2 }}>
-                          {item.description}
-                        </Text>
+                        <Text style={{ fontSize: 10, marginTop: 2 }}>{item.description}</Text>
                       ) : null}
                     </View>
                   ))}
@@ -262,9 +256,7 @@ export default function Academic({ data }: TemplateProps) {
         {data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Technical Proficiencies</Text>
-            <Text style={[styles.indentBlock, { fontSize: 10 }]}>
-              {data.skills.map((s) => s.name).join(', ')}
-            </Text>
+            <Text style={[styles.indentBlock, { fontSize: 10 }]}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
         )}
       </Page>

@@ -269,9 +269,7 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   <View key={exp.id} style={styles.expItem}>
                     <View style={styles.expHeader}>
                       <Text style={styles.expCompany}>{exp.company}</Text>
-                      <Text style={styles.expDates}>
-                        {exp.startDate} - {exp.endDate}
-                      </Text>
+                      <Text style={styles.expDates}>{exp.startDate} - {exp.endDate}</Text>
                     </View>
                     <Text style={styles.expRole}>{exp.role}</Text>
                     {exp.description
@@ -337,9 +335,7 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refItem}>
                     <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refTitle}>
-                      {ref.title} at {ref.company}
-                    </Text>
+                    <Text style={styles.refTitle}>{ref.title} at {ref.company}</Text>
                     <Text style={styles.refContact}>{ref.contact}</Text>
                   </View>
                 ))}
@@ -379,9 +375,7 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Expertise</Text>
                 {data.skills.map((s) => (
-                  <Text key={s.id} style={styles.skillText}>
-                    {s.name}
-                  </Text>
+                  <Text key={s.id} style={styles.skillText}>{s.name}</Text>
                 ))}
               </View>
             ) : null}

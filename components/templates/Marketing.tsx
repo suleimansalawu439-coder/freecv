@@ -49,9 +49,7 @@ export default function Marketing({ data }: TemplateProps) {
           </View>
           <View style={styles.headerContent}>
             <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
-            <Text style={[styles.jobTitle, dynamicStyles.jobTitle]}>
-              {data.personalInfo.jobTitle}
-            </Text>
+            <Text style={[styles.jobTitle, dynamicStyles.jobTitle]}>{data.personalInfo.jobTitle}</Text>
             <View style={styles.contactRow}>
               {data.personalInfo.email ? (
                 <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
@@ -99,9 +97,7 @@ export default function Marketing({ data }: TemplateProps) {
                 <View key={exp.id} style={styles.expItem}>
                   <View style={styles.expHeader}>
                     <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={[styles.expDate, dynamicStyles.dateBadge]}>
-                      {exp.startDate} — {exp.endDate}
-                    </Text>
+                    <Text style={[styles.expDate, dynamicStyles.dateBadge]}>{exp.startDate} — {exp.endDate}</Text>
                   </View>
                   <Text style={styles.expCompany}>{exp.company}</Text>
                   {exp.description
@@ -155,9 +151,7 @@ export default function Marketing({ data }: TemplateProps) {
                   <View key={edu.id} style={styles.bottomItem}>
                     <Text style={styles.itemTitle}>{edu.degree}</Text>
                     <Text style={styles.itemSubtitle}>{edu.school}</Text>
-                    <Text style={[styles.itemMeta, dynamicStyles.accentText]}>
-                      {edu.graduationYear}
-                    </Text>
+                    <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{edu.graduationYear}</Text>
                   </View>
                 ))}
               </View>
@@ -185,9 +179,7 @@ export default function Marketing({ data }: TemplateProps) {
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.bottomItem}>
                     <Text style={styles.itemTitle}>{ref.name}</Text>
-                    <Text style={styles.itemSubtitle}>
-                      {ref.title} at {ref.company}
-                    </Text>
+                    <Text style={styles.itemSubtitle}>{ref.title} at {ref.company}</Text>
                     <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{ref.contact}</Text>
                   </View>
                 ))}
@@ -208,9 +200,7 @@ export default function Marketing({ data }: TemplateProps) {
                               <Text style={styles.itemSubtitleItalic}>{item.subtitle}</Text>
                             ) : null}
                             {item.date ? (
-                              <Text style={[styles.itemMeta, dynamicStyles.accentText]}>
-                                {item.date}
-                              </Text>
+                              <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{item.date}</Text>
                             ) : null}
                             {item.description ? (
                               <Text style={styles.itemDesc}>{item.description}</Text>
@@ -230,9 +220,7 @@ export default function Marketing({ data }: TemplateProps) {
                 <Text style={styles.bottomSectionTitle}>Core Skills</Text>
                 <View style={styles.skillsList}>
                   {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillText}>
-                      {s.name}
-                    </Text>
+                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
                   ))}
                 </View>
               </View>
