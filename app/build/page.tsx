@@ -450,11 +450,23 @@ export default function FreeCVApp() {
     const safeName = data.personalInfo.fullName.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'My';
     const safeRole = data.personalInfo.jobTitle.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'Resume';
     document.title = `${safeName} - ${safeRole} - Resume`;
+    
     const panel = document.getElementById('preview-panel');
     if (panel) panel.scrollTop = 0;
     window.scrollTo(0, 0);
+    
+    // Apply print styles
     document.body.classList.add('printing');
-    setTimeout(() => { window.print(); document.body.classList.remove('printing'); document.title = originalTitle; }, 150);
+    
+    // Force synchronous layout calculation so styles apply immediately
+    void document.body.offsetHeight; 
+    
+    // Execute print synchronously to prevent mobile Safari/Chrome from blocking it
+    window.print();
+    
+    // Cleanup immediately after print dialog closes
+    document.body.classList.remove('printing');
+    document.title = originalTitle;
   };
 
   const handleDownload = async () => {
