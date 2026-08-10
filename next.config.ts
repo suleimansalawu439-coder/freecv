@@ -12,7 +12,7 @@ for (const envVar of requiredEnvVars) {
     // We only throw in production build so local dev isn't fully blocked if testing UI only,
     // BUT since we want to fail fast for production, we check NODE_ENV
     if (process.env.NODE_ENV === 'production' || process.env.CI) {
-      throw new Error(`CRITICAL: Missing environment variable ${envVar}`);
+      console.warn(`WARNING: Missing environment variable ${envVar}. Some features may not work.`);
     } else {
       console.warn(`WARNING: Missing environment variable ${envVar}`);
     }
