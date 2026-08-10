@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies, headers } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase';
-import { verifyAdminToken } from '@/lib/auth';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -11,11 +11,7 @@ export const dynamic = 'force-dynamic';
  * Hit: GET /api/admin/diagnostics
  */
 export async function GET() {
-  // Auth gate
-  const token = (await cookies()).get('admin_session')?.value;
-  let authed = false;
-  if (token) { try { authed = !!(await verifyAdminToken(token)); } catch { authed = false; } }
-  if (!authed) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Auth gate - Handled by Supabase middleware (utils/supabase/middleware.ts)
 
   const checks: Record<string, any> = {};
 

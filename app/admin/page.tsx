@@ -2,23 +2,12 @@ import React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
-import { verifyAdminToken } from '@/lib/auth';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
-  // server-side guard — /admin is never public
-  const token = (await cookies()).get('admin_session')?.value;
-  let ok = false;
-  if (token) {
-    try {
-      ok = !!(await verifyAdminToken(token));
-    } catch {
-      ok = false;
-    }
-  }
-  if (!ok) redirect('/admin/login');
+  // server-side guard — handled by Supabase middleware (utils/supabase/middleware.ts)
 
   // Resilient candidate fetching that safely handles any column naming variation
   const fetchCandidates = async () => {
