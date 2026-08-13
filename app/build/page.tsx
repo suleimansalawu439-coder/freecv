@@ -438,18 +438,20 @@ export default function FreeCVApp() {
       const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
       const fileName = `${safeName}_${safeRole}_Resume.docx`.replace(/\s+/g, '_');
 
-      // Mobile browsers need the anchor appended to the DOM to trigger downloads
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      // Delay cleanup so the browser has time to initiate the download
+      
+      // Delay cleanup significantly (60 seconds) so mobile browsers 
+      // have plenty of time to capture the blob and initiate download
       setTimeout(() => {
-        document.body.removeChild(a);
+        if (document.body.contains(a)) document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      }, 1000);
+      }, 60000);
+
       trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('docx'));
       setIsJobsModalOpen(true);
     } catch (err: any) { toast.error('DOCX export failed: ' + err.message); }
@@ -505,20 +507,21 @@ export default function FreeCVApp() {
         const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
         const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
         const fileName = `${safeName}_${safeRole}_Resume.pdf`.replace(/\s+/g, '_');
+        
         const a = document.createElement('a');
         a.href = url;
         a.download = fileName;
         a.style.display = 'none';
         document.body.appendChild(a);
         a.click();
+        
         setTimeout(() => {
-          document.body.removeChild(a);
+          if (document.body.contains(a)) document.body.removeChild(a);
           URL.revokeObjectURL(url);
-        }, 1000);
+        }, 60000);
       } catch (err: any) {
         console.error('[PDF mobile download] Error:', err);
-        // Fallback to window.print() if react-pdf fails
-        triggerPrint();
+        toast.error('Mobile PDF generation failed. Please try on a desktop device.');
       }
     } else {
       triggerPrint();
