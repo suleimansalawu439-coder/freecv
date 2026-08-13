@@ -38,6 +38,12 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
+}
+
 import { useResumeStore, initialData, type ResumeData, type PersonalInfo, type Experience, type Education, type Skill, type Project, type Certification, type CustomSection, type CustomSectionItem, type Reference } from '@/store/useResumeStore';
 
 // --- Riso primitives ---
@@ -428,13 +434,22 @@ export default function FreeCVApp() {
       if (!res.ok) throw new Error('Failed to generate DOCX');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
       const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
       const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
-      a.download = `${safeName}_${safeRole}_Resume.docx`.replace(/\s+/g, '_');
+      const fileName = `${safeName}_${safeRole}_Resume.docx`.replace(/\s+/g, '_');
+
+      // Mobile browsers need the anchor appended to the DOM to trigger downloads
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.style.display = 'none';
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      // Delay cleanup so the browser has time to initiate the download
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
       trackEvent('milestone_downloaded', data.templateId, getTelemetryMetadata('docx'));
       setIsJobsModalOpen(true);
     } catch (err: any) { toast.error('DOCX export failed: ' + err.message); }
@@ -478,7 +493,36 @@ export default function FreeCVApp() {
           .catch(err => console.error('[CRM opt-in] Network error:', err));
       } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
     }
-    triggerPrint();
+
+    if (isMobileDevice()) {
+      // On mobile, window.print() produces blank pages because the preview panel
+      // is hidden. Instead, generate a real PDF blob via @react-pdf/renderer.
+      try {
+        const { pdf } = await import('@react-pdf/renderer');
+        const Template = templates[data.templateId] || templates.Executive;
+        const blob = await pdf(<Template data={data} />).toBlob();
+        const url = URL.createObjectURL(blob);
+        const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
+        const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
+        const fileName = `${safeName}_${safeRole}_Resume.pdf`.replace(/\s+/g, '_');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      } catch (err: any) {
+        console.error('[PDF mobile download] Error:', err);
+        // Fallback to window.print() if react-pdf fails
+        triggerPrint();
+      }
+    } else {
+      triggerPrint();
+    }
     setIsJobsModalOpen(true);
   };
 
