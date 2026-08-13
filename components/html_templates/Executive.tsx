@@ -66,8 +66,8 @@ export default function Executive({ data }: { data: ResumeData }) {
         </div>
       )}
 
-      <div className="mt-auto grid grid-cols-2 gap-12 border-t border-gray-100 pt-8">
-        <div>
+      <div className="mt-auto grid grid-cols-2 print:table w-full gap-12 border-t border-gray-100 pt-8">
+        <div className="print:table-cell print:w-[50%] print:pr-6 align-top">
           {data.education.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Formation</h2>
@@ -82,7 +82,7 @@ export default function Executive({ data }: { data: ResumeData }) {
             </div>
           )}
         </div>
-        <div>
+        <div className="print:table-cell print:w-[50%] print:pl-6 align-top">
           {data.showCertifications && data.certifications.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Certifications</h2>

@@ -18,9 +18,9 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
         </div>
       </div>
 
-      <div className="flex flex-1">
+      <div className="flex print:table w-full flex-1">
         {/* Left Column */}
-        <div className="w-[65%] p-[0.75in] pt-8 pr-8 flex flex-col">
+        <div className="w-[65%] print:w-[65%] print:table-cell align-top p-[0.75in] pt-8 pr-8 flex flex-col print:block">
           {data.summary && (
             <div className="mb-10">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Executive Profile</h2>
@@ -66,7 +66,7 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
         </div>
 
         {/* Right Column */}
-        <div className="w-[35%] bg-gray-50 p-[0.75in] pt-8 pl-8 border-l border-gray-200 flex flex-col gap-10">
+        <div className="w-[35%] print:w-[35%] print:table-cell align-top bg-gray-50 p-[0.75in] pt-8 pl-8 border-l border-gray-200 flex flex-col print:block gap-10">
           
           {data.education.length > 0 && (
             <div>

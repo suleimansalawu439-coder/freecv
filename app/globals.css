@@ -126,6 +126,7 @@ body {
      Has: w-[8.5in], min-w-[8.5in], min-h-[11in], shadow-*
      Must keep width but allow height to grow and pages to break */
   .print-safe-content > div {
+    display: block !important;
     width: 8.5in !important;
     min-width: 0 !important;
     height: auto !important;
