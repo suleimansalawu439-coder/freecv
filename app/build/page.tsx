@@ -441,14 +441,22 @@ export default function FreeCVApp() {
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
+      
+      if (isMobileDevice()) {
+        // iOS Safari aggressively blocks programmatic clicks inside async callbacks.
+        // Assigning to location.href for a downloadable MIME type safely prompts a download
+        // without navigating away.
+        window.location.assign(url);
+      } else {
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+      }
       
       // Delay cleanup significantly (60 seconds) so mobile browsers 
       // have plenty of time to capture the blob and initiate download
       setTimeout(() => {
-        if (document.body.contains(a)) document.body.removeChild(a);
+        if (!isMobileDevice() && document.body.contains(a)) document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }, 60000);
 
@@ -496,37 +504,18 @@ export default function FreeCVApp() {
       } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
     }
 
-    if (isMobileDevice()) {
-      // On mobile, window.print() produces blank pages because the preview panel
-      // is hidden. Instead, generate a real PDF blob via @react-pdf/renderer.
-      try {
-        const { pdf } = await import('@react-pdf/renderer');
-        const Template = templates[data.templateId] || templates.Executive;
-        const blob = await pdf(<Template data={data} />).toBlob();
-        const url = URL.createObjectURL(blob);
-        const safeName = data.personalInfo.fullName.replace(/[^\w\s-]/g, '').trim() || 'My';
-        const safeRole = data.personalInfo.jobTitle.replace(/[^\w\s-]/g, '').trim() || 'Resume';
-        const fileName = `${safeName}_${safeRole}_Resume.pdf`.replace(/\s+/g, '_');
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        
-        setTimeout(() => {
-          if (document.body.contains(a)) document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 60000);
-      } catch (err: any) {
-        console.error('[PDF mobile download] Error:', err);
-        toast.error('Mobile PDF generation failed. Please try on a desktop device.');
-      }
+    if (isMobileDevice() && !isPreviewOpen) {
+      // On mobile, window.print() takes a snapshot immediately, missing CSS updates.
+      // If the preview modal isn't open, open it first, wait for the DOM to paint, then print.
+      setIsPreviewOpen(true);
+      setTimeout(() => {
+        triggerPrint();
+        setIsJobsModalOpen(true);
+      }, 600); // Wait for modal animation to finish
     } else {
       triggerPrint();
+      setIsJobsModalOpen(true);
     }
-    setIsJobsModalOpen(true);
   };
 
   if (!isHydrated) return null;
@@ -1067,13 +1056,9 @@ export default function FreeCVApp() {
             <button onClick={() => setMobileZoom(!mobileZoom)} className="bg-white border-2 border-[#141312] hs-sm text-[#141312] px-3 py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
               {mobileZoom ? <ZoomOut size={14} /> : <ZoomIn size={14} />} Zoom
             </button>
-            <PDFDownloadButton
-              TemplateComponent={SelectedTemplate}
-              data={data}
-              themeColor={data.theme?.color || '#2563eb'}
-              onDownloadComplete={() => setIsJobsModalOpen(true)}
-              className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all"
-            />
+            <button onClick={handleDownload} className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
+              <Download size={14} /> PDF
+            </button>
             <button onClick={handleDocxExport} className="bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all">
               <FileText size={14} /> DOCX
             </button>
