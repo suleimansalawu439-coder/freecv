@@ -121,9 +121,9 @@ const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
     return () => observer.disconnect();
   }, []);
   return (
-    <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar">
+    <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar print:!p-0 print:!bg-transparent print:!block print:!h-auto print:!w-auto print:!overflow-visible">
       <div
-        className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c"
+        className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c print:!border-none print:!shadow-none print:!transform-none print:!mb-0 print:!h-auto print:!w-auto print:!block"
         style={{ width: '816px', height: '1056px', transform: `scale(${scale})`, transformOrigin: 'top center', marginBottom: `-${1056 * (1 - scale)}px` }}
       >
         <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
