@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { pdf } from '@react-pdf/renderer';
-import { Download, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Loader2 } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
+import toast from 'react-hot-toast';
 
 interface PDFDownloadButtonProps {
   TemplateComponent: any;
@@ -13,20 +13,23 @@ interface PDFDownloadButtonProps {
   className?: string;
 }
 
-export default function PDFDownloadButton({ TemplateComponent, data, themeColor, onDownloadComplete, className }: PDFDownloadButtonProps) {
-  const [isClient, setIsClient] = useState(false);
+export default function PDFDownloadButton({ data, onDownloadComplete, className }: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const handleDownload = useCallback(async () => {
+  const handleDownload = async () => {
     if (isGenerating) return;
     setIsGenerating(true);
 
     try {
-      const blob = await pdf(<TemplateComponent data={data} themeColor={themeColor} />).toBlob();
+      const res = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error('Failed to generate PDF');
+
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -40,21 +43,12 @@ export default function PDFDownloadButton({ TemplateComponent, data, themeColor,
 
       trackEvent('resume_downloaded', data.templateId);
       if (onDownloadComplete) setTimeout(onDownloadComplete, 500);
-    } catch (error: any) {
-      console.error('PDF generation failed:', error);
-      // Silently fail — the button returns to its default state
+    } catch (err: any) {
+      toast.error('PDF export failed: ' + err.message);
     } finally {
       setIsGenerating(false);
     }
-  }, [TemplateComponent, data, themeColor, onDownloadComplete, isGenerating]);
-
-  if (!isClient) {
-    return (
-      <button className={className} disabled>
-        <Loader2 size={16} className="animate-spin" /> Preparing PDF...
-      </button>
-    );
-  }
+  };
 
   return (
     <button onClick={handleDownload} disabled={isGenerating} className={className}>
