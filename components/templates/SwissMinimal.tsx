@@ -47,14 +47,16 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     color: '#9CA3AF',
   },
-  summary: {
-    fontSize: 10,
-    lineHeight: 1.5,
-    color: '#4B5563',
+  summaryContainer: {
     borderLeftWidth: 2,
     borderLeftColor: '#E5E7EB',
     paddingLeft: 16,
     marginBottom: 24,
+  },
+  summaryText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: '#4B5563',
   },
   section: {
     marginBottom: 24,
@@ -248,9 +250,11 @@ export default function SwissMinimal({ data }: TemplateProps) {
           </View>
         </View>
 
-        {data.summary ? (
-          <Text style={styles.summary}>{data.summary}</Text>
-        ) : null}
+        {data.summary && (
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
+        )}
 
         {data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>

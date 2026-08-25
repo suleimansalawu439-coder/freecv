@@ -13,7 +13,7 @@ interface PDFDownloadButtonProps {
   className?: string;
 }
 
-export default function PDFDownloadButton({ data, onDownloadComplete, className }: PDFDownloadButtonProps) {
+export default function PDFDownloadButton({ TemplateComponent, data, onDownloadComplete, className }: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownload = async () => {
@@ -21,15 +21,8 @@ export default function PDFDownloadButton({ data, onDownloadComplete, className 
     setIsGenerating(true);
 
     try {
-      const res = await fetch('/api/export/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) throw new Error('Failed to generate PDF');
-
-      const blob = await res.blob();
+      const { pdf } = await import('@react-pdf/renderer');
+      const blob = await pdf(<TemplateComponent data={data} />).toBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

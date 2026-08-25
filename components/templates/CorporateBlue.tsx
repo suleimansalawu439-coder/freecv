@@ -56,14 +56,16 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 40,
   },
-  summary: {
-    fontSize: 10.5,
-    lineHeight: 1.5,
-    color: '#3A4A5A',
+  summaryContainer: {
     borderLeftWidth: 3,
     borderLeftColor: '#C8A86A',
     paddingLeft: 14,
     marginBottom: 24,
+  },
+  summaryText: {
+    fontSize: 10.5,
+    lineHeight: 1.5,
+    color: '#3A4A5A',
   },
   section: {
     marginBottom: 20,
@@ -277,7 +279,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
 
         <View style={styles.body}>
           {data.summary && (
-            <Text style={styles.summary}>{data.summary}</Text>
+            <View style={styles.summaryContainer}>
+              <Text style={styles.summaryText}>{data.summary}</Text>
+            </View>
           )}
 
           {data.experience && data.experience.length > 0 && (

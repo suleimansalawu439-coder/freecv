@@ -51,14 +51,17 @@ const styles = StyleSheet.create({
     color: '#8A7A6A',
     textAlign: 'right',
   },
-  summary: {
-    fontSize: 11,
-    lineHeight: 1.5,
-    color: '#4A3A2A',
+  summaryContainer: {
     borderLeftWidth: 2,
     borderLeftColor: '#8A7A6A',
     paddingLeft: 16,
-    marginBottom: 24,
+    marginBottom: 32,
+    marginLeft: '20%',
+  },
+  summaryText: {
+    fontSize: 11,
+    lineHeight: 1.5,
+    color: '#4A3A2A',
     fontStyle: 'italic',
   },
   sectionTitle: {
@@ -203,7 +206,9 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
         </View>
 
         {data.summary && (
-          <Text style={styles.summary}>{data.summary}</Text>
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryText}>{data.summary}</Text>
+          </View>
         )}
 
         {data.experience.length > 0 && (
