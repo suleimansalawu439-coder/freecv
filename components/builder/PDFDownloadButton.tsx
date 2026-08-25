@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { Download, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { pdf } from '@react-pdf/renderer';
+import { Download, Loader2, AlertCircle } from 'lucide-react';
 import { trackEvent } from '@/lib/analytics';
 
 interface PDFDownloadButtonProps {
@@ -15,36 +15,54 @@ interface PDFDownloadButtonProps {
 
 export default function PDFDownloadButton({ TemplateComponent, data, themeColor, onDownloadComplete, className }: PDFDownloadButtonProps) {
   const [isClient, setIsClient] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  if (!isClient) return <button className={className} disabled><Loader2 size={16} className="animate-spin" /> Preparing PDF...</button>;
+  const handleDownload = useCallback(async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
+    try {
+      const blob = await pdf(<TemplateComponent data={data} themeColor={themeColor} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeName = (data.personalInfo?.fullName || 'My').replace(/[^\w\s-]/g, '').trim();
+      const safeRole = (data.personalInfo?.jobTitle || 'Resume').replace(/[^\w\s-]/g, '').trim();
+      a.download = `${safeName}_${safeRole}_Resume.pdf`.replace(/\s+/g, '_');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      trackEvent('resume_downloaded', data.templateId);
+      if (onDownloadComplete) setTimeout(onDownloadComplete, 500);
+    } catch (error: any) {
+      console.error('PDF generation failed:', error);
+      // Silently fail — the button returns to its default state
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [TemplateComponent, data, themeColor, onDownloadComplete, isGenerating]);
+
+  if (!isClient) {
+    return (
+      <button className={className} disabled>
+        <Loader2 size={16} className="animate-spin" /> Preparing PDF...
+      </button>
+    );
+  }
 
   return (
-    <PDFDownloadLink
-      document={<TemplateComponent data={data} themeColor={themeColor} />}
-      fileName={`Resume_${data.personalInfo.firstName || 'Cvyon'}.pdf`}
-      className={className}
-    >
-      {({ blob, url, loading, error }) => {
-        if (loading) {
-          return <><Loader2 size={16} className="animate-spin" /> Generating PDF...</>;
-        }
-        
-        // This is a bit of a hack to detect when the user clicks the link
-        // react-pdf doesn't have an onClick natively on PDFDownloadLink render props,
-        // but the wrapping <a> tag will handle the click.
-        return (
-          <span onClick={() => {
-            trackEvent('resume_downloaded', data.templateId);
-            if (onDownloadComplete) setTimeout(onDownloadComplete, 500);
-          }} className="flex items-center gap-2">
-            <Download size={16} /> Download PDF
-          </span>
-        );
-      }}
-    </PDFDownloadLink>
+    <button onClick={handleDownload} disabled={isGenerating} className={className}>
+      {isGenerating ? (
+        <><Loader2 size={16} className="animate-spin" /> Generating PDF...</>
+      ) : (
+        <><Download size={16} /> PDF</>
+      )}
+    </button>
   );
 }

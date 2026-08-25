@@ -504,12 +504,7 @@ export default function FreeCVApp() {
                   <Redo2 size={16} />
                 </button>
               </div>
-              <button onClick={handleDownload} className="group flex items-center gap-2 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-2 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
-                <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> PDF
-              </button>
-              <button onClick={handleDocxExport} className="flex group items-center gap-2 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-3.5 py-2 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all" title="Download Word Document">
-                <FileText size={14} className="group-hover:-translate-y-0.5 transition-transform" /> DOCX
-              </button>
+
             </div>
           </header>
 
