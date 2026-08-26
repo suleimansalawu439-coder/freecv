@@ -222,7 +222,7 @@ export default function SwissGrid({ data }: TemplateProps) {
           {/* Left Column */}
           <View style={styles.leftCol}>
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: themeColor }]}>Contact</Text>
+              <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Contact</Text></View>
               <View style={styles.contactList}>
                 {data.personalInfo.email && <Text style={styles.contactItem}>{data.personalInfo.email}</Text>}
                 {data.personalInfo.phone && <Text style={styles.contactItem}>{data.personalInfo.phone}</Text>}
@@ -232,7 +232,7 @@ export default function SwissGrid({ data }: TemplateProps) {
 
             {data.education && data.education.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Education</Text></View>
                 <View style={styles.eduList}>
                   {data.education.map((edu) => (
                     <View key={edu.id} style={styles.eduItem}>
@@ -247,7 +247,7 @@ export default function SwissGrid({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>Skills</Text>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Skills</Text></View>
                 <View style={styles.skillsContainer}>
                   {data.skills.map((skill) => (
                     <Text key={skill.id} style={styles.skillBadge}>{skill.name}</Text>
@@ -261,14 +261,14 @@ export default function SwissGrid({ data }: TemplateProps) {
           <View style={styles.rightCol}>
             {data.summary && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>Profile</Text>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Profile</Text></View>
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             )}
 
             {data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Experience</Text></View>
                 <View style={styles.expList}>
                   {data.experience.map((exp) => (
                     <View key={exp.id} style={styles.expItem}>
@@ -289,7 +289,7 @@ export default function SwissGrid({ data }: TemplateProps) {
 
             {data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>References</Text></View>
                 <View style={styles.refGrid}>
                   {data.references.map((ref) => (
                     <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
@@ -308,7 +308,7 @@ export default function SwissGrid({ data }: TemplateProps) {
                   section.items &&
                   section.items.length > 0 && (
                     <View key={section.id} style={styles.section}>
-                      <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
+                      <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>{section.title}</Text></View>
                       <View style={{ gap: 8 }}>
                         {section.items.map((item) => (
                           <View key={item.id} style={styles.customSectionItem}>
