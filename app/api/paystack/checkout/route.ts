@@ -1,37 +1,15 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-import * as jose from 'jose';
+import { createClient } from '@/utils/supabase/server';
 
 export const runtime = 'edge';
 
-async function getUser() {
-  const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
-  const authCookie = allCookies.find(c => c.name.includes('-auth-token'));
-  
-  if (!authCookie) return null;
-  
-  try {
-    const parsed = JSON.parse(authCookie.value);
-    const token = parsed[0] || parsed.access_token;
-    if (!token) return null;
-
-    let secretStr = process.env.SUPABASE_JWT_SECRET || 'super-secret-jwt-token-with-at-least-32-characters-long';
-    const isBase64 = !secretStr.includes('-') && secretStr.length > 50;
-    const secret = isBase64 ? Uint8Array.from(atob(secretStr), c => c.charCodeAt(0)) : new TextEncoder().encode(secretStr);
-    
-    const { payload } = await jose.jwtVerify(token, secret);
-    return { id: payload.sub, email: payload.email as string };
-  } catch (e) {
-    return null;
-  }
-}
-
 export async function POST(req: Request) {
   try {
-    const user = await getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

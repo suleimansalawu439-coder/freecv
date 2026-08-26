@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { RisoNav, RisoFooter } from "@/components/riso/RisoChrome";
+import { RisoPage } from "@/components/riso/RisoChrome";
 import { ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -12,6 +12,13 @@ export default function RecruiterLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isReset, setIsReset] = useState(false);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) router.push("/recruiter/dashboard");
+    });
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +27,7 @@ export default function RecruiterLogin() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Signed in");
-      router.push("/recruiter");
+      router.push("/recruiter/dashboard");
       router.refresh();
     } catch (err: any) {
       toast.error(err.message || "Sign in failed");
@@ -31,12 +38,12 @@ export default function RecruiterLogin() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: "https://cvyon.com/recruiter" }
+      options: { redirectTo: "https://cvyon.com/recruiter/dashboard" }
     });
     if (error) { toast.error(error.message); setLoading(false); }
   };
 
-  const [isReset, setIsReset] = useState(false);
+
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -53,10 +60,8 @@ export default function RecruiterLogin() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#E8E7E1] text-[#141312]">
-      <div className="riso-grain" />
-      <RisoNav />
-      <main className="mx-auto flex max-w-md flex-col px-5 py-16 lg:px-8">
+    <RisoPage pageName="recruiter_login">
+      <div className="mx-auto flex max-w-md flex-col px-0 py-4">
         <div className="fm mb-4 text-[11px] font-bold uppercase tracking-[0.25em] text-[#2233FF]">§ recruiter sign in</div>
         <h1 className="fd text-4xl leading-[0.95] tracking-tight sm:text-5xl">Welcome back.</h1>
         <p className="mt-3 text-[#141312]/65">Sign in to search the opt‑in talent pool.</p>
@@ -117,8 +122,7 @@ export default function RecruiterLogin() {
         <p className="mt-6 text-center text-sm text-[#141312]/60">
           No account? <Link href="/recruiter/signup" className="font-bold text-[#FF4326] underline-offset-4 hover:underline">Create one</Link>
         </p>
-      </main>
-      <RisoFooter />
-    </div>
+      </div>
+    </RisoPage>
   );
 }

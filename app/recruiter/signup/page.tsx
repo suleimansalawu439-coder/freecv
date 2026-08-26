@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { RisoNav, RisoFooter } from "@/components/riso/RisoChrome";
+import { RisoPage } from "@/components/riso/RisoChrome";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -14,6 +14,12 @@ export default function RecruiterSignup() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) router.push("/recruiter/dashboard");
+    });
+  }, [router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +35,7 @@ export default function RecruiterSignup() {
       const { error } = await supabase.auth.signUp({
         email, password,
         options: {
-          emailRedirectTo: "https://cvyon.com/recruiter",
+          emailRedirectTo: "https://cvyon.com/recruiter/dashboard",
           data: { company_name: company },
         },
       });
@@ -45,16 +51,14 @@ export default function RecruiterSignup() {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: "https://cvyon.com/recruiter" }
+      options: { redirectTo: "https://cvyon.com/recruiter/dashboard" }
     });
     if (error) { toast.error(error.message); setLoading(false); }
   };
 
   return (
-    <div className="relative min-h-screen bg-[#E8E7E1] text-[#141312]">
-      <div className="riso-grain" />
-      <RisoNav />
-      <main className="mx-auto flex max-w-md flex-col px-5 py-16 lg:px-8">
+    <RisoPage pageName="recruiter_signup">
+      <div className="mx-auto flex max-w-md flex-col px-0 py-4">
         <div className="fm mb-4 text-[11px] font-bold uppercase tracking-[0.25em] text-[#2233FF]">§ create recruiter account</div>
         <h1 className="fd text-4xl leading-[0.95] tracking-tight sm:text-5xl">Start sourcing.</h1>
         <p className="mt-3 text-[#141312]/65">Free to create. Subscribe only when you're ready to search.</p>
@@ -107,8 +111,7 @@ export default function RecruiterSignup() {
         <p className="mt-6 text-center text-sm text-[#141312]/60">
           Already have an account? <Link href="/recruiter/login" className="font-bold text-[#FF4326] underline-offset-4 hover:underline">Sign in</Link>
         </p>
-      </main>
-      <RisoFooter />
-    </div>
+      </div>
+    </RisoPage>
   );
 }

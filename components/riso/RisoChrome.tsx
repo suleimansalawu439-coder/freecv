@@ -232,6 +232,14 @@ export function RisoSectionLabel({
   );
 }
 
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "@/lib/fonts";
+import { AnalyticsTracker } from "../landing/AnalyticsTracker";
+
+const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
+const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });
+const body = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap" });
+
 /* Wrap any front page in this to get grain + nav + footer + page_view for free.
  * `ticker` adds the top marquee. `pageName` drives the page_view event. */
 export function RisoPage({
@@ -245,8 +253,23 @@ export function RisoPage({
 }) {
   usePageView(pageName);
   return (
-    <div className="relative min-h-screen bg-[#E8E7E1] text-[#141312]">
-      <div className="riso-grain" />
+    <div className={cn("cv-riso relative min-h-screen overflow-x-hidden text-[#141312]", body.className, display.className, head.className, mono.className)}
+      style={{ background: "#E8E7E1", ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
+      <AnalyticsTracker />
+      <style>{`
+        .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
+        .cv-riso .grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.06;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+        .cv-riso .dots{background-image:radial-gradient(#14131222 1.2px,transparent 1.2px);background-size:22px 22px}
+        .cv-riso .hs{box-shadow:7px 7px 0 var(--ink)} .cv-riso .hs-v{box-shadow:7px 7px 0 var(--verm)} .cv-riso .hs-c{box-shadow:6px 6px 0 var(--cob)}
+        .cv-riso [data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)} .cv-riso [data-reveal].in{opacity:1;transform:none}
+        .cv-riso .mq{display:flex;width:max-content;animation:risomq 26s linear infinite} .cv-riso .mq2{animation-duration:34s;animation-direction:reverse}
+        @keyframes risomq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .cv-riso .blink{animation:risoblink 1.1s steps(2,start) infinite} @keyframes risoblink{50%{opacity:.15}}
+        .cv-riso .floaty{animation:risofloat 6s ease-in-out infinite} @keyframes risofloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-9px) rotate(-8deg)}}
+        .cv-riso .ul{background-image:linear-gradient(var(--ink),var(--ink));background-position:0 100%;background-repeat:no-repeat;background-size:0% 2px;transition:background-size .35s} .cv-riso .ul:hover{background-size:100% 2px}
+        @media (prefers-reduced-motion:reduce){.cv-riso .mq,.cv-riso .floaty,.cv-riso .blink{animation:none!important}}
+      `}</style>
+      <div className="grain" />
       {ticker && <RisoTicker />}
       <RisoNav />
       <main className="mx-auto max-w-[1240px] px-5 py-12 lg:px-8">{children}</main>
