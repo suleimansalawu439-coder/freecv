@@ -42,14 +42,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontFamily: 'Times-Bold',
-    textTransform: 'uppercase',
+  sectionTitleContainer: {
     borderBottomWidth: 1,
     borderBottomColor: '#000000',
     paddingBottom: 2,
     marginBottom: 10,
+  },
+  sectionTitleText: {
+    fontSize: 11,
+    fontFamily: 'Times-Bold',
+    textTransform: 'uppercase',
   },
   gridRow: {
     flexDirection: 'row',
@@ -127,7 +129,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* Education */}
         {data.education && data.education.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Education</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>Education</Text></View>
             {data.education.map((edu) => (
               <View key={edu.id} style={styles.gridRow}>
                 <Text style={styles.gridLeft}>{edu.graduationYear}</Text>
@@ -143,7 +145,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* Experience */}
         {data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Academic & Professional Appointments</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>Academic & Professional Appointments</Text></View>
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.gridRow}>
                 <Text style={styles.gridLeft}>{exp.startDate} - {exp.endDate}</Text>
@@ -170,7 +172,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* Research & Projects */}
         {data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Research & Projects</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>Research & Projects</Text></View>
             <View style={styles.indentBlock}>
               {data.projects.map((proj) => (
                 <View key={proj.id} style={{ marginBottom: 8 }}>
@@ -188,7 +190,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* Certifications & Awards */}
         {data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Certifications & Awards</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>Certifications & Awards</Text></View>
             <View style={styles.indentBlock}>
               {data.certifications.map((cert) => (
                 <View key={cert.id} style={styles.flexBetween}>
@@ -206,7 +208,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* References */}
         {data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>References</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>References</Text></View>
             <View style={styles.indentBlock}>
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.flexBetween}>
@@ -229,7 +231,7 @@ export default function Academic({ data }: TemplateProps) {
               section.items &&
               section.items.length > 0 && (
                 <View key={section.id} style={styles.section}>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>{section.title}</Text></View>
                   {section.items.map((item) => (
                     <View key={item.id} style={{ marginBottom: 6 }}>
                       <View style={styles.flexBetween}>
@@ -255,7 +257,7 @@ export default function Academic({ data }: TemplateProps) {
         {/* Skills */}
         {data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Technical Proficiencies</Text>
+            <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>Technical Proficiencies</Text></View>
             <Text style={[styles.indentBlock, { fontSize: 10 }]}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
         )}

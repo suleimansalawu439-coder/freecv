@@ -53,17 +53,19 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontFamily: 'Times-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    textAlign: 'center',
+  sectionTitleContainer: {
     borderBottomWidth: 1,
     borderBottomColor: '#D1D5DB',
     borderBottomStyle: 'solid',
     marginBottom: 10,
     paddingBottom: 3,
+  },
+  sectionTitleText: {
+    fontSize: 11,
+    fontFamily: 'Times-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    textAlign: 'center',
   },
   itemContainer: {
     marginBottom: 10,
@@ -163,7 +165,9 @@ export default function Classic({ data }: TemplateProps) {
 
         {data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Experience</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Text style={styles.sectionTitleText}>Professional Experience</Text>
+            </View>
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.itemContainer}>
                 <View style={styles.rowBetween}>
@@ -187,7 +191,9 @@ export default function Classic({ data }: TemplateProps) {
 
         {data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Projects</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Text style={styles.sectionTitleText}>Projects</Text>
+            </View>
             {data.projects.map((proj) => (
               <View key={proj.id} style={styles.itemContainer}>
                 <View style={styles.projectHeader}>
@@ -208,7 +214,9 @@ export default function Classic({ data }: TemplateProps) {
           <View style={styles.column}>
             {data.education && data.education.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Education</Text>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionTitleText}>Education</Text>
+                </View>
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.itemContainer}>
                     <View style={styles.rowBetween}>
@@ -227,7 +235,9 @@ export default function Classic({ data }: TemplateProps) {
           <View style={styles.column}>
             {data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Certifications</Text>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionTitleText}>Certifications</Text>
+                </View>
                 {data.certifications.map((cert) => (
                   <View key={cert.id} style={styles.itemContainer}>
                     <View style={styles.rowBetween}>
@@ -244,7 +254,9 @@ export default function Classic({ data }: TemplateProps) {
 
             {data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>References</Text>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionTitleText}>References</Text>
+                </View>
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.itemContainer}>
                     <View style={styles.rowBetween}>
@@ -265,7 +277,9 @@ export default function Classic({ data }: TemplateProps) {
                   section.items &&
                   section.items.length > 0 && (
                     <View key={section.id} style={styles.section}>
-                      <Text style={styles.sectionTitle}>{section.title}</Text>
+                      <View style={styles.sectionTitleContainer}>
+                        <Text style={styles.sectionTitleText}>{section.title}</Text>
+                      </View>
                       {section.items.map((item) => (
                         <View key={item.id} style={styles.itemContainer}>
                           <View style={styles.rowBetween}>
@@ -290,7 +304,9 @@ export default function Classic({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Skills</Text>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionTitleText}>Skills</Text>
+                </View>
                 <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join(' • ')}</Text>
               </View>
             )}

@@ -190,7 +190,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
           <View style={styles.column}>
             {data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>I. Professional Appointments</Text>
+                <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>I. Professional Appointments</Text></View>
                 {data.experience.map((exp) => (
                   <View key={exp.id} style={styles.expItem}>
                     <Text style={styles.expRole}>{exp.role}</Text>
@@ -207,7 +207,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
           <View style={styles.column}>
             {data.education && data.education.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>II. Education</Text>
+                <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>II. Education</Text></View>
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.eduItem}>
                     <Text style={styles.eduDegree}>{edu.degree}</Text>
@@ -219,7 +219,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>III. Technical Skills</Text>
+                <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>III. Technical Skills</Text></View>
                 <View style={styles.skillsList}>
                   {data.skills.map((skill) => (
                     <View key={skill.id} style={styles.bulletItem}>
@@ -233,7 +233,7 @@ export default function AcademicJournal({ data }: TemplateProps) {
 
             {data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>IV. References</Text>
+                <View style={styles.sectionTitleContainer}><Text style={styles.sectionTitleText}>IV. References</Text></View>
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refItem}>
                     <Text style={styles.refName}>{ref.name}</Text>

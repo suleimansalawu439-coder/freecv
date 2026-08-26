@@ -76,16 +76,18 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E5EC',
     paddingTop: 20,
   },
-  sectionTitle: {
+  sectionTitleContainer: {
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E5EC',
+    paddingBottom: 4,
+  },
+  sectionTitleText: {
     fontSize: 8,
     fontFamily: 'Helvetica-Bold',
     color: '#8A9AAB',
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E5EC',
-    paddingBottom: 4,
   },
   expItem: {
     marginBottom: 14,
@@ -286,7 +288,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
 
           {data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Professional Experience</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Text style={styles.sectionTitleText}>Professional Experience</Text>
+              </View>
               {data.experience.map((exp) => (
                 <View key={exp.id} style={styles.expItem}>
                   <View style={styles.rowBetween}>
@@ -313,7 +317,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
             <View style={styles.twoColRow}>
               {data.education && data.education.length > 0 && (
                 <View style={styles.colHalf}>
-                  <Text style={styles.sectionTitle}>Education</Text>
+                  <View style={styles.sectionTitleContainer}>
+                    <Text style={styles.sectionTitleText}>Education</Text>
+                  </View>
                   {data.education.map((edu) => (
                     <View key={edu.id} style={styles.eduItem}>
                       <Text style={styles.eduDegree}>{edu.degree}</Text>
@@ -325,7 +331,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
 
               {data.skills && data.skills.length > 0 && (
                 <View style={styles.colHalf}>
-                  <Text style={styles.sectionTitle}>Core Skills</Text>
+                  <View style={styles.sectionTitleContainer}>
+                    <Text style={styles.sectionTitleText}>Core Skills</Text>
+                  </View>
                   <View style={styles.skillsWrap}>
                     {data.skills.map((s) => (
                       <View key={s.id} style={styles.skillBadge}>
@@ -340,7 +348,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
 
           {data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={[styles.section, styles.sectionBorderTop]}>
-              <Text style={styles.sectionTitle}>Projects</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Text style={styles.sectionTitleText}>Projects</Text>
+              </View>
               <View style={styles.gridTwo}>
                 {data.projects.map((proj) => (
                   <View key={proj.id} style={styles.projCard}>
@@ -363,7 +373,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
 
           {data.showReferences && data.references && data.references.length > 0 && (
             <View style={[styles.section, styles.sectionBorderTop]}>
-              <Text style={styles.sectionTitle}>References</Text>
+              <View style={styles.sectionTitleContainer}>
+                <Text style={styles.sectionTitleText}>References</Text>
+              </View>
               <View style={styles.gridTwo}>
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refCard}>
@@ -383,7 +395,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
                 section.items &&
                 section.items.length > 0 && (
                   <View key={section.id} style={[styles.section, styles.sectionBorderTop]}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
+                    <View style={styles.sectionTitleContainer}>
+                      <Text style={styles.sectionTitleText}>{section.title}</Text>
+                    </View>
                     {section.items.map((item) => (
                       <View key={item.id} style={styles.customItem}>
                         <View style={styles.rowBetween}>
