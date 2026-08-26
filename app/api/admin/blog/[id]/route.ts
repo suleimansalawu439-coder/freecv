@@ -1,23 +1,18 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { requireAdmin, adminFail } from '@/lib/admin-auth';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  // Authentication is handled by proxy.ts for all /api/admin/* routes
-  const cookieStore = await cookies();
-  if (!cookieStore.get('admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try { await requireAdmin(); } catch { return adminFail(); }
 
   try {
     const body = await request.json();
-    const { title, slug, content, meta_description, is_published } = body;
-    // For dynamic route params in Next.js 16, we await them safely
+    const { title, slug, content, meta_description, is_published, header_image } = body;
     const resolvedParams = await params;
 
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .update({ title, slug, content, meta_description, is_published })
+      .update({ title, slug, content, meta_description, is_published, header_image })
       .eq('id', resolvedParams.id)
       .select()
       .single();
@@ -31,14 +26,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  // Authentication is handled by proxy.ts for all /api/admin/* routes
-  const cookieStore = await cookies();
-  if (!cookieStore.get('admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try { await requireAdmin(); } catch { return adminFail(); }
 
   try {
-    const resolvedParams = await Promise.resolve(params);
+    const resolvedParams = await params;
     const { error } = await supabaseAdmin
       .from('blog_posts')
       .delete()

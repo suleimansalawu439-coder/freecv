@@ -22,9 +22,11 @@ export async function handleConfig(req: Request) {
         .upsert({ key, value, updated_at: now }, { onConflict: 'key' });
       if (error) throw error;
     } else if (target === 'site_settings') {
+      const { data: existing } = await supabaseAdmin.from('site_settings').select('id').limit(1).maybeSingle();
+      const targetId = existing?.id || id || 1;
       const { error } = await supabaseAdmin
         .from('site_settings')
-        .upsert({ id: id || 1, ...value, updated_at: now }, { onConflict: 'id' });
+        .upsert({ id: targetId, ...value, updated_at: now }, { onConflict: 'id' });
       if (error) throw error;
     } else if (target === 'feature_flags') {
       if (!key) return NextResponse.json({ error: 'key required' }, { status: 400 });

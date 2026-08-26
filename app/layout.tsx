@@ -47,6 +47,7 @@ import { Toaster } from 'react-hot-toast';
 import { AffiliateTracker } from "@/components/AffiliateTracker";
 import { JsonLd } from "@/components/JsonLd";
 import { Suspense } from "react";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
 
 export default function RootLayout({
   children,
@@ -70,6 +71,11 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;600;700;800;900&family=Chakra+Petch:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&family=Sora:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}`
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col">
         <JsonLd />
@@ -80,6 +86,7 @@ export default function RootLayout({
             <AffiliateTracker />
           </Suspense>
           <Toaster position="top-right" />
+          <PWAInstallBanner />
         </AuthProvider>
       </body>
     </html>

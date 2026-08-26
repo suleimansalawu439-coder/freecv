@@ -38,7 +38,7 @@ export default async function AdminPage() {
     return [];
   };
 
-  const [candidatesList, profilesList, analytics, aiLogs, siteSettings, featureFlags, blogPosts, appSettingsRes, jobClicksRes] = await Promise.all([
+  const [candidatesList, profilesList, analytics, aiLogs, siteSettings, featureFlags, blogPosts, appSettingsRes] = await Promise.all([
     fetchCandidates(),
     fetchProfiles(),
     supabaseAdmin.from('analytics_events').select('*').order('created_at', { ascending: false }).limit(5000),
@@ -47,7 +47,6 @@ export default async function AdminPage() {
     supabaseAdmin.from('feature_flags').select('*').order('key'),
     supabaseAdmin.from('blog_posts').select('*').order('created_at', { ascending: false }),
     supabaseAdmin.from('app_settings').select('*'),
-    supabaseAdmin.from('job_clicks').select('*').order('created_at', { ascending: false }).limit(3000),
   ]);
 
   const candidatesData = candidatesList || [];
@@ -135,7 +134,6 @@ export default async function AdminPage() {
       featureFlags={featureFlags.data || []}
       blogPosts={blogPosts.data || []}
       appSettings={appSettings}
-      jobClicks={jobClicksRes.data || []}
     />
   );
 }

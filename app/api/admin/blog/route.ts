@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { requireAdmin, adminFail } from '@/lib/admin-auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  // Authentication is handled by proxy.ts for all /api/admin/* routes
-  // But we can double check the cookie exists just in case
-  if (!cookieStore.get('admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try { await requireAdmin(); } catch { return adminFail(); }
 
   const { data, error } = await supabaseAdmin
     .from('blog_posts')
@@ -22,21 +20,15 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  // Authentication is handled by proxy.ts for all /api/admin/* routes
-  const cookieStore = await cookies();
-  if (!cookieStore.get('admin_session')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try { await requireAdmin(); } catch { return adminFail(); }
 
   try {
     const body = await request.json();
-    const { title, slug, content, meta_description, is_published } = body;
+    const { title, slug, content, meta_description, is_published, header_image } = body;
 
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .insert([
-        { title, slug, content, meta_description, is_published }
-      ])
+      .insert([{ title, slug, content, meta_description, is_published, header_image }])
       .select()
       .single();
 

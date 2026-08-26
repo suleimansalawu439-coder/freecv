@@ -29,6 +29,7 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
       slug: '',
       content: '',
       meta_description: '',
+      header_image: '',
       is_published: false
     });
   };
@@ -170,6 +171,25 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
                     className={cn("w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all", isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-300")}
                     placeholder="Brief summary for SEO..."
                   />
+                </div>
+                
+                <div>
+                  <label className={cn("block text-sm font-medium mb-1", isDarkMode ? "text-gray-300" : "text-gray-700")}>Header Image URL</label>
+                  <input 
+                    type="text" 
+                    value={editingPost.header_image || ''}
+                    onChange={(e) => setEditingPost({ ...editingPost, header_image: e.target.value })}
+                    className={cn("w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all", isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-300")}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                  <p className={cn("text-xs mt-1", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+                    Used as the hero image and OpenGraph image for social sharing.
+                  </p>
+                  {editingPost.header_image && (
+                    <div className="mt-2 rounded-lg overflow-hidden border border-gray-700">
+                      <img src={editingPost.header_image} alt="Header preview" className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="pt-4 border-t border-gray-700">

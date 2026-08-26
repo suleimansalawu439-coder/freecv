@@ -43,20 +43,27 @@ export default async function BlogIndex() {
           ) : (
             posts.map((post: any) => (
               <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
-                <article className="bg-white rounded-3xl p-8 border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden">
+                <article className="bg-white rounded-3xl border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-black transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
-                    <Calendar size={14} />
-                    {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </div>
-                  <h2 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-blue-600 transition-colors">
-                    {post.title}
-                  </h2>
-                  <p className="text-gray-500 mb-8 flex-1 line-clamp-3">
-                    {post.meta_description || post.content?.substring(0, 150) || 'Read more about this topic...'}
-                  </p>
-                  <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs">
-                    Read Article <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  {post.header_image && (
+                    <div className="w-full aspect-[2/1] relative overflow-hidden">
+                      <img src={post.header_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                  )}
+                  <div className="p-8 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
+                      <Calendar size={14} />
+                      {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                    <h2 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h2>
+                    <p className="text-gray-500 mb-8 flex-1 line-clamp-3">
+                      {post.meta_description || post.content?.replace(/<[^>]*>/g, '').substring(0, 150) || 'Read more about this topic...'}
+                    </p>
+                    <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs">
+                      Read Article <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
                 </article>
               </Link>
