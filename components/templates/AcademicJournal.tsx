@@ -62,14 +62,16 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 10,
-    fontFamily: 'Times-Bold',
-    textTransform: 'uppercase',
+  sectionTitleContainer: {
     borderBottomWidth: 1,
     borderBottomColor: '#000000',
     paddingBottom: 2,
     marginBottom: 10,
+  },
+  sectionTitleText: {
+    fontSize: 10,
+    fontFamily: 'Times-Bold',
+    textTransform: 'uppercase',
   },
   expItem: {
     marginBottom: 12,

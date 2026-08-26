@@ -67,15 +67,17 @@ const styles = StyleSheet.create({
   sectionBlock: {
     marginBottom: 20,
   },
-  sectionTitle: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+  sectionTitleContainer: {
     marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomStyle: 'solid',
     paddingBottom: 3,
+  },
+  sectionTitleText: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   contactText: {
     fontSize: 8.5,
@@ -211,7 +213,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
         <View style={styles.mainGrid}>
           <View style={[styles.leftColumn, { borderColor: `${c}33` }]}>
             <View style={styles.sectionBlock}>
-              <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Contact</Text>
+              <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
+                <Text style={[styles.sectionTitleText, { color: c }]}>Contact</Text>
+              </View>
               {data.personalInfo.email ? (
                 <Text style={styles.contactText}>{data.personalInfo.email}</Text>
               ) : null}
@@ -228,7 +232,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
 
             {data.skills && data.skills.length > 0 && (
               <View style={styles.sectionBlock}>
-                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Skills</Text>
+                <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
+                  <Text style={[styles.sectionTitleText, { color: c }]}>Skills</Text>
+                </View>
                 {data.skills.map((s) => (
                   <View key={s.id} style={styles.skillRow}>
                     <View style={[styles.skillDot, { backgroundColor: c }]} />
@@ -240,7 +246,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
 
             {data.education && data.education.length > 0 && (
               <View style={styles.sectionBlock}>
-                <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>Education</Text>
+                <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
+                  <Text style={[styles.sectionTitleText, { color: c }]}>Education</Text>
+                </View>
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.itemBlock}>
                     <Text style={styles.itemTitle}>{edu.degree}</Text>
@@ -257,7 +265,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                 (section) =>
                   section.items.length > 0 && (
                     <View key={section.id} style={styles.sectionBlock}>
-                      <Text style={[styles.sectionTitle, { color: c, borderColor: `${c}4D` }]}>{section.title}</Text>
+                      <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
+                        <Text style={[styles.sectionTitleText, { color: c }]}>{section.title}</Text>
+                      </View>
                       {section.items.map((item) => (
                         <View key={item.id} style={styles.itemBlock}>
                           <Text style={styles.itemTitle}>{item.title}</Text>

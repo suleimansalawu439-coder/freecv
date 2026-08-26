@@ -51,15 +51,17 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 4,
   },
-  sectionTitle: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+  sectionTitleContainer: {
     marginBottom: 8,
     borderBottomWidth: 1.5,
     borderBottomColor: '#000000',
     paddingBottom: 2,
+  },
+  sectionTitleText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
   },
   contactList: {
     flexDirection: 'column',
