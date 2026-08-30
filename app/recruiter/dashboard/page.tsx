@@ -44,21 +44,6 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>{n}{suffix}</span>;
 }
 
-function Reveal({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { el.classList.add("in"); io.unobserve(el); } }), { threshold: 0.15 });
-    io.observe(el); return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} data-reveal className={className} style={{ transitionDelay: `${delay}ms` }}>
-      <style>{`.cv-rv[data-reveal]{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}.cv-rv.in{opacity:1;transform:none}@media(prefers-reduced-motion:reduce){.cv-rv[data-reveal]{opacity:1;transform:none}}`}</style>
-      <div className="cv-rv" data-reveal style={{ transitionDelay: `${delay}ms` }}>{children}</div>
-    </div>
-  );
-}
-
 export default function RecruiterPortal() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -153,6 +138,7 @@ export default function RecruiterPortal() {
       const res = await fetch("/api/paystack/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin", // CRITICAL FIX: Send cookies for edge route auth
         body: JSON.stringify({ email: user?.email, company: recruiter?.company_name }),
       });
       const data = await res.json();
@@ -199,7 +185,7 @@ export default function RecruiterPortal() {
         <h1 className="fd text-4xl tracking-tight sm:text-5xl">Unlock the talent pool.</h1>
         <p className="mt-4 text-[#141312]/70">Signed in as <span className="font-bold">{user.email}</span>. Subscribe to search and contact opted-in candidates.</p>
 
-        <div className="riso-card mt-8 p-8">
+        <div className="mt-8 border-[3px] border-[#141312] bg-white hs p-8">
           <div className="flex items-baseline justify-between border-b-[3px] border-[#141312] pb-5">
             <span className="fh text-xl font-extrabold">Recruiter Access</span>
             <span className="fd text-3xl tracking-tight">{priceLabel}</span>
@@ -209,10 +195,14 @@ export default function RecruiterPortal() {
               <li key={f} className="flex items-center gap-2 text-sm"><span className="grid h-5 w-5 place-items-center border-2 border-[#0E8A4B] text-[#0E8A4B]"><Check size={12} /></span> {f}</li>
             ))}
           </ul>
-          <button onClick={handleCheckout} disabled={checkingOut} className="riso-btn mt-8 w-full">
-            {checkingOut ? <Loader2 size={16} className="animate-spin" /> : "Subscribe with Paystack"} <ArrowRight size={16} />
+          <button 
+            onClick={handleCheckout} 
+            disabled={checkingOut} 
+            className="group mt-8 flex w-full items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[7px_7px_0_#141312]"
+          >
+            {checkingOut ? <Loader2 size={16} className="animate-spin" /> : "Subscribe with Paystack"} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </button>
-          <p className="fm mt-3 text-center text-[10px] uppercase tracking-[0.18em] text-[#141312]/45">billed securely via Paystack · {priceLabel}</p>
+          <p className="fm mt-3 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#141312]/45">billed securely via Paystack · {priceLabel}</p>
         </div>
       </div>
     ));
@@ -221,37 +211,51 @@ export default function RecruiterPortal() {
   /* ============================ ACTIVE — SEARCH COCKPIT ============================ */
   return shell(false, (
     <>
-      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end py-6">
         <div>
           <RisoSectionLabel color="#2233FF">talent pool</RisoSectionLabel>
           <h1 className="fd text-4xl tracking-tight sm:text-5xl">Find your next hire.</h1>
         </div>
         <div className="flex gap-3">
-          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={candidates.length} /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">matches</div></div>
-          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={avgCompleteness} suffix="%" /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">avg profile</div></div>
-          <div className="riso-card px-5 py-3 text-center"><div className="fd text-2xl text-[#0E8A4B]">Active</div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">plan</div></div>
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={candidates.length} /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">matches</div></div>
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={avgCompleteness} suffix="%" /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">avg profile</div></div>
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl text-[#0E8A4B]">Active</div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">plan</div></div>
         </div>
       </div>
 
       {/* search + filters */}
-      <div className="riso-card mt-8 flex flex-col gap-3 p-4 sm:flex-row">
+      <div className="mt-8 flex flex-col gap-3 border-[3px] border-[#141312] bg-white hs p-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#141312]/40" />
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#141312]/40" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && load(query, country)}
             placeholder="Search by job title (e.g. Software Engineer)"
-            className="riso-input !pl-9"
+            className="w-full border-[3px] border-[#141312] bg-white px-4 pl-11 py-3 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326] focus:translate-x-[2px] focus:translate-y-[2px]"
           />
         </div>
-        <select value={country} onChange={(e) => setCountry(e.target.value)} className="riso-input sm:w-56">
+        <select 
+          value={country} 
+          onChange={(e) => setCountry(e.target.value)} 
+          className="sm:w-56 border-[3px] border-[#141312] bg-white px-4 py-3 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326] focus:translate-x-[2px] focus:translate-y-[2px]"
+        >
           <option value="">All countries</option>
           {countries.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button onClick={() => load(query, country)} className="riso-btn">{searching ? "Searching…" : "Search"}</button>
+        <button 
+          onClick={() => load(query, country)} 
+          className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-3 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] transition-all hover:bg-[#FF4326] hover:border-[#FF4326]"
+        >
+          {searching ? "..." : "Search"}
+        </button>
         {(query || country) && (
-          <button onClick={() => { setQuery(""); setCountry(""); load("", ""); }} className="riso-btn riso-btn-ghost !px-4">Clear</button>
+          <button 
+            onClick={() => { setQuery(""); setCountry(""); load("", ""); }} 
+            className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-5 py-3 fh text-sm font-extrabold uppercase tracking-wider text-[#141312] transition-all hover:bg-[#141312] hover:text-[#E8E7E1]"
+          >
+            Clear
+          </button>
         )}
       </div>
 
@@ -261,13 +265,13 @@ export default function RecruiterPortal() {
           <Loader2 size={24} className="animate-spin text-[#2233FF]" /> Searching the pool…
         </div>
       ) : candidates.length === 0 ? (
-        <div className="riso-card mt-8 py-20 text-center">
+        <div className="mt-8 border-[3px] border-[#141312] bg-white hs py-20 text-center">
           <Users size={40} className="mx-auto mb-3 text-[#141312]/30" />
           <p className="fh text-lg font-extrabold">No candidates match yet.</p>
           <p className="mt-1 text-sm text-[#141312]/60">Try a broader title or clear the country filter.</p>
         </div>
       ) : (
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           {candidates.map((c) => {
             const email = c.candidates?.email;
             const skills: string[] = Array.isArray(c.skills) ? c.skills.slice(0, 5) : [];
@@ -275,36 +279,36 @@ export default function RecruiterPortal() {
               <button
                 key={c.id}
                 onClick={() => setSelected(c)}
-                className="riso-card group flex flex-col p-6 text-left transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                className="group flex flex-col border-[3px] border-[#141312] bg-white hs p-6 text-left transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 w-full">
                   <div className="min-w-0">
-                    <h3 className="fh truncate text-lg font-extrabold tracking-tight group-hover:text-[#FF4326]">{c.full_name || "Candidate"}</h3>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#141312]/75">
+                    <h3 className="fh truncate text-xl font-extrabold tracking-tight group-hover:text-[#FF4326]">{c.full_name || "Candidate"}</h3>
+                    <div className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-[#141312]/75">
                       <Briefcase size={13} className="text-[#2233FF]" /> {c.current_title || "—"}
                     </div>
                   </div>
-                  <span className="shrink-0 border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold text-[#0E8A4B]">{c.completeness_score ?? 0}%</span>
+                  <span className="shrink-0 border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold uppercase tracking-widest text-[#0E8A4B]">{c.completeness_score ?? 0}%</span>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 fm text-[11px] uppercase tracking-wider text-[#141312]/55">
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 fm text-[11px] uppercase tracking-wider text-[#141312]/55">
                   {c.country && <span className="flex items-center gap-1"><MapPin size={12} /> {c.country}</span>}
                   {c.experience_years != null && <span>{c.experience_years} yrs exp</span>}
                   {c.highest_education && <span className="flex items-center gap-1"><GraduationCap size={12} /> {c.highest_education}</span>}
                 </div>
 
                 {skills.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {skills.map((s: string) => <span key={s} className="riso-chip">{s}</span>)}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {skills.map((s: string) => <span key={s} className="border-2 border-[#141312] bg-[#E8E7E1] px-2 py-1 fm text-[9px] font-bold uppercase tracking-[0.16em]">{s}</span>)}
                   </div>
                 )}
 
-                <div className="mt-5 flex items-center gap-3 border-t-2 border-[#141312]/10 pt-4">
+                <div className="mt-6 flex items-center gap-3 border-t-2 border-[#141312]/10 pt-4 w-full">
                   {email && (
                     <span
                       role="link"
                       onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${email}`; }}
-                      className="riso-btn !px-4 !py-2.5 !text-xs"
+                      className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-4 py-2 fh text-[11px] font-extrabold uppercase tracking-wider text-[#E8E7E1] hover:bg-[#FF4326] hover:border-[#FF4326]"
                     >
                       <Mail size={14} /> Contact
                     </span>
@@ -313,12 +317,12 @@ export default function RecruiterPortal() {
                     <span
                       role="link"
                       onClick={(e) => { e.stopPropagation(); window.open(c.linkedin_url, "_blank", "noopener"); }}
-                      className="riso-btn riso-btn-ghost !px-4 !py-2.5 !text-xs"
+                      className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-4 py-2 fh text-[11px] font-extrabold uppercase tracking-wider text-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1]"
                     >
                       <LinkedinIcon size={14} /> LinkedIn
                     </span>
                   )}
-                  <span className="fm ml-auto flex items-center gap-1 text-[10px] uppercase tracking-widest text-[#141312]/40 group-hover:text-[#FF4326]">
+                  <span className="fm ml-auto flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-[#141312]/40 group-hover:text-[#FF4326]">
                     View profile <ArrowUpRight size={12} />
                   </span>
                 </div>
@@ -340,42 +344,44 @@ export default function RecruiterPortal() {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="relative flex flex-col w-full max-w-2xl max-h-[90vh] rounded-2xl border-[3px] border-[#141312] bg-[#E8E7E1] shadow-[8px_8px_0px_0px_#141312] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+              className="relative flex flex-col w-full max-w-2xl max-h-[90vh] border-[3px] border-[#141312] bg-[#E8E7E1] hs overflow-hidden my-auto animate-in zoom-in-95 duration-200"
             >
               {/* Modal Header */}
               <div className="flex items-start justify-between gap-3 border-b-[3px] border-[#141312] bg-[#141312] px-6 py-5 text-[#E8E7E1] shrink-0">
                 <div className="min-w-0">
                   <div className="fm text-[10px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]">candidate profile</div>
-                  <h2 className="fd mt-1 truncate text-2xl tracking-tight">{selected.full_name || "Candidate"}</h2>
-                  <div className="mt-1 flex items-center gap-1.5 text-sm text-[#E8E7E1]/70">
-                    <Briefcase size={13} className="text-[#FF4326]" /> {selected.current_title || rd.personalInfo?.jobTitle || "—"}
+                  <h2 className="fd mt-1 truncate text-3xl tracking-tight">{selected.full_name || "Candidate"}</h2>
+                  <div className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-[#E8E7E1]/70">
+                    <Briefcase size={14} className="text-[#FF4326]" /> {selected.current_title || rd.personalInfo?.jobTitle || "—"}
                   </div>
                 </div>
                 <button 
                   aria-label="Close" 
                   onClick={() => setSelected(null)} 
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border-2 border-[#E8E7E1] text-[#E8E7E1] hover:border-[#FF4326] hover:bg-[#FF4326] hover:text-white transition-colors cursor-pointer"
+                  className="grid h-10 w-10 shrink-0 place-items-center border-[3px] border-[#E8E7E1] text-[#E8E7E1] hover:border-[#FF4326] hover:bg-[#FF4326] hover:text-[#141312] transition-colors cursor-pointer"
                 >
-                  <X size={18} />
+                  <X size={20} />
                 </button>
               </div>
 
               {/* Modal Scrollable Body */}
-              <div className="flex-1 space-y-6 overflow-y-auto p-6">
+              <div className="flex-1 space-y-8 overflow-y-auto p-6 lg:p-8">
                 <div className="flex flex-wrap gap-2">
-                  <span className="border-2 border-[#0E8A4B] px-2.5 py-1 rounded fm text-[11px] font-bold text-[#0E8A4B] bg-[#0E8A4B]/10">
+                  <span className="border-2 border-[#0E8A4B] px-3 py-1 fm text-[11px] font-bold uppercase tracking-widest text-[#0E8A4B] bg-[#0E8A4B]/10">
                     {selected.completeness_score ?? 0}% complete
                   </span>
-                  {selected.country && <span className="riso-chip"><MapPin size={11} /> {selected.country}</span>}
-                  {selected.experience_years != null && <span className="riso-chip">{selected.experience_years} yrs exp</span>}
-                  {selected.highest_education && <span className="riso-chip"><GraduationCap size={11} /> {selected.highest_education}</span>}
+                  {selected.country && <span className="border-2 border-[#141312] bg-white px-3 py-1 fm text-[11px] font-bold uppercase tracking-widest flex items-center gap-1"><MapPin size={11} /> {selected.country}</span>}
+                  {selected.experience_years != null && <span className="border-2 border-[#141312] bg-white px-3 py-1 fm text-[11px] font-bold uppercase tracking-widest">{selected.experience_years} yrs exp</span>}
+                  {selected.highest_education && <span className="border-2 border-[#141312] bg-white px-3 py-1 fm text-[11px] font-bold uppercase tracking-widest flex items-center gap-1"><GraduationCap size={11} /> {selected.highest_education}</span>}
                 </div>
 
                 {email && (
                   <div className="flex flex-wrap gap-3">
-                    <a href={`mailto:${email}`} className="riso-btn !py-2.5 !text-xs font-bold"><Mail size={14} /> {email}</a>
+                    <a href={`mailto:${email}`} className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-6 py-3 fh text-xs font-extrabold uppercase tracking-wider text-[#E8E7E1] hover:bg-[#FF4326] hover:border-[#FF4326]">
+                      <Mail size={14} /> {email}
+                    </a>
                     {selected.linkedin_url && (
-                      <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="riso-btn riso-btn-ghost !py-2.5 !text-xs">
+                      <a href={selected.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-6 py-3 fh text-xs font-extrabold uppercase tracking-wider text-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1]">
                         <LinkedinIcon size={14} /> LinkedIn
                       </a>
                     )}
@@ -385,22 +391,22 @@ export default function RecruiterPortal() {
                 {rd.summary && (
                   <div>
                     <RisoSectionLabel>summary</RisoSectionLabel>
-                    <p className="riso-card p-4 text-sm leading-relaxed text-[#141312]/80" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(rd.summary) }} />
+                    <p className="mt-3 border-[3px] border-[#141312] bg-white p-5 text-sm leading-relaxed text-[#141312]/80" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(rd.summary) }} />
                   </div>
                 )}
 
                 {Array.isArray(rd.experience) && rd.experience.length > 0 && (
                   <div>
                     <RisoSectionLabel color="#2233FF">experience</RisoSectionLabel>
-                    <div className="space-y-3">
+                    <div className="mt-3 space-y-4">
                       {rd.experience.map((exp: any, i: number) => (
-                        <div key={exp.id || i} className="riso-card p-4">
-                          <div className="flex items-baseline justify-between gap-3">
-                            <h4 className="fh font-extrabold">{exp.role}</h4>
-                            <span className="shrink-0 fm text-[10px] uppercase tracking-widest text-[#141312]/50">{exp.startDate} — {exp.endDate}</span>
+                        <div key={exp.id || i} className="border-[3px] border-[#141312] bg-white p-5">
+                          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-3">
+                            <h4 className="fh text-lg font-extrabold">{exp.role}</h4>
+                            <span className="shrink-0 fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/50">{exp.startDate} — {exp.endDate}</span>
                           </div>
-                          <div className="mt-0.5 text-sm font-semibold text-[#2233FF]">{exp.company}</div>
-                          {exp.description && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#141312]/70">{exp.description}</p>}
+                          <div className="mt-1 text-sm font-bold text-[#2233FF]">{exp.company}</div>
+                          {exp.description && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#141312]/75">{exp.description}</p>}
                         </div>
                       ))}
                     </div>
@@ -410,10 +416,10 @@ export default function RecruiterPortal() {
                 {Array.isArray(rd.education) && rd.education.length > 0 && (
                   <div>
                     <RisoSectionLabel color="#FF4326">education</RisoSectionLabel>
-                    <div className="space-y-2">
+                    <div className="mt-3 space-y-3">
                       {rd.education.map((ed: any, i: number) => (
-                        <div key={ed.id || i} className="flex items-baseline justify-between gap-3 border-b-2 border-[#141312]/10 pb-2">
-                          <div><div className="fh font-bold text-sm">{ed.degree}</div><div className="text-xs text-[#141312]/60">{ed.school}</div></div>
+                        <div key={ed.id || i} className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-3 border-b-2 border-[#141312]/10 pb-3">
+                          <div><div className="fh font-bold">{ed.degree}</div><div className="text-sm text-[#141312]/60 mt-0.5">{ed.school}</div></div>
                           <span className="fm text-[11px] font-bold text-[#141312]/50">{ed.graduationYear}</span>
                         </div>
                       ))}
@@ -424,22 +430,26 @@ export default function RecruiterPortal() {
                 {skills.length > 0 && (
                   <div>
                     <RisoSectionLabel>skills</RisoSectionLabel>
-                    <div className="flex flex-wrap gap-1.5">{skills.map((s: string) => <span key={s} className="riso-chip">{s}</span>)}</div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {skills.map((s: string) => <span key={s} className="border-2 border-[#141312] bg-white px-3 py-1.5 fm text-[10px] font-bold uppercase tracking-[0.16em]">{s}</span>)}
+                    </div>
                   </div>
                 )}
 
                 {!rd.summary && !(rd.experience || []).length && !skills.length && (
-                  <div className="riso-card py-8 text-center text-sm italic text-[#141312]/50">This candidate only provided basic contact information.</div>
+                  <div className="border-[3px] border-[#141312] bg-white py-12 text-center text-sm font-bold text-[#141312]/50">
+                    This candidate only provided basic contact information.
+                  </div>
                 )}
               </div>
 
               {/* Modal Footer with Close Button */}
-              <div className="flex items-center justify-between border-t-[3px] border-[#141312] bg-[#D8D7D1] px-6 py-4 shrink-0">
-                <div className="fm text-xs text-[#141312]/60">Press ESC or click outside to close</div>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t-[3px] border-[#141312] bg-[#D8D7D1] px-6 py-4 shrink-0">
+                <div className="fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/50">Press ESC or click outside to close</div>
                 <button
                   type="button"
                   onClick={() => setSelected(null)}
-                  className="riso-btn !bg-[#141312] !text-[#E8E7E1] hover:!bg-[#FF4326] !px-6 !py-2 !text-xs font-bold cursor-pointer"
+                  className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-6 py-3 fh text-xs font-extrabold uppercase tracking-wider text-[#E8E7E1] transition-all hover:bg-[#FF4326] hover:border-[#FF4326] cursor-pointer w-full sm:w-auto"
                 >
                   Close Profile
                 </button>

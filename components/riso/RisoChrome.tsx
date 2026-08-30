@@ -268,9 +268,11 @@ export function RisoPage({
         .cv-riso .floaty{animation:risofloat 6s ease-in-out infinite} @keyframes risofloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-9px) rotate(-8deg)}}
         .cv-riso .ul{background-image:linear-gradient(var(--ink),var(--ink));background-position:0 100%;background-repeat:no-repeat;background-size:0% 2px;transition:background-size .35s} .cv-riso .ul:hover{background-size:100% 2px}
         @media (prefers-reduced-motion:reduce){.cv-riso .mq,.cv-riso .floaty,.cv-riso .blink{animation:none!important}}
+        .cv-riso .hs-sm{box-shadow:5px 5px 0 var(--ink)}
+        .cv-riso .riso-ticker{display:flex;width:max-content;animation:risomq 26s linear infinite}
 
         /* Riso Form & UI Components */
-        .cv-riso .riso-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 3px solid var(--ink); background-color: var(--ink); color: #E8E7E1; padding: 0.75rem 1.5rem; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 7px 7px 0 var(--ink); transition: all 0.2s; cursor: pointer; }
+        .cv-riso .riso-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 3px solid var(--ink); background-color: var(--ink); color: #E8E7E1; padding: 0.75rem 1.5rem; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 7px 7px 0 var(--ink); transition: all 0.2s; cursor: pointer; text-decoration: none; }
         .cv-riso .riso-btn:hover { transform: translate(2px, 2px); box-shadow: none; }
         .cv-riso .riso-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: 7px 7px 0 var(--ink); }
         .cv-riso .riso-btn-ghost { background-color: transparent; color: var(--ink); }
