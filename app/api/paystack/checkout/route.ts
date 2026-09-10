@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { createClient } from '@/utils/supabase/server';
 
-export const runtime = 'edge';
+// Use Node.js runtime for proper cookie handling with Supabase auth
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   try {
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
     const billingSettings = settings?.value || { amount: 990000, currency: 'NGN' };
 
     // Call Paystack API
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -43,7 +45,7 @@ export async function POST(req: Request) {
         email: user.email,
         amount: billingSettings.amount,
         currency: billingSettings.currency,
-        callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/recruiter`,
+        callback_url: `${siteUrl}/recruiter`,
         metadata: {
           recruiter_id: recruiter.id,
           user_id: user.id
