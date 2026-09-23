@@ -150,7 +150,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b-[3px] border-[#141312] bg-[#141312] px-6 py-4 text-[#E8E7E1]">
           <div className="min-w-0">
             <div className="fm flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-[#FFE14D]">
-              <Sparkles size={12} /> résumé downloaded ✓
+              <Sparkles size={12} /> resume downloaded ✓
             </div>
             <h2 className="fd mt-1 flex items-center gap-2 truncate text-xl tracking-tight sm:text-2xl">
               <Globe2 size={18} className="shrink-0 text-[#FF4326]" />

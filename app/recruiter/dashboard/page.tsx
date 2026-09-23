@@ -157,7 +157,7 @@ export default function RecruiterPortal() {
     finally { setCheckingOut(false); }
   };
 
-  const priceLabel = billing ? `${billing.currency} ${(Number(billing.amount) / 100).toLocaleString()}/mo` : "NGN 9,900/mo";
+  const priceLabel = billing ? `${billing.currency} ${(Number(billing.amount) / 100).toLocaleString()}/mo` : "NGN 9,900 one-time";
 
   const shell = (ticker: boolean, children: React.ReactNode) => (
     <RisoPage pageName="recruiter" ticker={ticker}>
@@ -192,7 +192,7 @@ export default function RecruiterPortal() {
       <div className="mx-auto max-w-xl py-6">
         <RisoSectionLabel color="#0E8A4B">your account</RisoSectionLabel>
         <h1 className="fd text-4xl tracking-tight sm:text-5xl">Unlock the talent pool.</h1>
-        <p className="mt-4 text-[#141312]/70">Signed in as <span className="font-bold">{user.email}</span>. Subscribe to search and contact opted-in candidates.</p>
+        <p className="mt-4 text-[#141312]/70">Signed in as <span className="font-bold">{user.email}</span>. Get 30 days of search and contact access.</p>
 
         <div className="mt-8 border-[3px] border-[#141312] bg-white hs p-8">
           <div className="flex items-baseline justify-between border-b-[3px] border-[#141312] pb-5">
@@ -200,7 +200,7 @@ export default function RecruiterPortal() {
             <span className="fd text-3xl tracking-tight">{priceLabel}</span>
           </div>
           <ul className="mt-6 space-y-3">
-            {["Unlimited candidate search", "Filter by role, skill & country", "Completeness-scored profiles", "Direct email contact", "Full candidate detail view", "Cancel anytime"].map((f) => (
+            {["Unlimited candidate search", "Filter by role, skill & country", "Completeness-scored profiles", "Direct email contact", "Full candidate detail view"].map((f) => (
               <li key={f} className="flex items-center gap-2 text-sm"><span className="grid h-5 w-5 place-items-center border-2 border-[#0E8A4B] text-[#0E8A4B]"><Check size={12} /></span> {f}</li>
             ))}
           </ul>
@@ -209,9 +209,9 @@ export default function RecruiterPortal() {
             disabled={checkingOut} 
             className="group mt-8 flex w-full items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none disabled:opacity-60 disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[7px_7px_0_#141312]"
           >
-            {checkingOut ? <Loader2 size={16} className="animate-spin" /> : "Subscribe with Paystack"} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+            {checkingOut ? <Loader2 size={16} className="animate-spin" /> : "Buy 30-day access"} <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
           </button>
-          <p className="fm mt-3 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#141312]/45">billed securely via Paystack · {priceLabel}</p>
+          <p className="fm mt-3 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#141312]/70">billed securely via Paystack · {priceLabel}</p>
         </div>
       </div>
     ));
@@ -225,10 +225,10 @@ export default function RecruiterPortal() {
           <RisoSectionLabel color="#2233FF">talent pool</RisoSectionLabel>
           <h1 className="fd text-4xl tracking-tight sm:text-5xl">Find your next hire.</h1>
         </div>
-        <div className="flex gap-3">
-          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={candidates.length} /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">matches</div></div>
-          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={avgCompleteness} suffix="%" /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">avg profile</div></div>
-          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl text-[#0E8A4B]">Active</div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/50">plan</div></div>
+        <div className="flex flex-wrap gap-3">
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={candidates.length} /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/70">matches</div></div>
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl"><CountUp to={avgCompleteness} suffix="%" /></div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/70">avg completeness</div></div>
+          <div className="border-[3px] border-[#141312] bg-white hs px-5 py-3 text-center"><div className="fd text-2xl text-[#0E8A4B]">Active</div><div className="fm text-[9px] font-bold uppercase tracking-widest text-[#141312]/70">plan</div></div>
         </div>
       </div>
 
@@ -276,7 +276,7 @@ export default function RecruiterPortal() {
       ) : candidates.length === 0 ? (
         <div className="mt-8 border-[3px] border-[#141312] bg-white hs py-20 text-center">
           <Users size={40} className="mx-auto mb-3 text-[#141312]/30" />
-          <p className="fh text-lg font-extrabold">No candidates match yet.</p>
+          <p className="fh text-lg font-extrabold">No matching candidates yet.</p>
           <p className="mt-1 text-sm text-[#141312]/60">Try a broader title or clear the country filter.</p>
         </div>
       ) : (
@@ -285,57 +285,63 @@ export default function RecruiterPortal() {
             const email = c.candidates?.email;
             const skills: string[] = Array.isArray(c.skills) ? c.skills.slice(0, 5) : [];
             return (
-              <button
+              <article
                 key={c.id}
-                onClick={() => setSelected(c)}
-                className="group flex flex-col border-[3px] border-[#141312] bg-white hs p-6 text-left transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                className="group flex flex-col border-[3px] border-[#141312] bg-white hs p-6"
               >
-                <div className="flex items-start justify-between gap-3 w-full">
-                  <div className="min-w-0">
-                    <h3 className="fh truncate text-xl font-extrabold tracking-tight group-hover:text-[#FF4326]">{c.full_name || "Candidate"}</h3>
-                    <div className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-[#141312]/75">
-                      <Briefcase size={13} className="text-[#2233FF]" /> {c.current_title || "—"}
+                <button
+                  type="button"
+                  onClick={() => setSelected(c)}
+                  aria-label={`View profile for ${c.full_name || "Candidate"}`}
+                  className="block w-full text-left cursor-pointer"
+                >
+                  <div className="flex items-start justify-between gap-3 w-full">
+                    <div className="min-w-0">
+                      <h3 className="fh truncate text-xl font-extrabold tracking-tight group-hover:text-[#FF4326]">{c.full_name || "Candidate"}</h3>
+                      <div className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-[#141312]/75">
+                        <Briefcase size={13} className="text-[#2233FF]" /> {c.current_title || "—"}
+                      </div>
                     </div>
+                    <span className="shrink-0 border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold uppercase tracking-widest text-[#0E8A4B]">{c.completeness_score ?? 0}%</span>
                   </div>
-                  <span className="shrink-0 border-2 border-[#0E8A4B] px-2 py-1 fm text-[11px] font-bold uppercase tracking-widest text-[#0E8A4B]">{c.completeness_score ?? 0}%</span>
-                </div>
 
-                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 fm text-[11px] uppercase tracking-wider text-[#141312]/55">
-                  {c.country && <span className="flex items-center gap-1"><MapPin size={12} /> {c.country}</span>}
-                  {c.experience_years != null && <span>{c.experience_years} yrs exp</span>}
-                  {c.highest_education && <span className="flex items-center gap-1"><GraduationCap size={12} /> {c.highest_education}</span>}
-                </div>
-
-                {skills.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {skills.map((s: string) => <span key={s} className="border-2 border-[#141312] bg-[#E8E7E1] px-2 py-1 fm text-[9px] font-bold uppercase tracking-[0.16em]">{s}</span>)}
+                  <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 fm text-[11px] uppercase tracking-wider text-[#141312]/70">
+                    {c.country && <span className="flex items-center gap-1"><MapPin size={12} /> {c.country}</span>}
+                    {c.experience_years != null && <span>{c.experience_years} yrs exp</span>}
+                    {c.highest_education && <span className="flex items-center gap-1"><GraduationCap size={12} /> {c.highest_education}</span>}
                   </div>
-                )}
+
+                  {skills.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {skills.map((s: string) => <span key={s} className="border-2 border-[#141312] bg-[#E8E7E1] px-2 py-1 fm text-[9px] font-bold uppercase tracking-[0.16em]">{s}</span>)}
+                    </div>
+                  )}
+                </button>
 
                 <div className="mt-6 flex items-center gap-3 border-t-2 border-[#141312]/10 pt-4 w-full">
                   {email && (
-                    <span
-                      role="link"
-                      onClick={(e) => { e.stopPropagation(); window.location.href = `mailto:${email}`; }}
+                    <a
+                      href={`mailto:${email}`}
                       className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-4 py-2 fh text-[11px] font-extrabold uppercase tracking-wider text-[#E8E7E1] hover:bg-[#FF4326] hover:border-[#FF4326]"
                     >
                       <Mail size={14} /> Contact
-                    </span>
+                    </a>
                   )}
                   {c.linkedin_url && (
-                    <span
-                      role="link"
-                      onClick={(e) => { e.stopPropagation(); window.open(c.linkedin_url, "_blank", "noopener"); }}
+                    <a
+                      href={c.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-4 py-2 fh text-[11px] font-extrabold uppercase tracking-wider text-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1]"
                     >
                       <LinkedinIcon size={14} /> LinkedIn
-                    </span>
+                    </a>
                   )}
                   <span className="fm ml-auto flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-[#141312]/40 group-hover:text-[#FF4326]">
                     View profile <ArrowUpRight size={12} />
                   </span>
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>
@@ -412,7 +418,7 @@ export default function RecruiterPortal() {
                         <div key={exp.id || i} className="border-[3px] border-[#141312] bg-white p-5">
                           <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-3">
                             <h4 className="fh text-lg font-extrabold">{exp.role}</h4>
-                            <span className="shrink-0 fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/50">{exp.startDate} — {exp.endDate}</span>
+                            <span className="shrink-0 fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/70">{exp.startDate} — {exp.endDate}</span>
                           </div>
                           <div className="mt-1 text-sm font-bold text-[#2233FF]">{exp.company}</div>
                           {exp.description && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#141312]/75">{exp.description}</p>}
@@ -429,7 +435,7 @@ export default function RecruiterPortal() {
                       {rd.education.map((ed: any, i: number) => (
                         <div key={ed.id || i} className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-3 border-b-2 border-[#141312]/10 pb-3">
                           <div><div className="fh font-bold">{ed.degree}</div><div className="text-sm text-[#141312]/60 mt-0.5">{ed.school}</div></div>
-                          <span className="fm text-[11px] font-bold text-[#141312]/50">{ed.graduationYear}</span>
+                          <span className="fm text-[11px] font-bold text-[#141312]/70">{ed.graduationYear}</span>
                         </div>
                       ))}
                     </div>
@@ -446,7 +452,7 @@ export default function RecruiterPortal() {
                 )}
 
                 {!rd.summary && !(rd.experience || []).length && !skills.length && (
-                  <div className="border-[3px] border-[#141312] bg-white py-12 text-center text-sm font-bold text-[#141312]/50">
+                  <div className="border-[3px] border-[#141312] bg-white py-12 text-center text-sm font-bold text-[#141312]/70">
                     This candidate only provided basic contact information.
                   </div>
                 )}
@@ -454,7 +460,7 @@ export default function RecruiterPortal() {
 
               {/* Modal Footer with Close Button */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t-[3px] border-[#141312] bg-[#D8D7D1] px-6 py-4 shrink-0">
-                <div className="fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/50">Press ESC or click outside to close</div>
+                <div className="fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/70">Press ESC or click outside to close</div>
                 <button
                   type="button"
                   onClick={() => setSelected(null)}

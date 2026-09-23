@@ -2,12 +2,19 @@ import React from 'react';
 import Link from 'next/link';
 import { supabaseAdmin } from '@/lib/supabase';
 import { ArrowRight, Calendar } from 'lucide-react';
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from '@/lib/fonts';
+
+const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
+const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });
+const body = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap" });
 
 export const revalidate = 60; // Revalidate every minute
 
 export const metadata = {
   title: 'Cvyon Blog - Career Advice & Resume Tips',
   description: 'Expert advice on resume building, job hunting, and career advancement to help you land your dream job.',
+  alternates: { canonical: 'https://cvyon.com/blog' },
 };
 
 export default async function BlogIndex() {
@@ -18,59 +25,75 @@ export default async function BlogIndex() {
     .order('created_at', { ascending: false });
 
   return (
-    <div className="min-h-screen bg-gray-50 selection:bg-black selection:text-white pb-24">
-      {/* Header */}
-      <header className="bg-black text-white pt-24 pb-16 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <Link href="/" className="inline-block text-gray-400 hover:text-white font-bold tracking-widest text-xs uppercase mb-8 transition-colors">
-            ← Back to Cvyon
-          </Link>
-          <h1 className="text-5xl sm:text-6xl font-black uppercase tracking-tighter mb-4">The Career Hub</h1>
-          <p className="text-gray-400 text-lg sm:text-xl font-medium max-w-2xl mx-auto">
-            Expert insights on resume optimization, interview prep, and landing your dream job in 2026.
-          </p>
-        </div>
-      </header>
+    <div className={`cv-riso relative min-h-screen text-[#141312] bg-[#E8E7E1] overflow-x-hidden ${body.className}`}
+      style={{ ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
+      <style>{`
+        .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
+        .cv-riso .hs{box-shadow:7px 7px 0 var(--ink)} .cv-riso .hs-v{box-shadow:7px 7px 0 var(--verm)} .cv-riso .hs-c{box-shadow:6px 6px 0 var(--cob)}
+        .cv-riso .hs-sm{box-shadow:5px 5px 0 var(--ink)}
+        .cv-riso .riso-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 3px solid var(--ink); background-color: var(--ink); color: #E8E7E1; padding: 0.75rem 1.5rem; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 7px 7px 0 var(--ink); transition: all 0.2s; cursor: pointer; text-decoration: none; }
+        .cv-riso .riso-btn:hover { transform: translate(2px, 2px); box-shadow: none; }
+        .cv-riso .riso-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-btn-ghost { background-color: transparent; color: var(--ink); }
+        .cv-riso .riso-card { border: 3px solid var(--ink); background-color: #ffffff; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-input { width: 100%; border: 3px solid var(--ink); background-color: #ffffff; padding: 0.75rem 1rem; font-family: var(--fm); font-size: 0.875rem; color: var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: all 0.2s; outline: none; }
+        .cv-riso .riso-input:focus { box-shadow: none; transform: translate(2px, 2px); border-color: var(--verm); }
+        .cv-riso .riso-label { display: block; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; color: var(--ink); }
+        .cv-riso .riso-chip { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--ink); padding: 0.25rem 0.5rem; font-family: var(--fm); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; color: var(--ink); background: #ffffff; }
+      `}</style>
 
-      {/* Grid */}
-      <main className="max-w-5xl mx-auto px-6 mt-[-40px] relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {(!posts || posts.length === 0) ? (
-            <div className="col-span-1 md:col-span-2 bg-white rounded-3xl p-12 text-center border border-gray-200 shadow-xl">
-              <p className="text-gray-500 font-medium">No articles published yet. Check back soon!</p>
-            </div>
-          ) : (
-            posts.map((post: any) => (
-              <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
-                <article className="bg-white rounded-3xl border border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all h-full flex flex-col relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-black transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                  {post.header_image && (
-                    <div className="w-full aspect-[2/1] relative overflow-hidden">
-                      <img src={post.header_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      <div className="pb-24">
+        {/* Header */}
+        <header className="bg-[#141312] text-[#E8E7E1] pt-24 pb-16 px-6 relative overflow-hidden">
+          <div className="max-w-4xl mx-auto relative z-10 text-center">
+            <Link href="/" className="fm inline-block text-[#E8E7E1]/70 hover:text-[#FF4326] font-bold tracking-[0.2em] text-xs uppercase mb-8 transition-colors">
+              ← Back to Cvyon
+            </Link>
+            <h1 className="fd text-5xl sm:text-6xl uppercase tracking-tight mb-4">The Career Hub</h1>
+            <p className="text-[#E8E7E1]/70 text-lg sm:text-xl font-medium max-w-2xl mx-auto">
+              Expert insights on resume optimization, interview prep, and landing your dream job in 2026.
+            </p>
+          </div>
+        </header>
+
+        {/* Grid */}
+        <main className="max-w-5xl mx-auto px-6 mt-10 relative z-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(!posts || posts.length === 0) ? (
+              <div className="riso-card col-span-1 md:col-span-2 p-12 text-center">
+                <p className="font-medium">No articles published yet. Check back soon!</p>
+              </div>
+            ) : (
+              posts.map((post: any) => (
+                <Link key={post.id} href={`/blog/${post.slug}`} className="group block">
+                  <article className="riso-card h-full flex flex-col relative overflow-hidden transition-all group-hover:translate-x-[2px] group-hover:translate-y-[2px] group-hover:shadow-none">
+                    {post.header_image && (
+                      <div className="w-full aspect-[2/1] relative overflow-hidden border-b-[3px] border-[#141312]">
+                        <img src={post.header_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="p-8 flex flex-col flex-1">
+                      <div className="fm flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-600 mb-4">
+                        <Calendar size={14} />
+                        {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </div>
+                      <h2 className="fh text-2xl font-extrabold uppercase tracking-tight mb-3 group-hover:text-[#2233FF] transition-colors">
+                        {post.title}
+                      </h2>
+                      <p className="text-[#141312]/70 mb-8 flex-1 line-clamp-3">
+                        {post.meta_description || post.content?.replace(/<[^>]*>/g, '').substring(0, 150) || 'Read more about this topic...'}
+                      </p>
+                      <div className="fm flex items-center gap-2 font-bold uppercase tracking-widest text-xs">
+                        Read Article <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
-                  )}
-                  <div className="p-8 flex flex-col flex-1">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
-                      <Calendar size={14} />
-                      {new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </div>
-                    <h2 className="text-2xl font-black uppercase tracking-tight mb-3 group-hover:text-blue-600 transition-colors">
-                      {post.title}
-                    </h2>
-                    <p className="text-gray-500 mb-8 flex-1 line-clamp-3">
-                      {post.meta_description || post.content?.replace(/<[^>]*>/g, '').substring(0, 150) || 'Read more about this topic...'}
-                    </p>
-                    <div className="flex items-center gap-2 text-black font-bold uppercase tracking-widest text-xs">
-                      Read Article <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </article>
-              </Link>
-            ))
-          )}
-        </div>
-      </main>
+                  </article>
+                </Link>
+              ))
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

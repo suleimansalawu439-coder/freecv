@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase'
 
-const baseUrl = 'https://cvyon.com';
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
 
 const staticRoutes: { path: string; priority: number }[] = [
   { path: '', priority: 1 },
@@ -9,8 +9,7 @@ const staticRoutes: { path: string; priority: number }[] = [
   { path: '/ats-grader', priority: 0.8 },
   { path: '/cover-letter', priority: 0.8 },
   { path: '/recruiter', priority: 0.8 },
-  { path: '/recruiter/signup', priority: 0.6 },
-  { path: '/recruiter/login', priority: 0.5 },
+  { path: '/about', priority: 0.6 },
   { path: '/pricing', priority: 0.7 },
   { path: '/blog', priority: 0.8 },
   { path: '/developers', priority: 0.6 },
@@ -21,10 +20,10 @@ const staticRoutes: { path: string; priority: number }[] = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Static routes: no lastmod emitted; they change infrequently.
   const routes: MetadataRoute.Sitemap = staticRoutes.map((r) => ({
     url: `${baseUrl}${r.path}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily' as const,
+    changeFrequency: 'weekly' as const,
     priority: r.priority,
   }));
 

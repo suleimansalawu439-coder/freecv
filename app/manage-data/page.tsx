@@ -1,71 +1,92 @@
 import React from 'react';
 import Link from 'next/link';
-import { Shield, Trash2, Download, AlertTriangle } from 'lucide-react';
+import { Shield, Trash2, Download } from 'lucide-react';
+import type { Metadata } from 'next';
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from '@/lib/fonts';
 
-export const metadata = {
-  title: 'Manage Your Data | Cvyon',
-  description: 'Manage your privacy, download your data, or request deletion.'
+const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
+const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });
+const body = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap" });
+
+export const metadata: Metadata = {
+  title: 'Manage Your Data — Cvyon',
+  description: 'Request an export or deletion of your Cvyon data.',
+  robots: 'noindex, nofollow',
+  alternates: { canonical: 'https://cvyon.com/manage-data' },
 };
 
 export default function ManageDataPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 selection:bg-black selection:text-white">
-      <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl overflow-hidden p-8 sm:p-12">
+    <div className={`cv-riso relative min-h-screen text-[#141312] bg-[#E8E7E1] overflow-x-hidden flex items-center justify-center p-6 ${body.className}`}
+      style={{ ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
+      <style>{`
+        .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
+        .cv-riso .hs{box-shadow:7px 7px 0 var(--ink)} .cv-riso .hs-v{box-shadow:7px 7px 0 var(--verm)} .cv-riso .hs-c{box-shadow:6px 6px 0 var(--cob)}
+        .cv-riso .hs-sm{box-shadow:5px 5px 0 var(--ink)}
+        .cv-riso .riso-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 3px solid var(--ink); background-color: var(--ink); color: #E8E7E1; padding: 0.75rem 1.5rem; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 7px 7px 0 var(--ink); transition: all 0.2s; cursor: pointer; text-decoration: none; }
+        .cv-riso .riso-btn:hover { transform: translate(2px, 2px); box-shadow: none; }
+        .cv-riso .riso-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-btn-ghost { background-color: transparent; color: var(--ink); }
+        .cv-riso .riso-card { border: 3px solid var(--ink); background-color: #ffffff; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-input { width: 100%; border: 3px solid var(--ink); background-color: #ffffff; padding: 0.75rem 1rem; font-family: var(--fm); font-size: 0.875rem; color: var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: all 0.2s; outline: none; }
+        .cv-riso .riso-input:focus { box-shadow: none; transform: translate(2px, 2px); border-color: var(--verm); }
+        .cv-riso .riso-label { display: block; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; color: var(--ink); }
+        .cv-riso .riso-chip { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--ink); padding: 0.25rem 0.5rem; font-family: var(--fm); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; color: var(--ink); background: #ffffff; }
+      `}</style>
+
+      <div className="max-w-2xl w-full riso-card p-8 sm:p-12">
         <div className="flex justify-center mb-6">
-          <div className="bg-blue-50 p-4 rounded-full text-blue-600">
+          <div className="bg-[#E8E7E1] p-4 border-[3px] border-[#141312] text-[#2233FF]">
             <Shield size={48} />
           </div>
         </div>
-        
-        <h1 className="text-3xl font-black tracking-tight text-center mb-4">Your Privacy Matters</h1>
-        <p className="text-gray-500 text-center mb-10 text-sm font-medium">
+
+        <h1 className="fd text-3xl tracking-tight text-center mb-4">Your Privacy Matters</h1>
+        <p className="text-[#141312]/70 text-center mb-10 text-sm font-medium">
           Cvyon is committed to radical transparency. You have complete control over your data. If you opted into our Talent CRM, you can download everything we have on you or delete it permanently.
         </p>
 
         <div className="space-y-6">
           {/* Download Data */}
-          <div className="border border-gray-200 rounded-2xl p-6 hover:border-gray-300 transition-colors">
+          <div className="border-[3px] border-[#141312] bg-white p-6">
             <div className="flex items-start gap-4">
-              <div className="bg-gray-100 p-3 rounded-xl shrink-0 mt-1">
-                <Download size={24} className="text-gray-700" />
+              <div className="bg-[#E8E7E1] p-3 border-[3px] border-[#141312] shrink-0 mt-1">
+                <Download size={24} className="text-[#141312]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">Download My Data</h3>
-                <p className="text-sm text-gray-500 mt-1 mb-4">
+                <h3 className="fh text-lg font-extrabold">Download My Data</h3>
+                <p className="text-sm text-[#141312]/70 mt-1 mb-4">
                   Request a JSON export of all data associated with your email address in our Talent CRM, including your full parsed resume data, location, and metadata.
                 </p>
-                <form className="flex gap-3">
-                  <input type="email" placeholder="Your email address" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none" />
-                  <button type="submit" className="bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors">Request Export</button>
-                </form>
+                <div className="border-[3px] border-[#141312] bg-[#E8E7E1] px-4 py-3 text-sm font-bold">
+                  Export and delete requests: email <a href="mailto:support@cvyon.com" className="text-[#2233FF] underline">support@cvyon.com</a>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Delete Data */}
-          <div className="border border-red-100 bg-red-50/30 rounded-2xl p-6">
+          <div className="border-[3px] border-[#141312] bg-white p-6">
             <div className="flex items-start gap-4">
-              <div className="bg-red-100 p-3 rounded-xl shrink-0 mt-1">
-                <Trash2 size={24} className="text-red-600" />
+              <div className="bg-[#FF4326]/10 p-3 border-[3px] border-[#FF4326] shrink-0 mt-1">
+                <Trash2 size={24} className="text-[#FF4326]" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-red-950">Delete My Data</h3>
-                <p className="text-sm text-red-800/70 mt-1 mb-4">
+                <h3 className="fh text-lg font-extrabold">Delete My Data</h3>
+                <p className="text-sm text-[#141312]/70 mt-1 mb-4">
                   Permanently erase your profile, resume data, and all traces of your email from our Talent CRM. This action cannot be undone.
                 </p>
-                <form className="flex gap-3">
-                  <input type="email" placeholder="Your email address" required className="flex-1 bg-white border border-red-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none text-red-900" />
-                  <button type="submit" className="bg-red-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold tracking-widest uppercase hover:bg-red-700 transition-colors flex items-center gap-2">
-                    <AlertTriangle size={14} /> Delete
-                  </button>
-                </form>
+                <div className="border-[3px] border-[#141312] bg-[#E8E7E1] px-4 py-3 text-sm font-bold">
+                  Export and delete requests: email <a href="mailto:support@cvyon.com" className="text-[#2233FF] underline">support@cvyon.com</a>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-10 text-center">
-          <Link href="/" className="text-sm font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest">
+          <Link href="/build" className="fm text-sm font-bold text-[#141312]/70 hover:text-[#FF4326] transition-colors uppercase tracking-[0.18em]">
             ← Return to Builder
           </Link>
         </div>

@@ -108,7 +108,7 @@ export function LiveAtsScore() {
                 </div>
                 <div>
                   <h3 className="fh font-extrabold text-sm sm:text-base leading-tight text-[#141312]">
-                    ATS Readiness Grader
+                    ATS Grader
                   </h3>
                   <p className="fm text-[10px] font-bold uppercase tracking-[0.16em] text-[#141312]/50">
                     Live Enterprise Keyword & Metric Parser

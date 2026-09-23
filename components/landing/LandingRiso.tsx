@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Sparkles, Check, Star, MoveRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { templates } from "@/components/templates";
 import { templates as htmlTemplates } from "@/components/html_templates";
 import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from "@/lib/fonts";
 
@@ -71,6 +70,8 @@ function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: n
 const TICKER = ["NO PAYWALL", "NO WATERMARK", "NO SIGN‑UP TO DOWNLOAD", "RECRUITERS FUND IT — NOT YOU", "18 TEMPLATES", "AI ATS GRADER /100", "PDF + DOCX"];
 
 import { AnalyticsTracker } from "./AnalyticsTracker";
+import { FaqJsonLd } from "./FaqJsonLd";
+import { FAQS } from "./LandingF_FAQS";
 
 export default function LandingRiso() {
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
@@ -87,6 +88,7 @@ export default function LandingRiso() {
     <div className={cn("cv-riso relative min-h-screen overflow-x-hidden text-[#141312]", body.className, display.className, head.className, mono.className)}
       style={{ background: "#E8E7E1", ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
       <AnalyticsTracker />
+      <FaqJsonLd faqs={FAQS} />
       <style>{`
         .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
         .cv-riso .grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.06;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
@@ -143,7 +145,7 @@ export default function LandingRiso() {
               Your résumé,<br />graded by the<br />bots that <span className="relative inline-block"><span className="relative z-10">bin</span><span className="absolute inset-x-[-4px] bottom-1 z-0 h-[0.42em] bg-[#FFE14D]" /></span> it.
             </h1>
             <p className="mt-7 max-w-md text-lg leading-relaxed text-[#141312]/75">
-              A free AI builder that scores you against any job description — the exact thing others charge $30 a month for. No paywall. No watermark. No account to download.
+              A free AI builder that scores you against any job description — the exact thing others charge $30/month for. No paywall. No watermark. No account to download.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/build" className="group flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-[#141312] px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider text-[#E8E7E1] hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">Build my résumé <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" /></Link>
@@ -184,7 +186,7 @@ export default function LandingRiso() {
             <Reveal delay={120} className="lg:col-span-5">
               <div className="fm mb-4 text-[11px] font-bold uppercase tracking-[0.22em] text-[#E8E7E1]/50">how the money works</div>
               <ol className="space-y-0">
-                {[["01", "You build & download", "Every template, every AI feature, every export. No card, ever."], ["02", "You may opt in", "Recruiters can find you — only if you tick the box. Granular, reversible, yours."], ["03", "Recruiters pay us", "Their subscriptions fund the free tool. You are never the product being sold."]].map(([n, t, d], i) => (
+                {[["01", "You build & download", "Every template, every AI feature, every export. No card, ever."], ["02", "You may opt in", "Recruiters can find you — only if you tick the box. Granular, reversible, yours."], ["03", "Recruiters pay us", "Recruiters pay for access to the opt-in talent pool — you control whether your profile appears."]].map(([n, t, d], i) => (
                   <li key={n} className={cn("flex gap-5 border-t-2 border-[#E8E7E1]/20 py-5", i === 2 && "border-b-2")}>
                     <span className="fd text-3xl leading-none text-[#FF4326]">{n}</span>
                     <div><div className="fh text-lg font-extrabold">{t}</div><div className="mt-1 text-sm text-[#E8E7E1]/60">{d}</div></div>
@@ -199,7 +201,7 @@ export default function LandingRiso() {
         <section id="grader" className="scroll-mt-24 grid grid-cols-1 gap-12 border-b-[3px] border-[#141312] py-16 lg:grid-cols-2 lg:py-24">
           <Reveal>
             <div className="border-[3px] border-[#141312] bg-white hs">
-              <div className="flex items-center justify-between border-b-[3px] border-[#141312] bg-[#141312] px-5 py-3 fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8E7E1]"><span className="flex items-center gap-2"><Sparkles size={13} className="text-[#FFE14D]" /> ats_grader.exe</span><span>● rec</span></div>
+              <div className="flex items-center justify-between border-b-[3px] border-[#141312] bg-[#141312] px-5 py-3 fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8E7E1]"><span className="flex items-center gap-2"><Sparkles size={13} className="text-[#FFE14D]" /> ats_grader.exe</span></div>
               <div className="p-6 sm:p-8">
                 <div className="flex items-center gap-6">
                   <div className="relative grid h-28 w-28 place-items-center border-[3px] border-[#141312]">
@@ -291,7 +293,7 @@ export default function LandingRiso() {
               ["Product", [{ label: "Builder", href: "/build" }, { label: "Cover Letter", href: "/build?tab=cover" }]],
               ["Company", [{ label: "Career Blog", href: "/blog" }, { label: "Recruiter Portal", href: "/recruiter" }, { label: "Support", href: "/support" }]],
               ["Legal", [{ label: "Privacy & GDPR", href: "/privacy" }, { label: "Manage Data", href: "/manage-data" }, { label: "Terms", href: "/terms" }]],
-              ["Connect", [{ label: "Email us", href: "mailto:hello@cvyon.com" }, { label: "Developers", href: "/developers" }]]
+              ["Connect", [{ label: "Email us", href: "mailto:support@cvyon.com" }, { label: "Developers", href: "/developers" }]]
             ].map(([h, items]) => (
               <div key={h as string}>
                 <div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h as string}</div>

@@ -28,7 +28,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const ImportResume = dynamic(() => import('@/components/builder/ImportResume').then(m => m.ImportResume), { ssr: false });
 const CoverLetterTab = dynamic(() => import('@/components/builder/CoverLetterTab').then(m => m.CoverLetterTab), { ssr: false });
-const AuthModal = dynamic(() => import('@/components/builder/AuthModal').then(m => m.AuthModal), { ssr: false });
 const JobsModal = dynamic(() => import('@/components/builder/JobsModal').then(m => m.JobsModal), { ssr: false });
 const PDFPreview = dynamic(() => import('@/components/builder/PDFPreview'), { ssr: false });
 const PDFDownloadButton = dynamic(() => import('@/components/builder/PDFDownloadButton'), { ssr: false });
@@ -45,7 +44,7 @@ const Input = ({ label, ...props }: any) => (
   <div className="flex flex-col gap-1.5 w-full">
     <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">{label}</label>
     <input
-      className="w-full bg-white border-2 border-[#141312] rounded-none px-4 py-2.5 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF]"
+      className="w-full bg-white border-[3px] border-[#141312] rounded-none px-4 py-2.5 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-all focus:border-[#FF4326]"
       {...props}
     />
   </div>
@@ -55,7 +54,7 @@ const Textarea = ({ label, ...props }: any) => (
   <div className="flex flex-col gap-1.5 w-full">
     <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">{label}</label>
     <textarea
-      className="w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] min-h-[100px] resize-y custom-scrollbar"
+      className="w-full bg-white border-[3px] border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-all focus:border-[#FF4326] min-h-[100px] resize-y custom-scrollbar"
       {...props}
     />
   </div>
@@ -605,7 +604,7 @@ export default function FreeCVApp() {
                 <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e: any) => updatePersonalInfo({ website: e.target.value })} />
                 <div className="col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 border-2 border-[#141312] bg-white hs-sm">
                   <div>
-                    <h4 className="fh font-bold text-sm text-[#141312]">Make profile public</h4>
+                    <h4 className="fh font-bold text-sm text-[#141312]">Allow recruiters to find my profile</h4>
                     <p className="fm text-[10px] uppercase tracking-[0.14em] text-[#141312]/55">Allow recruiters to find your resume on Cvyon.</p>
                   </div>
                   <button onClick={() => {
@@ -622,7 +621,7 @@ export default function FreeCVApp() {
                   }}
                     role="switch"
                     aria-checked={data.consents.recruiterShare}
-                    aria-label="Make profile public"
+                    aria-label="Allow recruiters to find my profile"
                     className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0 border-2 border-[#141312]", data.consents.recruiterShare ? 'bg-[#2233FF]' : 'bg-gray-300')}>
                     <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-6' : 'translate-x-1')} />
                   </button>
@@ -1088,7 +1087,7 @@ export default function FreeCVApp() {
             <div className="rounded-none border-[3px] border-[#141312] hs max-w-2xl w-full p-6 sm:p-8 flex flex-col relative bg-white text-[#141312]">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="fd text-2xl font-black leading-tight flex items-center gap-2"><BarChart3 className="text-[#0E8A4B]" /> ATS Resume Grader</h2>
+                  <h2 className="fd text-2xl font-black leading-tight flex items-center gap-2"><BarChart3 className="text-[#0E8A4B]" /> ATS Grader</h2>
                   <p className="fm text-[11px] uppercase tracking-widest text-[#141312]/55 mt-1">Paste the job description to see how well your resume matches.</p>
                 </div>
                 <button onClick={() => setIsATSOpen(false)} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] rounded-none transition-colors"><X size={20} /></button>
@@ -1144,7 +1143,7 @@ export default function FreeCVApp() {
 
                   {atsResult.score >= 85 && (
                     <button onClick={() => {
-                      const text = `I just scored a ${atsResult.score}% on my resume using Cvyon! Check out this free AI ATS Grader at cvyon.com`;
+                      const text = `I just scored a ${atsResult.score}% on my resume with Cvyon! Check out this free AI ATS Grader at cvyon.com`;
                       window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, '_blank');
                     }}
                       className="w-full bg-[#0A66C2] hover:bg-[#004182] text-white border-2 border-[#141312] py-3 fm font-bold uppercase tracking-widest text-xs transition-all flex justify-center items-center gap-2 mt-4">

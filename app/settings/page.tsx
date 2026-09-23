@@ -124,7 +124,7 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div>
-                    <div className="font-semibold text-gray-900">Share with Recruiters</div>
+                    <div className="font-semibold text-gray-900">Allow recruiters to find my profile</div>
                     <div className="text-sm text-gray-500">Allow verified top companies to find your profile.</div>
                   </div>
                   <button 
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div>
                     <div className="font-semibold text-gray-900">Job Match Emails</div>
-                    <div className="text-sm text-gray-500">Receive emails when a recruiter has a match.</div>
+                    <div className="text-sm text-gray-500">Receive emails when we match you with new roles.</div>
                   </div>
                   <button 
                     disabled={saving}

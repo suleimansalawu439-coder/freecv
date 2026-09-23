@@ -1,11 +1,27 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { RisoPage } from "@/components/riso/RisoChrome";
 import { ArrowRight, Loader2, Check } from "lucide-react";
 import toast from "react-hot-toast";
+
+const PLAN_NAMES: Record<string, string> = {
+  payg: "Pay as you go",
+  enterprise: "Enterprise",
+};
+
+function SelectedPlanLine() {
+  const params = useSearchParams();
+  const name = PLAN_NAMES[params.get("plan") || ""] || null;
+  if (!name) return null;
+  return (
+    <p className="mt-3 fm text-[11px] font-bold uppercase tracking-[0.22em] text-[#141312]/60">
+      Selected plan: {name}
+    </p>
+  );
+}
 
 export default function RecruiterSignup() {
   const router = useRouter();
@@ -44,7 +60,7 @@ export default function RecruiterSignup() {
       });
       if (error) throw error;
       setDone(true);
-      toast.success("Check your email to confirm");
+      toast.success("Check your email to confirm.");
     } catch (err: any) {
       toast.error(err.message || "Sign up failed");
     } finally {
@@ -76,8 +92,11 @@ export default function RecruiterSignup() {
           Start sourcing.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-[#141312]/70">
-          Free to create. Subscribe only when you&apos;re ready to search.
+          Free to create. Buy 30-day access only when you&apos;re ready to search.
         </p>
+        <Suspense fallback={null}>
+          <SelectedPlanLine />
+        </Suspense>
 
         {done ? (
           <div className="mt-8 border-[3px] border-[#141312] bg-white hs p-8">

@@ -26,7 +26,7 @@ export default function RecruiterLogin() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      toast.success("Signed in");
+      toast.success("Signed in.");
       router.push("/recruiter/dashboard");
       router.refresh();
     } catch (err: any) {
@@ -56,7 +56,7 @@ export default function RecruiterLogin() {
         redirectTo: "https://cvyon.com/recruiter/dashboard",
       });
       if (error) throw error;
-      toast.success("Password reset link sent to your email");
+      toast.success("Password reset link sent to your email.");
       setIsReset(false);
     } catch (err: any) {
       toast.error(err.message || "Failed to send reset link");
@@ -120,7 +120,7 @@ export default function RecruiterLogin() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326]"
+                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326] focus:translate-x-[2px] focus:translate-y-[2px]"
                   placeholder="you@company.com"
                 />
               </div>
@@ -149,7 +149,7 @@ export default function RecruiterLogin() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326]"
+                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326] focus:translate-x-[2px] focus:translate-y-[2px]"
                   placeholder="you@company.com"
                 />
               </div>
@@ -169,7 +169,7 @@ export default function RecruiterLogin() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326]"
+                  className="mt-2 w-full border-[3px] border-[#141312] bg-white px-4 py-3.5 fm text-sm text-[#141312] outline-none transition-all focus:border-[#FF4326] focus:translate-x-[2px] focus:translate-y-[2px]"
                   placeholder="••••••••"
                 />
               </div>

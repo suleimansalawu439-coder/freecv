@@ -1,10 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com'),
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
-  description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+  description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
   keywords: ["Free Resume Builder", "ATS Friendly Resume Builder", "No Sign Up Resume Maker", "Free PDF Resume Creator", "No Hidden Fees Resume Builder"],
   icons: {
     icon: [
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+    description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     url: "https://cvyon.com",
     siteName: "Cvyon",
     type: "website",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Cvyon — Free AI Résumé Builder",
+        alt: "Cvyon — Free AI Resume Builder",
         type: "image/jpeg",
       },
     ],
@@ -36,10 +36,13 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
-    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+    description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     images: ["/og-image.jpg"],
   },
 };
+
+// Next 16+: themeColor belongs to the viewport export, not metadata.
+export const viewport: Viewport = { themeColor: '#141312' };
 
 import { ConsentManager } from "@/components/ConsentManager";
 import { AuthProvider } from "@/components/AuthProvider";

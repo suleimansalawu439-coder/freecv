@@ -10,8 +10,9 @@ export const metadata: Metadata = {
     url: 'https://cvyon.com/ats-grader',
     siteName: 'Cvyon',
     type: 'website',
-    images: [{ url: 'https://cvyon.com/og-ats.png', width: 1200, height: 630, alt: 'Cvyon ATS Grader' }],
+    images: [{ url: 'https://cvyon.com/og-image.jpg', width: 1200, height: 630, alt: 'Cvyon ATS Grader' }],
   },
+  alternates: { canonical: 'https://cvyon.com/ats-grader' },
 };
 
 export default function AtsGraderPage() {

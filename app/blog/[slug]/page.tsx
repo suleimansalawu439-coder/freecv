@@ -5,6 +5,13 @@ import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { ArrowLeft, Calendar } from 'lucide-react';
+import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from '@/lib/fonts';
+import { ArticleJsonLd } from '@/components/blog/ArticleJsonLd';
+
+const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
+const head = Archivo({ subsets: ["latin"], weight: ["600", "800", "900"], display: "swap" });
+const body = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], display: "swap" });
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -15,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   try {
     const { data, error } = await supabaseAdmin
       .from('blog_posts')
-      .select('title, meta_description, header_image')
+      .select('title, meta_description, header_image, content')
       .eq('slug', resolvedParams.slug)
       .maybeSingle();
     if (!error) post = data;
@@ -27,24 +34,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: 'Post Not Found' };
   }
 
-  const description = post.meta_description || `Read ${post.title} on the Cvyon Career Hub.`;
+  // Description fallback chain: meta_description → first 160 chars of
+  // content (HTML stripped) → generic fallback.
+  const contentExcerpt = (post.content || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 160);
+  const description = post.meta_description || contentExcerpt || `Read ${post.title} on the Cvyon Career Hub.`;
+  // og:image fallback: header_image → site default og image.
+  const ogImage = post.header_image || 'https://cvyon.com/og-image.jpg';
 
   return {
     title: `${post.title} | Cvyon Blog`,
     description,
+    alternates: { canonical: `https://cvyon.com/blog/${resolvedParams.slug}` },
     openGraph: {
       title: post.title,
       description,
       type: 'article',
-      ...(post.header_image ? {
-        images: [{ url: post.header_image, width: 1200, height: 630, alt: post.title }],
-      } : {}),
+      images: [{ url: ogImage, width: 1200, height: 630, alt: post.title }],
     },
     twitter: {
       card: 'summary_large_image',
       title: post.title,
       description,
-      ...(post.header_image ? { images: [post.header_image] } : {}),
+      images: [ogImage],
     },
   };
 }
@@ -71,68 +86,87 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 selection:bg-black selection:text-white pb-24">
-      {/* Header */}
-      <header className="bg-black text-white pt-24 pb-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="max-w-3xl mx-auto relative z-10">
-          <Link href="/blog" className="inline-flex items-center gap-2 text-gray-400 hover:text-white font-bold tracking-widest text-xs uppercase mb-8 transition-colors">
-            <ArrowLeft size={14} /> Back to Blog
-          </Link>
-          <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter mb-6 leading-tight">
-            {post.title}
-          </h1>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-            <Calendar size={14} />
-            {new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </div>
-        </div>
-      </header>
+    <div className={`cv-riso relative min-h-screen text-[#141312] bg-[#E8E7E1] overflow-x-hidden ${body.className}`}
+      style={{ ["--ink" as any]: "#141312", ["--verm" as any]: "#FF4326", ["--cob" as any]: "#2233FF", ["--hi" as any]: "#FFE14D", ["--fd" as any]: display.style.fontFamily, ["--fh" as any]: head.style.fontFamily, ["--fb" as any]: body.style.fontFamily, ["--fm" as any]: mono.style.fontFamily }}>
+      <ArticleJsonLd post={post} />
+      <style>{`
+        .cv-riso{font-family:var(--fb)} .cv-riso .fd{font-family:var(--fd)} .cv-riso .fh{font-family:var(--fh)} .cv-riso .fm{font-family:var(--fm)}
+        .cv-riso .hs{box-shadow:7px 7px 0 var(--ink)} .cv-riso .hs-v{box-shadow:7px 7px 0 var(--verm)} .cv-riso .hs-c{box-shadow:6px 6px 0 var(--cob)}
+        .cv-riso .hs-sm{box-shadow:5px 5px 0 var(--ink)}
+        .cv-riso .riso-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: 3px solid var(--ink); background-color: var(--ink); color: #E8E7E1; padding: 0.75rem 1.5rem; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 7px 7px 0 var(--ink); transition: all 0.2s; cursor: pointer; text-decoration: none; }
+        .cv-riso .riso-btn:hover { transform: translate(2px, 2px); box-shadow: none; }
+        .cv-riso .riso-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-btn-ghost { background-color: transparent; color: var(--ink); }
+        .cv-riso .riso-card { border: 3px solid var(--ink); background-color: #ffffff; box-shadow: 7px 7px 0 var(--ink); }
+        .cv-riso .riso-input { width: 100%; border: 3px solid var(--ink); background-color: #ffffff; padding: 0.75rem 1rem; font-family: var(--fm); font-size: 0.875rem; color: var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: all 0.2s; outline: none; }
+        .cv-riso .riso-input:focus { box-shadow: none; transform: translate(2px, 2px); border-color: var(--verm); }
+        .cv-riso .riso-label { display: block; font-family: var(--fh); font-size: 0.875rem; font-weight: 800; color: var(--ink); }
+        .cv-riso .riso-chip { display: inline-flex; align-items: center; gap: 0.25rem; border: 2px solid var(--ink); padding: 0.25rem 0.5rem; font-family: var(--fm); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; color: var(--ink); background: #ffffff; }
+      `}</style>
 
-      {/* Article Content */}
-      <main className="max-w-3xl mx-auto px-6 mt-[-40px] relative z-20">
-        <article className="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
-          {/* Header Image */}
-          {post.header_image && (
-            <div className="w-full aspect-[2/1] relative">
-              <img
-                src={post.header_image}
-                alt={post.title}
-                className="w-full h-full object-cover"
+      <div className="pb-24">
+        {/* Header */}
+        <header className="bg-[#141312] text-[#E8E7E1] pt-24 pb-20 px-6 relative overflow-hidden">
+          <div className="max-w-3xl mx-auto relative z-10">
+            <Link href="/blog" className="fm inline-flex items-center gap-2 text-[#E8E7E1]/70 hover:text-[#FF4326] font-bold tracking-[0.2em] text-xs uppercase mb-8 transition-colors">
+              <ArrowLeft size={14} /> Back to Blog
+            </Link>
+            <h1 className="fd text-4xl sm:text-5xl uppercase tracking-tight mb-6 leading-tight">
+              {post.title}
+            </h1>
+            <div className="fm flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#E8E7E1]/70">
+              <Calendar size={14} />
+              {new Date(post.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </div>
+          </div>
+        </header>
+
+        {/* Article Content */}
+        <main className="max-w-3xl mx-auto px-6 mt-10 relative z-20">
+          <article className="riso-card overflow-hidden">
+            {/* Header Image */}
+            {post.header_image && (
+              <div className="w-full aspect-[2/1] relative border-b-[3px] border-[#141312]">
+                <img
+                  src={post.header_image}
+                  alt={post.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Content with proper HTML rendering */}
+            <div className="p-8 sm:p-12">
+              <div
+                className="blog-content leading-relaxed text-lg"
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
               />
             </div>
-          )}
+          </article>
+        </main>
 
-          {/* Content with proper HTML rendering */}
-          <div className="p-8 sm:p-12">
-            <div 
-              className="blog-content text-gray-800 leading-relaxed text-lg"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} 
-            />
-          </div>
-        </article>
-      </main>
-
-      {/* Blog content styles - since @tailwindcss/typography is not installed */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        .blog-content h1 { font-size: 2rem; font-weight: 800; margin: 1.5em 0 0.5em; line-height: 1.2; color: #111; }
-        .blog-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1.5em 0 0.5em; line-height: 1.3; color: #111; }
-        .blog-content h3 { font-size: 1.25rem; font-weight: 600; margin: 1.25em 0 0.5em; line-height: 1.4; color: #222; }
-        .blog-content p { margin: 1em 0; }
-        .blog-content ul { list-style-type: disc; padding-left: 1.5em; margin: 1em 0; }
-        .blog-content ol { list-style-type: decimal; padding-left: 1.5em; margin: 1em 0; }
-        .blog-content li { margin: 0.25em 0; }
-        .blog-content a { color: #2563eb; text-decoration: underline; }
-        .blog-content a:hover { color: #1d4ed8; }
-        .blog-content blockquote { border-left: 4px solid #e5e7eb; padding-left: 1em; margin: 1em 0; color: #6b7280; font-style: italic; }
-        .blog-content strong { font-weight: 700; }
-        .blog-content em { font-style: italic; }
-        .blog-content code { background: #f3f4f6; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.875em; font-family: monospace; }
-        .blog-content pre { background: #1f2937; color: #f9fafb; padding: 1em; border-radius: 0.5rem; overflow-x: auto; margin: 1em 0; }
-        .blog-content pre code { background: none; padding: 0; color: inherit; }
-        .blog-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1em 0; }
-        .blog-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
-      `}} />
+        {/* Blog content styles - since @tailwindcss/typography is not installed */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .blog-content { color: #141312; }
+          .blog-content h1 { font-family: var(--fh); font-size: 2rem; font-weight: 800; margin: 1.5em 0 0.5em; line-height: 1.2; color: #141312; }
+          .blog-content h2 { font-family: var(--fh); font-size: 1.5rem; font-weight: 700; margin: 1.5em 0 0.5em; line-height: 1.3; color: #141312; }
+          .blog-content h3 { font-family: var(--fh); font-size: 1.25rem; font-weight: 600; margin: 1.25em 0 0.5em; line-height: 1.4; color: #141312; }
+          .blog-content p { margin: 1em 0; }
+          .blog-content ul { list-style-type: disc; padding-left: 1.5em; margin: 1em 0; }
+          .blog-content ol { list-style-type: decimal; padding-left: 1.5em; margin: 1em 0; }
+          .blog-content li { margin: 0.25em 0; }
+          .blog-content a { color: #2233FF; text-decoration: underline; }
+          .blog-content a:hover { color: #141312; }
+          .blog-content blockquote { border-left: 4px solid #141312; padding-left: 1em; margin: 1em 0; color: #141312; font-style: italic; }
+          .blog-content strong { font-weight: 700; }
+          .blog-content em { font-style: italic; }
+          .blog-content code { background: #E8E7E1; border: 2px solid #141312; padding: 0.2em 0.4em; font-size: 0.875em; font-family: monospace; }
+          .blog-content pre { background: #141312; color: #E8E7E1; padding: 1em; border: 3px solid #141312; overflow-x: auto; margin: 1em 0; }
+          .blog-content pre code { background: none; padding: 0; color: inherit; border: none; }
+          .blog-content img { max-width: 100%; height: auto; margin: 1em 0; border: 3px solid #141312; }
+          .blog-content hr { border: none; border-top: 3px solid #141312; margin: 2em 0; }
+        `}} />
+      </div>
     </div>
   );
 }

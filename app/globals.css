@@ -166,3 +166,9 @@ body {
     break-inside: avoid;
   }
 }
+
+/* DSN-03: visible keyboard focus everywhere */
+:focus-visible {
+  outline: 3px solid #2233FF;
+  outline-offset: 2px;
+}

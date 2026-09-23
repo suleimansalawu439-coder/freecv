@@ -82,7 +82,7 @@ export default function RecruiterLanding() {
             <div className="fm mb-5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#141312]/50">what you actually get</div>
             <ol>
               {[
-                ["01", "Consent-verified pool", "Only candidates who ticked \u201crecruiters may contact me.\u201d", ShieldCheck],
+                ["01", "Consent-verified pool", "Only candidates who allow recruiters to find their profile.", ShieldCheck],
                 ["02", "Structured & scored", "Skills, experience, location and a 0\u2013100 completeness score.", Zap],
                 ["03", "Direct contact", "Email candidates straight from the card — no middleman markup.", Users],
                 ["04", "Search that scales", "Filter by title and country across the whole opt-in pool.", Search],
@@ -105,7 +105,7 @@ export default function RecruiterLanding() {
         {[
           ["0", "paywalls for candidates"],
           ["100%", "opt-in pool"],
-          ["18", "résumé layouts"],
+          ["18", "resume layouts"],
           ["GDPR", "consent-first"],
         ].map(([v, l], i) => (
           <div
@@ -127,7 +127,7 @@ export default function RecruiterLanding() {
       <section className="mt-16 border-[3px] border-[#141312] bg-[#141312] hs-v p-10 text-center text-[#E8E7E1] sm:p-14">
         <h2 className="fd text-4xl tracking-tight sm:text-5xl">Ready to hire?</h2>
         <p className="mx-auto mt-4 max-w-lg text-[#E8E7E1]/70">
-          Create a free account, subscribe when you&apos;re ready, and start contacting
+          Create a free account, buy 30-day access when you&apos;re ready, and start contacting
           opted-in candidates today.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

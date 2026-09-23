@@ -3,12 +3,12 @@ import LandingRiso from "@/components/landing/LandingRiso";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cvyon — Free Premium Résumé Builder & ATS Grader",
-  description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+  title: "Cvyon — Free Premium Resume Builder & ATS Grader",
+  description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
   alternates: { canonical: "https://cvyon.com" },
   openGraph: {
-    title: "Cvyon — Free Premium Résumé Builder & ATS Grader",
-    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+    title: "Cvyon — Free Premium Resume Builder & ATS Grader",
+    description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     url: "https://cvyon.com",
     siteName: "Cvyon",
     type: "website",
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cvyon — Free Premium Résumé Builder & ATS Grader",
-    description: "The free premium resume builder that uses ATS Grader to ensure outstanding output, free unlimited downloads, and no sign up.",
+    title: "Cvyon — Free Premium Resume Builder & ATS Grader",
+    description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     images: ["https://cvyon.com/og-image.jpg"],
   },
 };

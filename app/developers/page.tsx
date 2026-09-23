@@ -130,7 +130,7 @@ print(response.json())`;
               Authenticate your API requests by including your secret API key in the <code className="bg-gray-100 px-1.5 py-0.5 rounded text-red-600 font-mono text-sm">Authorization</code> HTTP header.
             </p>
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-blue-800 text-sm font-medium">
-              You must have an active Pro Recruiter subscription to generate and use API keys. Keys can be managed in the <Link href="/recruiter" className="underline">Recruiter Portal</Link>.
+              API keys require an active recruiter access pass (30 days from purchase). Keys are managed in the Recruiter Portal.
             </div>
             
             <CodeBlock language="HTTP" code="Authorization: Bearer YOUR_API_KEY" />
@@ -141,7 +141,7 @@ print(response.json())`;
               <Server className="text-blue-600" /> Rate Limits
             </h2>
             <p className="text-gray-600 mb-4">
-              To ensure platform stability, API requests are subject to rate limiting based on your subscription tier.
+              To ensure platform stability, API requests are rate-limited based on your access tier.
             </p>
             <ul className="list-disc pl-5 space-y-2 text-gray-600 mb-4">
               <li><strong>Pro Tier:</strong> 100 requests per minute, up to 10,000 requests per day.</li>

@@ -24,6 +24,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return {
     title: `${name} - ${role} Resume | Cvyon`,
     description: `View the professional resume of ${name}. Skills include: ${skills}`,
+    alternates: { canonical: `https://cvyon.com/r/${params.handle}` },
     openGraph: {
       title: `${name} - ${role}`,
       description: data.data?.summary?.substring(0, 160) || `View ${name}'s resume on Cvyon.`,
