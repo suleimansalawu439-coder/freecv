@@ -2,8 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
 
-const PRIMARY_COLOR = '#2563EB';
-const SIDEBAR_BG = '#1E293B';
+const DEFAULT_THEME_COLOR = '#2563eb';
 
 const styles = StyleSheet.create({
   page: {
@@ -13,7 +12,6 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     width: '35%',
-    backgroundColor: SIDEBAR_BG,
     padding: 24,
     color: '#FFFFFF',
     flexDirection: 'column',
@@ -124,7 +122,6 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: PRIMARY_COLOR,
     marginBottom: 4,
   },
   bulletList: {
@@ -171,7 +168,6 @@ const styles = StyleSheet.create({
   refCard: {
     width: '48%',
     borderLeftWidth: 2,
-    borderLeftColor: PRIMARY_COLOR,
     paddingLeft: 8,
     marginBottom: 8,
   },
@@ -211,13 +207,14 @@ const styles = StyleSheet.create({
 });
 
 export default function MinimalistSplit({ data }: { data: ResumeData }) {
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
   const initial = data.personalInfo.fullName?.charAt(0) || '';
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Left Sidebar */}
-        <View style={styles.sidebar}>
+        <View style={[styles.sidebar, { backgroundColor: themeColor }]}>
           <View style={styles.sidebarMain}>
             <View>
               {initial ? (
@@ -283,7 +280,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
                     <Text style={styles.roleTitle}>{exp.role}</Text>
                     <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
                   </View>
-                  <Text style={styles.companyName}>{exp.company}</Text>
+                  <Text style={[styles.companyName, { color: themeColor }]}>{exp.company}</Text>
                   {exp.description ? (
                     <View style={styles.bulletList}>
                       {exp.description
@@ -322,7 +319,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
               <Text style={styles.sectionTitle}>References</Text>
               <View style={styles.refGrid}>
                 {data.references.map((ref) => (
-                  <View key={ref.id} style={styles.refCard}>
+                  <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
                     <Text style={styles.refName}>{ref.name}</Text>
                     <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                     {ref.contact ? (

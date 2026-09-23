@@ -6,6 +6,8 @@ interface TemplateProps {
   data: ResumeData;
 }
 
+const DEFAULT_THEME_COLOR = '#1e40af';
+
 const styles = StyleSheet.create({
   page: {
     padding: 54,
@@ -101,12 +103,12 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 8.5,
-    color: '#1E40AF',
     fontFamily: 'Times-Roman',
   },
 });
 
 export default function Academic({ data }: TemplateProps) {
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
   const contactLine1 = [data.personalInfo.email, data.personalInfo.phone].filter(Boolean).join('  |  ');
   const contactLine2 = [data.personalInfo.location, data.personalInfo.website].filter(Boolean).join('  |  ');
 
@@ -178,7 +180,7 @@ export default function Academic({ data }: TemplateProps) {
                 <View key={proj.id} style={{ marginBottom: 8 }}>
                   <Text style={styles.itemTitle}>
                     {proj.name}{' '}
-                    {proj.link ? <Text style={styles.linkText}>[{proj.link}]</Text> : null}
+                    {proj.link ? <Text style={[styles.linkText, { color: themeColor }]}>[{proj.link}]</Text> : null}
                   </Text>
                   <Text style={{ fontSize: 10 }}>{proj.description}</Text>
                 </View>

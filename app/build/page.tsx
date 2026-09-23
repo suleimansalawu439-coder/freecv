@@ -96,7 +96,7 @@ const HTMLThumbnail = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
   }, []);
   return (
     <div ref={containerRef} className="aspect-[8.5/11] bg-white w-full relative overflow-hidden pointer-events-none">
-      <div className="absolute top-0 left-0 w-[816px] h-[1056px] origin-top-left bg-white" style={{ transform: `scale(${scale})` }}>
+      <div className="absolute top-0 left-0 w-[816px] h-[1056px] origin-top-left bg-white" style={{ transform: `scale(${scale})`, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}>
         <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
       </div>
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
@@ -117,7 +117,7 @@ const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
     <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar">
       <div
         className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c"
-        style={{ width: '816px', height: '1056px', transform: `scale(${scale})`, transformOrigin: 'top center', marginBottom: `-${1056 * (1 - scale)}px` }}
+        style={{ width: '816px', height: '1056px', transform: `scale(${scale})`, transformOrigin: 'top center', marginBottom: `-${1056 * (1 - scale)}px`, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
       >
         <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
       </div>

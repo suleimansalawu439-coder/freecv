@@ -15,7 +15,6 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   header: {
-    backgroundColor: '#1A3A5A',
     paddingHorizontal: 40,
     paddingTop: 32,
     paddingBottom: 20,
@@ -102,7 +101,6 @@ const styles = StyleSheet.create({
   expRole: {
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   expDates: {
     fontSize: 8,
@@ -154,7 +152,6 @@ const styles = StyleSheet.create({
   eduDegree: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   eduSub: {
     fontSize: 8.5,
@@ -177,7 +174,6 @@ const styles = StyleSheet.create({
   skillText: {
     fontSize: 8,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -198,7 +194,6 @@ const styles = StyleSheet.create({
   projName: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   projLink: {
     fontSize: 8,
@@ -216,7 +211,6 @@ const styles = StyleSheet.create({
   refName: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   refTitle: {
     fontSize: 8.5,
@@ -234,7 +228,6 @@ const styles = StyleSheet.create({
   customTitle: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   customSubtitle: {
     fontSize: 9,
@@ -244,7 +237,6 @@ const styles = StyleSheet.create({
   customDate: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#1A3A5A',
   },
   customDesc: {
     fontSize: 9,
@@ -253,11 +245,24 @@ const styles = StyleSheet.create({
   },
 });
 
+const DEFAULT_THEME_COLOR = '#1A3A5A';
+
 export default function CorporateBlue({ data }: TemplateProps) {
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
+
+  const dynamicStyles = {
+    accentText: {
+      color: themeColor,
+    },
+    accentBackground: {
+      backgroundColor: themeColor,
+    },
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header} wrap={false}>
+        <View style={[styles.header, dynamicStyles.accentBackground]} wrap={false}>
           <View style={styles.headerContent}>
             <View style={styles.headerLeft}>
               <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
@@ -296,7 +301,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.expItem} wrap={false}>
                 <View style={styles.rowBetween}>
-                  <Text style={styles.expRole}>{exp.role}</Text>
+                  <Text style={[styles.expRole, dynamicStyles.accentText]}>{exp.role}</Text>
                   <Text style={styles.expDates}>{exp.startDate} – {exp.endDate}</Text>
                 </View>
                 <Text style={styles.expCompany}>{exp.company}</Text>
@@ -324,7 +329,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
                 </View>
                 {data.education.map((edu) => (
                   <View key={edu.id} style={styles.eduItem}>
-                    <Text style={styles.eduDegree}>{edu.degree}</Text>
+                    <Text style={[styles.eduDegree, dynamicStyles.accentText]}>{edu.degree}</Text>
                     <Text style={styles.eduSub}>{edu.school}, {edu.graduationYear}</Text>
                   </View>
                 ))}
@@ -339,7 +344,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
                 <View style={styles.skillsWrap}>
                   {data.skills.map((s) => (
                     <View key={s.id} style={styles.skillBadge}>
-                      <Text style={styles.skillText}>{s.name}</Text>
+                      <Text style={[styles.skillText, dynamicStyles.accentText]}>{s.name}</Text>
                     </View>
                   ))}
                 </View>
@@ -357,7 +362,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
               {data.projects.map((proj) => (
                 <View key={proj.id} style={styles.projCard}>
                   <View style={styles.rowBetween}>
-                    <Text style={styles.projName}>{proj.name}</Text>
+                    <Text style={[styles.projName, dynamicStyles.accentText]}>{proj.name}</Text>
                     {proj.link && (
                       <Link src={proj.link} style={styles.projLink}>
                         <Text>{proj.link}</Text>
@@ -381,7 +386,7 @@ export default function CorporateBlue({ data }: TemplateProps) {
             <View style={styles.gridTwo}>
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.refCard}>
-                  <Text style={styles.refName}>{ref.name}</Text>
+                  <Text style={[styles.refName, dynamicStyles.accentText]}>{ref.name}</Text>
                   <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
                   <Text style={styles.refContact}>{ref.contact}</Text>
                 </View>
@@ -404,12 +409,12 @@ export default function CorporateBlue({ data }: TemplateProps) {
                     <View key={item.id} style={styles.customItem}>
                       <View style={styles.rowBetween}>
                         <View>
-                          <Text style={styles.customTitle}>{item.title}</Text>
+                          <Text style={[styles.customTitle, dynamicStyles.accentText]}>{item.title}</Text>
                           {item.subtitle && (
                             <Text style={styles.customSubtitle}>{item.subtitle}</Text>
                           )}
                         </View>
-                        {item.date && <Text style={styles.customDate}>{item.date}</Text>}
+                        {item.date && <Text style={[styles.customDate, dynamicStyles.accentText]}>{item.date}</Text>}
                       </View>
                       {item.description && (
                         <Text style={styles.customDesc}>{item.description}</Text>

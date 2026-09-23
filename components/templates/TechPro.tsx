@@ -6,6 +6,8 @@ interface TemplateProps {
   data: ResumeData;
 }
 
+const DEFAULT_THEME_COLOR = '#2563eb';
+
 const styles = StyleSheet.create({
   page: {
     padding: 36,
@@ -118,7 +120,6 @@ const styles = StyleSheet.create({
   },
   projectLink: {
     fontSize: 8,
-    color: '#2563EB',
     marginLeft: 6,
   },
   projectDesc: {
@@ -224,6 +225,8 @@ const styles = StyleSheet.create({
 });
 
 export default function TechPro({ data }: TemplateProps) {
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -290,7 +293,7 @@ export default function TechPro({ data }: TemplateProps) {
                 <View style={styles.projectNameRow}>
                   <Text style={styles.projectName}>{proj.name}</Text>
                   {proj.link && (
-                    <Link src={proj.link} style={styles.projectLink}>
+                    <Link src={proj.link} style={[styles.projectLink, { color: themeColor }]}>
                       [{proj.link}]
                     </Link>
                   )}

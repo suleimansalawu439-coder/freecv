@@ -66,7 +66,7 @@ export default function Academic({ data }: { data: ResumeData }) {
           <div className="space-y-4 pl-[116px]">
             {data.projects.map(proj => (
               <div key={proj.id}>
-                <p className="text-sm font-bold">{proj.name} {proj.link && <span className="font-normal text-xs text-blue-800">[{proj.link}]</span>}</p>
+                <p className="text-sm font-bold">{proj.name} {proj.link && <span className="font-normal text-xs text-[var(--theme-color)]">[{proj.link}]</span>}</p>
                 <p className="text-sm">{proj.description}</p>
               </div>
             ))}

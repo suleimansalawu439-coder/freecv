@@ -4,7 +4,7 @@ import { ResumeData } from '@/store/useResumeStore';
 export default function CorporateBlue({ data }: { data: ResumeData }) {
   return (
     <div className="bg-white text-[#1A2A3A] font-sans w-[8.5in] min-h-[11in] shadow-lg print:shadow-none p-[0.75in] flex flex-col mx-auto">
-      <div className="bg-[#1A3A5A] text-white -mx-[0.75in] -mt-[0.75in] px-[0.75in] pt-[0.75in] pb-6 mb-8 print:mx-0 print:mt-0 print:px-[0.75in] print:pt-[0.75in]">
+      <div className="bg-[var(--theme-color)] text-white -mx-[0.75in] -mt-[0.75in] px-[0.75in] pt-[0.75in] pb-6 mb-8 print:mx-0 print:mt-0 print:px-[0.75in] print:pt-[0.75in]">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-[44px] font-bold tracking-tight leading-[0.9]">{data.personalInfo.fullName}</h1>
@@ -28,7 +28,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             {data.experience.map(exp => (
               <div key={exp.id}>
                 <div className="flex justify-between items-baseline">
-                  <h3 className="text-md font-bold text-[#1A3A5A]">{exp.role}</h3>
+                  <h3 className="text-md font-bold text-[var(--theme-color)]">{exp.role}</h3>
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#C8A86A]">{exp.startDate} – {exp.endDate}</span>
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#8A9AAB] mb-2">{exp.company}</p>
@@ -51,7 +51,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-4">Education</h2>
             {data.education.map(edu => (
               <div key={edu.id} className="mb-3">
-                <p className="text-md font-bold text-[#1A3A5A]">{edu.degree}</p>
+                <p className="text-md font-bold text-[var(--theme-color)]">{edu.degree}</p>
                 <p className="text-[10px] text-[#8A9AAB]">{edu.school}, {edu.graduationYear}</p>
               </div>
             ))}
@@ -63,7 +63,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-4">Core Skills</h2>
             <div className="flex flex-wrap gap-2">
               {data.skills.map(s => (
-                <span key={s.id} className="text-[10px] font-bold uppercase tracking-wider text-[#1A3A5A] bg-[#F5F7FA] px-3 py-1 rounded border border-[#E0E5EC]">
+                <span key={s.id} className="text-[10px] font-bold uppercase tracking-wider text-[var(--theme-color)] bg-[#F5F7FA] px-3 py-1 rounded border border-[#E0E5EC]">
                   {s.name}
                 </span>
               ))}
@@ -79,7 +79,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             {data.projects.map(proj => (
               <div key={proj.id} className="bg-[#F5F7FA] p-3 rounded border border-[#E0E5EC]">
                 <div className="flex justify-between items-center mb-1">
-                  <h3 className="text-sm font-bold text-[#1A3A5A]">{proj.name}</h3>
+                  <h3 className="text-sm font-bold text-[var(--theme-color)]">{proj.name}</h3>
                   {proj.link && <span className="text-[9px] text-[#C8A86A]">{proj.link}</span>}
                 </div>
                 <p className="text-xs text-[#3A4A5A]">{proj.description}</p>
@@ -95,7 +95,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
           <div className="grid grid-cols-2 gap-4">
             {data.references.map(ref => (
               <div key={ref.id} className="mb-2">
-                <p className="text-sm font-bold text-[#1A3A5A]">{ref.name}</p>
+                <p className="text-sm font-bold text-[var(--theme-color)]">{ref.name}</p>
                 <p className="text-xs text-[#C8A86A]">{ref.title} @ {ref.company}</p>
                 <p className="text-xs text-[#8A9AAB]">{ref.contact}</p>
               </div>

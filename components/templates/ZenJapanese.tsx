@@ -12,6 +12,8 @@ Font.register({
   ]
 });
 
+const DEFAULT_THEME_COLOR = '#8A7A6A';
+
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#FDF8F0',
@@ -48,12 +50,10 @@ const styles = StyleSheet.create({
     fontWeight: 'light',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: '#8A7A6A',
     textAlign: 'right',
   },
   summaryContainer: {
     borderLeftWidth: 2,
-    borderLeftColor: '#8A7A6A',
     paddingLeft: 16,
     marginBottom: 32,
     marginLeft: '20%',
@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 8,
     fontWeight: 'light',
-    color: '#8A7A6A',
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 16,
@@ -91,14 +90,12 @@ const styles = StyleSheet.create({
     fontWeight: 'light',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: '#8A7A6A',
   },
   expCompany: {
     fontSize: 9,
     fontWeight: 'light',
     textTransform: 'uppercase',
     letterSpacing: 1,
-    color: '#8A7A6A',
     marginBottom: 8,
   },
   expDesc: {
@@ -128,7 +125,6 @@ const styles = StyleSheet.create({
   },
   eduSchool: {
     fontSize: 9,
-    color: '#8A7A6A',
     fontWeight: 'light',
   },
   skillsContainer: {
@@ -171,7 +167,6 @@ const styles = StyleSheet.create({
   customItemDate: {
     fontSize: 9,
     fontWeight: 'light',
-    color: '#8A7A6A',
     letterSpacing: 1,
   },
   customItemSubtitle: {
@@ -189,6 +184,17 @@ const styles = StyleSheet.create({
 });
 
 export default function ZenJapanese({ data }: { data: ResumeData }) {
+  const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
+
+  const dynamicStyles = {
+    accentText: {
+      color: themeColor,
+    },
+    accentBorderLeft: {
+      borderLeftColor: themeColor,
+    },
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -197,7 +203,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
             <Text style={styles.name}>{data.personalInfo.fullName}</Text>
             <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
           </View>
-          <View style={styles.contactInfo}>
+          <View style={[styles.contactInfo, dynamicStyles.accentText]}>
             {data.personalInfo.email && <Text>{data.personalInfo.email}</Text>}
             {data.personalInfo.phone && <Text>{data.personalInfo.phone}</Text>}
             {data.personalInfo.location && <Text>{data.personalInfo.location}</Text>}
@@ -206,22 +212,22 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
         </View>
 
         {data.summary && (
-          <View style={styles.summaryContainer}>
+          <View style={[styles.summaryContainer, dynamicStyles.accentBorderLeft]}>
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         )}
 
         {data.experience.length > 0 && (
           <View style={{ marginBottom: 24 }}>
-            <Text style={styles.sectionTitle}>experience</Text>
+            <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>experience</Text>
             <View>
               {data.experience.map(exp => (
                 <View key={exp.id} style={styles.expItem}>
                   <View style={styles.expHeader}>
                     <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={styles.expDates}>{exp.startDate} – {exp.endDate}</Text>
+                    <Text style={[styles.expDates, dynamicStyles.accentText]}>{exp.startDate} – {exp.endDate}</Text>
                   </View>
-                  <Text style={styles.expCompany}>{exp.company}</Text>
+                  <Text style={[styles.expCompany, dynamicStyles.accentText]}>{exp.company}</Text>
                   <View>
                     {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
                       <Text key={i} style={styles.expDesc}>{l}</Text>
@@ -236,11 +242,11 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
         <View style={styles.grid}>
           {data.education.length > 0 && (
             <View style={styles.column}>
-              <Text style={styles.sectionTitle}>education</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>education</Text>
               {data.education.map(edu => (
                 <View key={edu.id} style={styles.eduItem}>
                   <Text style={styles.eduDegree}>{edu.degree}</Text>
-                  <Text style={styles.eduSchool}>{edu.school}, {edu.graduationYear}</Text>
+                  <Text style={[styles.eduSchool, dynamicStyles.accentText]}>{edu.school}, {edu.graduationYear}</Text>
                 </View>
               ))}
             </View>
@@ -248,7 +254,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
 
           {data.skills.length > 0 && (
             <View style={styles.column}>
-              <Text style={styles.sectionTitle}>skills</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>skills</Text>
               <View style={styles.skillsContainer}>
                 {data.skills.map(s => (
                   <Text key={s.id} style={styles.skillItem}>{s.name}</Text>
@@ -261,13 +267,13 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
         {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
           section.items.length > 0 && (
             <View key={section.id} style={styles.customSection}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>{section.title}</Text>
               <View>
                 {section.items.map(item => (
                   <View key={item.id} style={styles.customItem}>
                     <View style={styles.customItemHeader}>
                       <Text style={styles.customItemTitle}>{item.title}</Text>
-                      {item.date && <Text style={styles.customItemDate}>{item.date}</Text>}
+                      {item.date && <Text style={[styles.customItemDate, dynamicStyles.accentText]}>{item.date}</Text>}
                     </View>
                     {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
                     {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
