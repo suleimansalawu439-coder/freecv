@@ -1,12 +1,18 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   try {
-    // In a real app, verify user session here.
-    // For this prototype, we'll fetch aggregated stats for the user's templates/links.
-    
+    // P0 fix (2026-09-23): this endpoint previously served the entire
+    // analytics_events table with zero auth. Require a signed-in session.
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // We'll just fetch all analytics events and group them (simulating "my links")
     const { data: events, error } = await supabaseAdmin
       .from('analytics_events')
@@ -38,6 +44,6 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     logger.error('analytics', 'Analytics fetch error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Could not load analytics.' }, { status: 500 });
   }
 }
