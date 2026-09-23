@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHtml as safeSanitizeHtml, stripAllTags } from './sanitizeHtml';
 
 // Sanitization helper
 export const sanitizeText = (text: string | null | undefined) => {
   if (!text) return text;
-  // allow some basic formatting if needed, but for safety, strip all tags
-  return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] }).trim();
+  // strip all tags, keep text
+  return stripAllTags(text);
 };
 
 export const sanitizeHtml = (html: string | null | undefined) => {
   if (!html) return html;
-  return DOMPurify.sanitize(html);
+  return safeSanitizeHtml(html);
 };
 
 // Zod Schemas

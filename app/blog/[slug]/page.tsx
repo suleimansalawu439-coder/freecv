@@ -3,19 +3,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
-// TEMP-DIAG: DOMPurify import removed to test jsdom module-load hypothesis.
-// import DOMPurify from 'isomorphic-dompurify';
-const DOMPurify = { sanitize: (html: string) => String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '') };
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { ArrowLeft, Calendar } from 'lucide-react';
 
 export const revalidate = 60; // Revalidate every minute
 
 // Generate dynamic metadata for SEO + OpenGraph
-// TEMP-DIAG: metadata generation disabled to isolate the 500.
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  return { title: 'Cvyon Blog' };
-}
-async function _origGenerateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   let post: any = null;
   try {
@@ -113,7 +107,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           <div className="p-8 sm:p-12">
             <div 
               className="blog-content text-gray-800 leading-relaxed text-lg"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} 
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }} 
             />
           </div>
         </article>
