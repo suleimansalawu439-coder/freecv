@@ -505,11 +505,11 @@ export default function FreeCVApp() {
                   <Redo2 size={16} />
                 </button>
               </div>
-              <button onClick={handleDownload} className="group flex items-center gap-2.5 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-5 py-3 fm text-sm font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
-                <Download size={18} className="group-hover:-translate-y-0.5 transition-transform" /> Download PDF
+              <button onClick={handleDownload} className="group flex items-center gap-2 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-4 py-2.5 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all">
+                <Download size={15} className="group-hover:-translate-y-0.5 transition-transform" /> Download PDF
               </button>
-              <button onClick={handleDocxExport} className="flex group items-center gap-2.5 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-5 py-3 fm text-sm font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all" title="Download Word Document">
-                <FileText size={18} className="group-hover:-translate-y-0.5 transition-transform" /> Download DOCX
+              <button onClick={handleDocxExport} className="flex group items-center gap-2 bg-[#2233FF] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-4 py-2.5 fm text-xs font-bold uppercase tracking-widest active:translate-y-[2px] active:shadow-none transition-all" title="Download Word Document">
+                <FileText size={15} className="group-hover:-translate-y-0.5 transition-transform" /> Download DOCX
               </button>
             </div>
           </header>
