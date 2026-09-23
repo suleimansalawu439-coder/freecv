@@ -474,7 +474,7 @@ export default function FreeCVApp() {
   const SelectedTemplate = templates[data.templateId] || templates.Executive;
 
   return (
-    <main className={cn("flex flex-col lg:flex-row min-h-screen w-full font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", 'bg-[#E8E7E1] text-[#141312] cv-riso')}>
+    <main className={cn("flex flex-col lg:flex-row min-h-screen w-full overflow-x-clip font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", 'bg-[#E8E7E1] text-[#141312] cv-riso')}>
       <h1 className="sr-only">Free Resume Builder — create, edit, and download your resume</h1>
 
       {/* EDITOR PANEL */}
@@ -1043,7 +1043,7 @@ export default function FreeCVApp() {
 
       {/* TEMPLATE GALLERY MODAL */}
       {isGalleryOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#E8E7E1] flex flex-col print:hidden">
+        <div className="fixed inset-0 z-[400] bg-[#E8E7E1] flex flex-col print:hidden">
           <div className="p-6 lg:p-8 border-b-[3px] border-[#141312] flex justify-between items-center bg-[#E8E7E1] z-10 relative">
             <div>
               <h2 className="fd text-3xl font-black uppercase tracking-tight leading-none text-[#141312]">Template Gallery</h2>
