@@ -3,7 +3,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { supabaseAdmin } from '@/lib/supabase';
-import DOMPurify from 'isomorphic-dompurify';
+// TEMP-DIAG: DOMPurify import removed to test jsdom module-load hypothesis.
+// import DOMPurify from 'isomorphic-dompurify';
+const DOMPurify = { sanitize: (html: string) => String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '') };
 import { ArrowLeft, Calendar } from 'lucide-react';
 
 export const revalidate = 60; // Revalidate every minute
