@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies, headers } from 'next/headers';
 import { supabaseAdmin } from '@/lib/supabase';
+import { requireAdmin, adminFail } from '@/lib/admin-auth';
 
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,7 @@ export const dynamic = 'force-dynamic';
  * Hit: GET /api/admin/diagnostics
  */
 export async function GET() {
-  // Auth gate - Handled by Supabase middleware (utils/supabase/middleware.ts)
+  try { await requireAdmin(); } catch { return adminFail(); }
 
   const checks: Record<string, any> = {};
 

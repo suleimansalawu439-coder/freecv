@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, BarChart3, Users, Building2, DollarSign, Target, Wallet,
-  Headphones, FileText, Settings as Cog, LogOut, Menu, X,
+  Headphones, FileText, Settings as Cog, LogOut, Menu, X, List, Cpu,
 } from "lucide-react";
 import { Chakra_Petch, Sora, JetBrains_Mono } from "@/lib/fonts";
 import { AdminThemeProvider, useAdminTheme, ThemeToggle } from "./admin/theme";
@@ -13,6 +13,7 @@ import { AdminStyle } from "./admin/ui";
 import {
   OverviewTab, AnalyticsTab, TalentTab, RecruitersTab, RevenueTab,
   ExpensesTab, PipelineTab, SupportTab, BlogTab, SettingsTab,
+  EventLogTab, AiUsageTab,
 } from "./tabs";
 
 const disp = Chakra_Petch({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--fd", display: "swap" });
@@ -22,6 +23,8 @@ const monoF = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"], varia
 const TABS = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, hint: "mission control" },
   { id: "analytics", label: "Analytics", icon: BarChart3, hint: "traffic & behaviour" },
+  { id: "events", label: "Event log", icon: List, hint: "raw analytics events" },
+  { id: "ai", label: "AI usage", icon: Cpu, hint: "AI spend & calls" },
   { id: "talent", label: "Talent Pool", icon: Users, hint: "opt-in candidates" },
   { id: "recruiters", label: "Recruiters", icon: Building2, hint: "accounts & onboarding" },
 
@@ -114,6 +117,8 @@ function Shell(props: Props) {
     switch (tab) {
       case "overview": return <OverviewTab candidates={props.candidates} analytics={props.analytics} aiLogs={props.aiLogs} />;
       case "analytics": return <AnalyticsTab analytics={props.analytics} />;
+      case "events": return <EventLogTab events={props.analytics} />;
+      case "ai": return <AiUsageTab logs={props.aiLogs} />;
       case "talent": return <TalentTab candidates={props.candidates} />;
       case "recruiters": return <RecruitersTab />;
 

@@ -159,6 +159,99 @@ export function AnalyticsTab({ analytics }: { analytics: any[] }) {
   );
 }
 
+/* ============================ EVENT LOG ============================ */
+export function EventLogTab({ events = [] }: { events?: any[] }) {
+  const { t } = useAdminTheme();
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+  const totalPages = Math.max(1, Math.ceil(events.length / pageSize));
+  const rows = useMemo(() => events.slice((page - 1) * pageSize, page * pageSize), [events, page]);
+  useEffect(() => { setPage(1); }, [events.length]);
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <Reveal><SectionLabel color={t.cob}>event log · raw analytics events</SectionLabel>
+          <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{events.length.toLocaleString()} events captured</p></Reveal>
+      </div>
+      {rows.length === 0 ? <Card><EmptyState icon={<Activity size={32} />} title="No events logged yet." hint="Events are captured from site traffic automatically." /></Card> :
+        <>
+          <Table head={["Time", "Event", "Template", "Location", "Device", "Browser", "Session"]}>
+            {rows.map((e, i) => (
+              <Row key={e.id || i}>
+                <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(e.created_at || "").slice(0, 19).replace("T", " ")}</Cell>
+                <Cell><Pill color={t.cob}>{e.event_type || "—"}</Pill></Cell>
+                <Cell className="fm text-[11px]">{e.template_id || "—"}</Cell>
+                <Cell className="fm text-[11px]">{[e.city, e.country].filter(Boolean).join(", ") || "—"}</Cell>
+                <Cell className="fm text-[11px] capitalize">{e.device_type || "—"}</Cell>
+                <Cell className="fm text-[11px]">{e.browser || "—"}</Cell>
+                <Cell className="fm text-[10px]" style={{ color: t.faint }}>{(e.session_id || "").slice(0, 12)}</Cell>
+              </Row>
+            ))}
+          </Table>
+          <div className="flex items-center justify-between pt-2">
+            <div className="fm text-xs" style={{ color: t.muted }}>
+              Showing {Math.min((page - 1) * pageSize + 1, events.length)}–{Math.min(page * pageSize, events.length)} of {events.length.toLocaleString()} events
+            </div>
+            <div className="flex items-center gap-2">
+              <Btn variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="text-xs py-1 px-2.5"><ArrowLeft size={13} /> Prev</Btn>
+              <span className="fm text-xs font-bold px-1" style={{ color: t.text }}>{page} / {totalPages}</span>
+              <Btn variant="ghost" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="text-xs py-1 px-2.5">Next <ArrowRight size={13} /></Btn>
+            </div>
+          </div>
+        </>}
+    </div>
+  );
+}
+
+/* ============================ AI USAGE ============================ */
+export function AiUsageTab({ logs = [] }: { logs?: any[] }) {
+  const { t } = useAdminTheme();
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+  const totalPages = Math.max(1, Math.ceil(logs.length / pageSize));
+  const rows = useMemo(() => logs.slice((page - 1) * pageSize, page * pageSize), [logs, page]);
+  useEffect(() => { setPage(1); }, [logs.length]);
+  const totalCost = logs.reduce((s, l) => s + (Number(l.cost_estimate) || 0), 0);
+  const features = new Set(logs.map((l) => l.feature).filter(Boolean)).size;
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <Reveal><Kpi label="AI calls" value={<CountUp to={logs.length} />} accent={t.cob} icon={<Cpu size={16} />} /></Reveal>
+        <Reveal delay={60}><Kpi label="Est. cost" value={<CountUp to={totalCost} prefix="$" decimals={2} />} accent={t.verm} icon={<DollarSign size={16} />} /></Reveal>
+        <Reveal delay={120}><Kpi label="Cache hits" value={<CountUp to={logs.filter((l) => l.cache_hit).length} />} accent={t.green} icon={<CheckCircle size={16} />} /></Reveal>
+        <Reveal delay={180}><Kpi label="Features used" value={<CountUp to={features} />} accent={t.gold} icon={<Layers size={16} />} /></Reveal>
+      </div>
+      <Reveal><SectionLabel color={t.verm}>ai usage log</SectionLabel>
+        <p className="fm text-[11px] uppercase tracking-widest" style={{ color: t.muted }}>{logs.length.toLocaleString()} calls recorded</p></Reveal>
+      {rows.length === 0 ? <Card><EmptyState icon={<Cpu size={32} />} title="No AI usage recorded." hint="AI calls are logged automatically with cost estimates." /></Card> :
+        <>
+          <Table head={["Time", "Feature", "Endpoint", "Tokens in/out", "Est. cost", "Cache"]}>
+            {rows.map((l, i) => (
+              <Row key={l.id || i}>
+                <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(l.created_at || "").slice(0, 19).replace("T", " ")}</Cell>
+                <Cell><Pill color={t.verm}>{l.feature || "—"}</Pill></Cell>
+                <Cell className="fm text-[11px]">{l.endpoint || "—"}</Cell>
+                <Cell className="fm text-[11px]">{(l.input_tokens ?? l.prompt_tokens ?? 0).toLocaleString()} / {(l.output_tokens ?? l.completion_tokens ?? 0).toLocaleString()}</Cell>
+                <Cell style={{ color: t.verm }}>${(Number(l.cost_estimate) || 0).toFixed(4)}</Cell>
+                <Cell>{l.cache_hit ? <Pill color={t.green}>hit</Pill> : <span style={{ color: t.faint }}>miss</span>}</Cell>
+              </Row>
+            ))}
+          </Table>
+          <div className="flex items-center justify-between pt-2">
+            <div className="fm text-xs" style={{ color: t.muted }}>
+              Showing {Math.min((page - 1) * pageSize + 1, logs.length)}–{Math.min(page * pageSize, logs.length)} of {logs.length.toLocaleString()} calls
+            </div>
+            <div className="flex items-center gap-2">
+              <Btn variant="ghost" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="text-xs py-1 px-2.5"><ArrowLeft size={13} /> Prev</Btn>
+              <span className="fm text-xs font-bold px-1" style={{ color: t.text }}>{page} / {totalPages}</span>
+              <Btn variant="ghost" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="text-xs py-1 px-2.5">Next <ArrowRight size={13} /></Btn>
+            </div>
+          </div>
+        </>}
+    </div>
+  );
+}
+
 /* ============================ TALENT POOL ============================ */
 export function TalentTab({ candidates: initialCandidates = [] }: { candidates?: any[] }) {
   const { t } = useAdminTheme();
@@ -186,10 +279,13 @@ export function TalentTab({ candidates: initialCandidates = [] }: { candidates?:
       .then((res) => {
         if (res?.candidates && Array.isArray(res.candidates)) {
           setCandidatesList(res.candidates);
+        } else if (res?.error) {
+          toast.error(`Talent load failed: ${res.error}`);
         }
       })
       .catch((err) => {
         console.error("Talent fetch error:", err);
+        toast.error("Talent load failed — check your connection and retry.");
       })
       .finally(() => {
         setLoading(false);
@@ -458,6 +554,13 @@ export function TalentTab({ candidates: initialCandidates = [] }: { candidates?:
 
 /* ============================ RECRUITERS ============================ */
 const emptyRec = { email: "", company_name: "", contact_name: "", contact_email: "", phone: "", website: "", location: "", country: "", company_size: "", industry: "", notes: "", grant: false, days: 30, tier: "pro" };
+/* Whitelist of editable recruiters-table columns for PATCH. The GET returns a nested
+   `subscriptions` array (and id/user_id/api key/meta keys) — sending any of those to
+   PostgREST makes it reject the whole update with a 500. */
+const RECRUITER_EDIT_COLS = ["company_name", "contact_name", "contact_email", "phone", "website", "location", "country", "company_size", "industry", "notes", "status"];
+/* Comp/trial grants are written with a `manual_<hex>` paystack_subscription_code
+   (see POST /api/admin/recruiters) — badge them so they aren't mistaken for paid seats. */
+const isCompTrial = (s: any) => typeof s?.paystack_subscription_code === "string" && s.paystack_subscription_code.startsWith("manual_");
 export function RecruitersTab() {
   const { t } = useAdminTheme();
   const [recs, setRecs] = useState<any[]>([]); const [loading, setLoading] = useState(true);
@@ -471,7 +574,12 @@ export function RecruitersTab() {
     if (!r.ok) return toast.error(r.error || "Onboard failed");
     toast.success("Recruiter onboarded"); setCreds({ email: form.email, pw: r.temp_password }); setForm(emptyRec); setOnboard(false); load();
   };
-  const saveEdit = async () => { const r = await api(`/api/admin/recruiters/${edit.id}`, { method: "PATCH", body: JSON.stringify(edit) }); if (r.ok) { toast.success("Saved"); setDetail({ ...detail, ...edit }); setEdit(null); load(); } else toast.error(r.error); };
+  const saveEdit = async () => {
+    const payload: Record<string, any> = {};
+    for (const k of RECRUITER_EDIT_COLS) if (k in edit) payload[k] = edit[k];
+    const r = await api(`/api/admin/recruiters/${edit.id}`, { method: "PATCH", body: JSON.stringify(payload) });
+    if (r.ok) { toast.success("Saved"); setDetail({ ...detail, ...edit }); setEdit(null); load(); } else toast.error(r.error || "Save failed");
+  };
   const filtered = recs.filter((r) => `${r.company_name} ${r.contact_email} ${r.contact_name}`.toLowerCase().includes(q.toLowerCase()));
   const statusMix = useMemo(() => {
     let active = 0, pending = 0, churned = 0;
@@ -501,12 +609,14 @@ export function RecruitersTab() {
       <Card className="p-4"><div className="relative"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: t.faint }} /><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search company or contact" className="!pl-9" /></div></Card>
       {loading ? <Spinner /> : filtered.length === 0 ? <Card><EmptyState icon={<Building2 size={32} />} title="No recruiters yet." hint="Onboard your first design partner above." /></Card> :
         <Table head={["Company", "Contact", "Status", "Plan", "API", "Joined", ""]}>{filtered.map((r) => {
-          const active = (r.subscriptions || []).some((s: any) => s.status === "active");
+          const subs = r.subscriptions || [];
+          const activeSub = subs.find((s: any) => s.status === "active");
+          const active = !!activeSub;
           return <Row key={r.id} onClick={() => setDetail(r)}>
             <Cell className="font-semibold">{r.company_name}</Cell>
             <Cell><div>{r.contact_name || "—"}</div><div className="fm text-[11px]" style={{ color: t.faint }}>{r.contact_email || r.email || "—"}</div></Cell>
             <Cell><Pill color={r.status === "churned" ? t.verm : active ? t.green : t.gold}>{r.status === "churned" ? "churned" : active ? "active" : "pending"}</Pill></Cell>
-            <Cell>{active ? <Pill color={t.cob}>{(r.subscriptions || []).find((s: any) => s.status === "active")?.tier || "—"}</Pill> : <span style={{ color: t.faint }}>—</span>}</Cell>
+            <Cell>{active ? <span className="inline-flex items-center gap-1.5"><Pill color={t.cob}>{activeSub?.tier || "—"}</Pill>{isCompTrial(activeSub) && <Pill color={t.gold}>COMP</Pill>}</span> : <span style={{ color: t.faint }}>—</span>}</Cell>
             <Cell className="fm text-[11px]">{r.api_calls_count || 0}</Cell>
             <Cell className="fm text-[11px]" style={{ color: t.faint }}>{(r.created_at || "").slice(0, 10)}</Cell>
             <Cell><button onClick={(e) => { e.stopPropagation(); setEdit({ ...r }); }} className="p-1" style={{ color: t.muted }}><Settings size={14} /></button></Cell>
@@ -570,7 +680,10 @@ export function RecruitersTab() {
                 (detail.subscriptions || []).map((s: any) => (
                   <div key={s.id} className="mb-2 flex items-center justify-between border-2 p-3 fb text-sm" style={{ borderColor: t.border }}>
                     <span style={{ color: t.text }}>{s.tier} · {s.currency} {s.amount_minor ? (s.amount_minor / 100) : "—"}</span>
-                    <Pill color={s.status === "active" ? t.green : t.muted}>{s.status}</Pill>
+                    <span className="inline-flex items-center gap-1.5">
+                      {isCompTrial(s) && <Pill color={t.gold}>COMP</Pill>}
+                      <Pill color={s.status === "active" ? t.green : t.muted}>{s.status}</Pill>
+                    </span>
                   </div>
                 ))
               )}
@@ -716,7 +829,11 @@ export function ExpensesTab() {
   useEffect(() => { load(); }, []);
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   const submit = async () => { const r = await api("/api/admin/expenses", { method: "POST", body: JSON.stringify({ ...form, amount_minor: Math.round(Number(form.amount_minor) * 100) }) }); if (r.ok) { toast.success("Logged"); setAdd(false); setForm(emptyExp); load(); } else toast.error(r.error); };
-  const del = async (id: string) => { const r = await api(`/api/admin/expenses/${id}`, { method: "DELETE" }); if (r.ok) { toast.success("Deleted"); load(); } };
+  const del = async (id: string) => {
+    if (!window.confirm("Delete this expense? This cannot be undone.")) return;
+    const r = await api(`/api/admin/expenses/${id}`, { method: "DELETE" });
+    if (r.ok) { toast.success("Deleted"); load(); } else toast.error(r.error || "Delete failed");
+  };
   const total = rows.reduce((s, r) => s + (Number(r.amount_minor) || 0) * (Number(r.fx_to_usd) || 1) / 100, 0);
   const byCat = CATS.map((c) => ({ c, v: Math.round(rows.filter((r) => r.category === c).reduce((s, r) => s + (Number(r.amount_minor) || 0) * (Number(r.fx_to_usd) || 1) / 100, 0)) })).filter((x) => x.v > 0);
   const donutSeg = byCat.map((x) => ({ label: x.c, value: x.v, color: CAT_COLOR[x.c] }));
@@ -763,7 +880,16 @@ export function PipelineTab({ onConvert }: { onConvert?: (company: string, email
   useEffect(() => { load(); }, []);
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   const submit = async () => { const r = await api("/api/admin/pipeline", { method: "POST", body: JSON.stringify({ ...form, value_minor: Math.round(Number(form.value_minor) || 0) }) }); if (r.ok) { toast.success("Added"); setAdd(false); setForm(emptyDeal); load(); } else toast.error(r.error); };
-  const move = async (id: string, stage: string) => { await api(`/api/admin/pipeline/${id}`, { method: "PATCH", body: JSON.stringify({ stage, last_contact_at: new Date().toISOString() }) }); load(); };
+  const move = async (id: string, stage: string) => {
+    const r = await api(`/api/admin/pipeline/${id}`, { method: "PATCH", body: JSON.stringify({ stage, last_contact_at: new Date().toISOString() }) });
+    if (!r.ok) toast.error(r.error || "Failed to move deal");
+    load();
+  };
+  const delDeal = async (id: string) => {
+    if (!window.confirm("Delete this deal? This cannot be undone.")) return;
+    const r = await api(`/api/admin/pipeline/${id}`, { method: "DELETE" });
+    if (r.ok) { toast.success("Deal deleted"); load(); } else toast.error(r.error || "Delete failed");
+  };
   const colColor = (s: string) => s === "customer" ? t.green : s === "lost" ? t.verm : s === "proposal" ? t.gold : s === "qualified" ? t.cob : s === "contacted" ? t.hi : t.muted;
   const stageCounts = STAGES.map(([k]) => ({ label: k, value: rows.filter((r) => r.stage === k).length }));
   return (
@@ -787,6 +913,7 @@ export function PipelineTab({ onConvert }: { onConvert?: (company: string, email
                     <div className="mt-2 flex items-center gap-1">
                       <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i > 0) move(d.id, STAGES[i - 1][0]); }} className="p-1" style={{ color: t.muted }}><ArrowLeft size={12} /></button>
                       <button onClick={() => { const i = STAGES.findIndex((s) => s[0] === d.stage); if (i < STAGES.length - 1) move(d.id, STAGES[i + 1][0]); }} className="p-1" style={{ color: t.muted }}><ArrowRight size={12} /></button>
+                      <button onClick={() => delDeal(d.id)} className="p-1" style={{ color: t.verm }} title="Delete deal"><Trash size={12} /></button>
                       {key === "qualified" && onConvert && <button onClick={() => onConvert(d.company_name, d.contact_email)} className="ml-auto border-2 px-2 py-0.5 fm text-[9px] font-bold uppercase tracking-widest" style={{ color: t.green, borderColor: t.green }}>Convert</button>}
                     </div>
                   </div>))}
@@ -882,6 +1009,7 @@ export function BlogTab({ posts }: { posts: any[] }) {
 /* ============================ SETTINGS ============================ */
 export function SettingsTab({ siteSettings, featureFlags, appSettings, overview }: { siteSettings: any; featureFlags: any[]; appSettings?: Record<string, any>; overview: any }) {
   const { t } = useAdminTheme();
+  const [flags, setFlags] = useState<any[]>(featureFlags || []);
   const [site, setSite] = useState({
     site_name: siteSettings?.site_name || "Cvyon",
     meta_title: siteSettings?.meta_title || "",
@@ -981,7 +1109,10 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
       method: "PATCH",
       body: JSON.stringify({ target: "feature_flags", key, value: v })
     });
-    if (r.ok) toast.success(`Feature '${key}' ${v ? "enabled" : "disabled"}`);
+    if (r.ok) {
+      setFlags((fs) => fs.map((f) => (f.key === key ? { ...f, is_enabled: v } : f)));
+      toast.success(`Feature '${key}' ${v ? "enabled" : "disabled"}`);
+    }
     else toast.error(r.error || "Failed to update feature flag");
   };
 
@@ -1148,7 +1279,7 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
         <Card className="p-5" accent={t.cob}>
           <SectionLabel color={t.cob}>feature flags & modules</SectionLabel>
           <div className="space-y-3">
-            {(featureFlags || []).map((f: any) => (
+            {(flags || []).map((f: any) => (
               <div key={f.key} className="flex items-center justify-between border-2 p-3" style={{ borderColor: t.border }}>
                 <div>
                   <div className="fb text-sm font-semibold" style={{ color: t.text }}>{f.key}</div>
@@ -1157,7 +1288,7 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
                 <Switch on={!!f.is_enabled} onChange={(v) => toggleFlag(f.key, v)} />
               </div>
             ))}
-            {(!featureFlags || featureFlags.length === 0) && <p className="fb text-sm" style={{ color: t.faint }}>No feature flags configured.</p>}
+            {(!flags || flags.length === 0) && <p className="fb text-sm" style={{ color: t.faint }}>No feature flags configured.</p>}
           </div>
         </Card>
       </Reveal>

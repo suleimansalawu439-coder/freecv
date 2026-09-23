@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { requireAdmin, adminFail } from '@/lib/admin-auth';
+import { logger } from '@/lib/logger';
 import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
@@ -38,15 +39,45 @@ export async function POST(req: Request) {
 
   // 3. optional comp / trial subscription
   if (b.grant_subscription) {
-    await supabaseAdmin.from('subscriptions').insert({
-      recruiter_id: (await supabaseAdmin.from('recruiters').select('id').eq('user_id', user.user.id).single()).data?.id,
+    const recruiterId = (await supabaseAdmin.from('recruiters').select('id').eq('user_id', user.user.id).single()).data?.id;
+    const { data: subRow, error: sErr } = await supabaseAdmin.from('subscriptions').insert({
+      recruiter_id: recruiterId,
       paystack_subscription_code: `manual_${crypto.randomBytes(6).toString('hex')}`,
       status: 'active', tier: b.grant_subscription.tier || 'pro',
       amount_minor: b.grant_subscription.amount_minor || 0, currency: b.grant_subscription.currency || 'USD',
       fx_to_usd: b.grant_subscription.fx_to_usd || 1, plan: b.grant_subscription.tier || 'pro',
       current_period_end: new Date(Date.now() + (b.grant_subscription.days || 30) * 864e5).toISOString(),
       paid_at: new Date().toISOString(),
-    });
+    }).select('id').single();
+    if (sErr) {
+      logger.error('admin', 'Comp/trial subscription insert failed', { error: sErr.message });
+    } else if (subRow?.id) {
+      // Mark the comp/trial grant in the revenue ledger at $0 so it never
+      // inflates MRR. Going forward only — no historical backfill.
+      try {
+        const { error: lErr } = await supabaseAdmin.from('revenue_ledger').insert({
+          ref: `comp_trial_${subRow.id}`,
+          source: 'subscription',
+          type: 'comp_trial',
+          recruiter_id: recruiterId,
+          amount_minor: 0,
+          currency: b.grant_subscription.currency || 'USD',
+          status: 'settled',
+          channel: 'manual',
+          period_start: new Date().toISOString(),
+          metadata: {
+            grant: 'comp_trial',
+            tier: b.grant_subscription.tier || 'pro',
+            days: b.grant_subscription.days || 30,
+            list_amount_minor: b.grant_subscription.amount_minor || 0,
+            subscription_id: subRow.id,
+          },
+        });
+        if (lErr) logger.error('admin', 'Comp/trial revenue_ledger insert failed', { error: lErr.message });
+      } catch (e: any) {
+        logger.error('admin', 'Comp/trial revenue_ledger insert threw', { error: e?.message || String(e) });
+      }
+    }
   }
   return NextResponse.json({ ok: true, email: b.email, temp_password: tempPassword });
 }

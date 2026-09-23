@@ -15,43 +15,50 @@ export async function GET() {
 
   try {
     const fetchCandidates = async () => {
-      try {
-        const res = await supabaseAdmin
+      let lastError: any = null;
+      const attempts = [
+        () => supabaseAdmin
           .from('candidates')
           .select('*')
           .is('deleted_at', null)
-          .order('opted_in_at', { ascending: false, nullsFirst: false });
-        if (!res.error && res.data) return res.data;
-      } catch {}
-      try {
-        const res = await supabaseAdmin
+          .order('opted_in_at', { ascending: false, nullsFirst: false }),
+        () => supabaseAdmin
           .from('candidates')
           .select('*')
           .is('deleted_at', null)
-          .order('updated_at', { ascending: false, nullsFirst: false });
-        if (!res.error && res.data) return res.data;
-      } catch {}
-      try {
-        const res = await supabaseAdmin.from('candidates').select('*').is('deleted_at', null);
-        if (!res.error && res.data) return res.data;
-      } catch {}
-      return [];
+          .order('updated_at', { ascending: false, nullsFirst: false }),
+        () => supabaseAdmin.from('candidates').select('*').is('deleted_at', null),
+      ];
+      for (const attempt of attempts) {
+        try {
+          const res = await attempt();
+          if (!res.error && res.data) return res.data;
+          lastError = res.error;
+        } catch (e: any) { lastError = e; }
+      }
+      logger.error('talent', 'All candidate fetch fallbacks failed', { error: lastError?.message || String(lastError) });
+      throw new Error('Failed to fetch candidates: ' + (lastError?.message || 'database unreachable'));
     };
 
     const fetchProfiles = async () => {
-      try {
-        const res = await supabaseAdmin
+      let lastError: any = null;
+      const attempts = [
+        () => supabaseAdmin
           .from('candidate_profiles')
           .select('*')
           .is('deleted_at', null)
-          .order('updated_at', { ascending: false, nullsFirst: false });
-        if (!res.error && res.data) return res.data;
-      } catch {}
-      try {
-        const res = await supabaseAdmin.from('candidate_profiles').select('*').is('deleted_at', null);
-        if (!res.error && res.data) return res.data;
-      } catch {}
-      return [];
+          .order('updated_at', { ascending: false, nullsFirst: false }),
+        () => supabaseAdmin.from('candidate_profiles').select('*').is('deleted_at', null),
+      ];
+      for (const attempt of attempts) {
+        try {
+          const res = await attempt();
+          if (!res.error && res.data) return res.data;
+          lastError = res.error;
+        } catch (e: any) { lastError = e; }
+      }
+      logger.error('talent', 'All candidate-profile fetch fallbacks failed', { error: lastError?.message || String(lastError) });
+      throw new Error('Failed to fetch candidate profiles: ' + (lastError?.message || 'database unreachable'));
     };
 
     const [candidatesData, profilesData] = await Promise.all([
