@@ -33,7 +33,8 @@ export async function GET() {
   try {
     const { data, error, count } = await supabaseAdmin
       .from('candidate_profiles')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .is('deleted_at', null);
     checks.supabase = {
       status: error ? 'ERROR' : 'OK',
       error: error?.message || null,
@@ -47,7 +48,8 @@ export async function GET() {
   try {
     const { error, count } = await supabaseAdmin
       .from('candidates')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .is('deleted_at', null);
     checks.candidates_table = {
       status: error ? 'ERROR' : 'OK',
       error: error?.message || null,
@@ -138,6 +140,7 @@ export async function GET() {
     const { data: candSample, error: candErr } = await supabaseAdmin
       .from('candidates')
       .select('id, email, full_name, created_at')
+      .is('deleted_at', null)
       .limit(1);
 
     if (candErr) {

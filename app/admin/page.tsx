@@ -12,15 +12,15 @@ export default async function AdminPage() {
   // Resilient candidate fetching that safely handles any column naming variation
   const fetchCandidates = async () => {
     try {
-      const res = await supabaseAdmin.from('candidates').select('*').order('opted_in_at', { ascending: false });
+      const res = await supabaseAdmin.from('candidates').select('*').is('deleted_at', null).order('opted_in_at', { ascending: false });
       if (!res.error && res.data) return res.data;
     } catch {}
     try {
-      const res = await supabaseAdmin.from('candidates').select('*').order('updated_at', { ascending: false });
+      const res = await supabaseAdmin.from('candidates').select('*').is('deleted_at', null).order('updated_at', { ascending: false });
       if (!res.error && res.data) return res.data;
     } catch {}
     try {
-      const res = await supabaseAdmin.from('candidates').select('*');
+      const res = await supabaseAdmin.from('candidates').select('*').is('deleted_at', null);
       if (!res.error && res.data) return res.data;
     } catch {}
     return [];
@@ -28,11 +28,11 @@ export default async function AdminPage() {
 
   const fetchProfiles = async () => {
     try {
-      const res = await supabaseAdmin.from('candidate_profiles').select('*').order('updated_at', { ascending: false });
+      const res = await supabaseAdmin.from('candidate_profiles').select('*').is('deleted_at', null).order('updated_at', { ascending: false });
       if (!res.error && res.data) return res.data;
     } catch {}
     try {
-      const res = await supabaseAdmin.from('candidate_profiles').select('*');
+      const res = await supabaseAdmin.from('candidate_profiles').select('*').is('deleted_at', null);
       if (!res.error && res.data) return res.data;
     } catch {}
     return [];

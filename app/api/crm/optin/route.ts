@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
     // Block demo/placeholder emails from polluting the database
     const BLOCKED_EMAILS = [
-      'jane@cvyon.dev', 'your.email@example.com', 'test@test.com',
+      'jane@cvyon.dev', 'test@example.com', 'your.email@example.com', 'test@test.com',
       'example@example.com', 'user@example.com', 'name@example.com',
       'email@example.com', 'placeholder@example.com',
     ];
@@ -75,21 +75,48 @@ export async function POST(request: Request) {
     const rawLocation = String(data?.personalInfo?.location || data?.location || '').trim();
     const website = String(data?.personalInfo?.website || data?.website || '').trim();
 
-    // Multi-source Country and City detection
-    let rawCountry = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || request.headers.get('x-country-code') || data?.country || '';
-    let city = '';
-    let country = String(rawCountry).toUpperCase().trim();
+    // Multi-source Country and City detection.
+    // Precedence: the user's explicitly typed location wins. IP-geolocation
+    // headers are only a fallback — they misfire on VPNs and mobile networks,
+    // which previously produced city/country mismatches (e.g. "Abuja" with "US").
+    const COUNTRY_NAME_TO_CODE: Record<string, string> = {
+      nigeria: 'NG', ghana: 'GH', kenya: 'KE', 'south africa': 'ZA', egypt: 'EG',
+      'united states': 'US', usa: 'US', 'united states of america': 'US',
+      'united kingdom': 'GB', uk: 'GB', england: 'GB', canada: 'CA', mexico: 'MX',
+      brazil: 'BR', argentina: 'AR', chile: 'CL', colombia: 'CO', germany: 'DE',
+      france: 'FR', netherlands: 'NL', ireland: 'IE', spain: 'ES', italy: 'IT',
+      portugal: 'PT', sweden: 'SE', norway: 'NO', poland: 'PL', ukraine: 'UA',
+      india: 'IN', pakistan: 'PK', bangladesh: 'BD', philippines: 'PH',
+      singapore: 'SG', malaysia: 'MY', indonesia: 'ID', japan: 'JP', china: 'CN',
+      'south korea': 'KR', korea: 'KR', australia: 'AU', 'new zealand': 'NZ',
+      uae: 'AE', 'united arab emirates': 'AE', 'saudi arabia': 'SA', qatar: 'QA',
+      israel: 'IL', turkey: 'TR', russia: 'RU',
+    };
+    const normalizeCountry = (raw: unknown): string => {
+      const t = String(raw ?? '').trim();
+      if (/^[A-Za-z]{2}$/.test(t)) return t.toUpperCase();
+      return COUNTRY_NAME_TO_CODE[t.toLowerCase()] || '';
+    };
 
+    let city = '';
+    let country = '';
     if (rawLocation) {
       const parts = rawLocation.split(',').map((p: string) => p.trim()).filter(Boolean);
       if (parts.length >= 2) {
         city = parts[0];
-        if (!country || country === 'UNKNOWN') {
-          country = parts[parts.length - 1];
-        }
+        country = normalizeCountry(parts[parts.length - 1]);
       } else if (parts.length === 1) {
         city = parts[0];
       }
+    }
+    if (!country) {
+      country = normalizeCountry(
+        request.headers.get('x-vercel-ip-country') ||
+        request.headers.get('cf-ipcountry') ||
+        request.headers.get('x-country-code') ||
+        (data as any)?.country ||
+        ''
+      );
     }
     if (!country || country === 'UNKNOWN') country = 'US';
 

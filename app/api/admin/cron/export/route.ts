@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     const { data: candidates, error } = await supabase
       .from('candidates')
       .select('name, email, job_title, location, country, opted_in_at')
+      .is('deleted_at', null)
       .gte('opted_in_at', sevenDaysAgo.toISOString())
       .order('opted_in_at', { ascending: false });
 
