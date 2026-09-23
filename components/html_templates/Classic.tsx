@@ -34,7 +34,7 @@ export default function Classic({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-sm italic mb-2">{exp.company}</p>
                 <ul className="space-y-1 pl-4 list-disc">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-sm leading-relaxed">
                       {line}
                     </li>

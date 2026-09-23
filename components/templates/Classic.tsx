@@ -176,7 +176,7 @@ export default function Classic({ data }: TemplateProps) {
                 </View>
                 <Text style={styles.companyText}>{exp.company}</Text>
                 {exp.description
-                  .split('\n')
+                  .split(/\\n|\r?\n/)
                   .filter((line) => line.trim())
                   .map((line, i) => (
                     <View key={i} style={styles.bulletRow}>

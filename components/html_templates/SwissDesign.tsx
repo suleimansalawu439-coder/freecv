@@ -96,7 +96,7 @@ export default function SwissDesign({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-sm font-bold text-gray-600 mb-4 uppercase tracking-wider">{exp.company}</p>
                 <ul className="space-y-2">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, j) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, j) => (
                     <li key={j} className="text-sm leading-relaxed">
                       {line}
                     </li>

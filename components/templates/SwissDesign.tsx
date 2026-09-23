@@ -301,7 +301,7 @@ export default function SwissDesign({ data }: TemplateProps) {
                       <Text style={styles.company}>{exp.company}</Text>
                       <View style={styles.bulletList}>
                         {exp.description
-                          .split('\n')
+                          .split(/\\n|\r?\n/)
                           .filter(l => l.trim())
                           .map((line, j) => (
                             <Text key={j} style={styles.bulletText}>{line}</Text>

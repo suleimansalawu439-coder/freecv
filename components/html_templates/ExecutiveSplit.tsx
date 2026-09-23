@@ -40,7 +40,7 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                     </div>
                     <p className="text-sm italic font-bold text-gray-700 mb-3">{exp.role}</p>
                     <ul className="space-y-2 pl-4 list-square marker:text-black">
-                      {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                      {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                         <li key={i} className="text-sm leading-relaxed">{line}</li>
                       ))}
                     </ul>

@@ -33,7 +33,7 @@ export default function TechPro({ data }: { data: ResumeData }) {
                   <span className="text-xs font-semibold text-gray-500 shrink-0 ml-4">[{exp.startDate} .. {exp.endDate}]</span>
                 </div>
                 <ul className="space-y-1 mt-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-sm text-gray-700 leading-relaxed flex gap-2">
                       <span className="text-gray-400">$</span>
                       <span className="flex-1">{line}</span>

@@ -111,7 +111,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   {exp.company}
                 </p>
                 <ul className="space-y-2">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, j) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, j) => (
                     <li key={j} className="text-sm text-gray-700 leading-relaxed flex gap-2">
                       <span style={{ color: c }}>•</span>
                       {line}

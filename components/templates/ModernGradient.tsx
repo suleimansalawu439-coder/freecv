@@ -285,7 +285,7 @@ export default function ModernGradient({ data }: TemplateProps) {
                 </View>
                 <View style={styles.bulletList}>
                   {exp.description
-                    .split('\n')
+                    .split(/\\n|\r?\n/)
                     .filter((l) => l.trim())
                     .map((line, j) => (
                       <View key={j} style={styles.bulletRow}>

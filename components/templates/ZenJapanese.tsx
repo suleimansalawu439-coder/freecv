@@ -223,7 +223,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
                   </View>
                   <Text style={styles.expCompany}>{exp.company}</Text>
                   <View>
-                    {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
+                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
                       <Text key={i} style={styles.expDesc}>{l}</Text>
                     ))}
                   </View>

@@ -154,7 +154,7 @@ export default function Academic({ data }: TemplateProps) {
                   <Text style={styles.itemSubtitle}>{exp.company}</Text>
                   {exp.description
                     ? exp.description
-                        .split('\n')
+                        .split(/\\n|\r?\n/)
                         .filter((line) => line.trim())
                         .map((line, i) => (
                           <View key={i} style={styles.bulletRow}>

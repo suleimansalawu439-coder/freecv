@@ -79,7 +79,7 @@ export async function POST(request: Request) {
           ]
         }));
         if (exp.description) {
-          exp.description.split('\n').forEach(line => {
+          exp.description.split(/\\n|\r?\n/).forEach(line => {
             if (line.trim()) {
               children.push(new Paragraph({
                 text: line.replace(/^[-\*]\s*/, '').trim(),

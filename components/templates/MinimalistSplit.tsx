@@ -287,7 +287,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
                   {exp.description ? (
                     <View style={styles.bulletList}>
                       {exp.description
-                        .split('\n')
+                        .split(/\\n|\r?\n/)
                         .filter(Boolean)
                         .map((line, i) => (
                           <View key={i} style={styles.bulletRow}>

@@ -35,7 +35,7 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-[9px] font-light uppercase tracking-[0.15em] text-[#8A7A6A] mb-2">{exp.company}</p>
                 <ul className="space-y-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
                     <li key={i} className="text-[12px] text-[#4A3A2A] leading-relaxed">
                       {l}
                     </li>

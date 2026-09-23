@@ -54,7 +54,7 @@ export default function MinimalistSplit({ data }: { data: ResumeData }) {
                   </div>
                   <div className="text-sm font-medium" style={{ color: 'var(--theme-color)' }}>{exp.company}</div>
                   <ul className="mt-3 list-disc list-outside ml-4 space-y-1 text-sm text-gray-600">
-                    {exp.description.split('\n').filter(Boolean).map((line, i) => (
+                    {exp.description.split(/\\n|\r?\n/).filter(Boolean).map((line, i) => (
                       <li key={i}>{line}</li>
                     ))}
                   </ul>

@@ -273,7 +273,7 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                     </View>
                     <Text style={styles.expRole}>{exp.role}</Text>
                     {exp.description
-                      .split('\n')
+                      .split(/\\n|\r?\n/)
                       .filter((l) => l.trim())
                       .map((line, i) => (
                         <View key={i} style={styles.bulletRow}>

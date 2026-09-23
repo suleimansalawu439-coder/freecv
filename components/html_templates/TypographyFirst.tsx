@@ -35,7 +35,7 @@ export default function TypographyFirst({ data }: { data: ResumeData }) {
                 <div>
                   <h3 className="text-lg font-bold mb-3">{exp.role}</h3>
                   <ul className="space-y-2">
-                    {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                       <li key={i} className="text-sm leading-relaxed font-sans text-gray-800">
                         {line}
                       </li>

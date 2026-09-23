@@ -268,7 +268,7 @@ export default function TechPro({ data }: TemplateProps) {
                   <Text style={styles.expDates}>[{exp.startDate} .. {exp.endDate}]</Text>
                 </View>
                 {exp.description
-                  .split('\n')
+                  .split(/\\n|\r?\n/)
                   .filter((l) => l.trim())
                   .map((line, i) => (
                     <View key={i} style={styles.bulletRow}>

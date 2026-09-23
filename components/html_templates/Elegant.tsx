@@ -35,7 +35,7 @@ export default function Elegant({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-sm italic text-gray-500 mb-3">{exp.company}</p>
                 <ul className="space-y-1.5">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-xs leading-relaxed font-sans text-gray-600 flex gap-4">
                       <span className="text-gray-300">•</span>
                       <span className="flex-1">{line}</span>

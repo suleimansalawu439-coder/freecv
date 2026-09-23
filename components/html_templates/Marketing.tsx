@@ -43,7 +43,7 @@ export default function Marketing({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-sm font-bold text-gray-500 mb-3 uppercase tracking-wider">{exp.company}</p>
                 <ul className="space-y-2">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-sm leading-relaxed text-gray-600 flex gap-3">
                       <span className="text-[var(--theme-color)] font-black">›</span>
                       <span>{line}</span>

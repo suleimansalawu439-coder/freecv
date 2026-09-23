@@ -36,7 +36,7 @@ export default function Executive({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-sm font-bold text-gray-500 mb-2 font-sans uppercase tracking-wider">{exp.company}</p>
                 <ul className="space-y-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-sm text-gray-700 leading-relaxed flex gap-3">
                       <span className="mt-2 w-1 h-1 rounded-full bg-black shrink-0" />
                       <span className="flex-1">{line}</span>

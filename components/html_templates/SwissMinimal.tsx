@@ -29,7 +29,7 @@ export default function SwissMinimal({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">{exp.company}</p>
                 <ul className="space-y-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
                     <li key={i} className="text-[12px] text-gray-600 leading-relaxed flex gap-2">
                       <span className="w-1 h-1 rounded-full bg-gray-300 mt-1.5 shrink-0" />{l}
                     </li>

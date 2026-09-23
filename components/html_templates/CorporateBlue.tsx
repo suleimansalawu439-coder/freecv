@@ -33,7 +33,7 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#8A9AAB] mb-2">{exp.company}</p>
                 <ul className="space-y-1">
-                  {exp.description.split('\n').filter(l => l.trim()).map((l, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
                     <li key={i} className="text-[13px] text-[#3A4A5A] leading-relaxed flex gap-2">
                       <span className="text-[#C8A86A]">•</span>{l}
                     </li>

@@ -49,7 +49,7 @@ export default function Academic({ data }: { data: ResumeData }) {
                   <p className="text-sm font-bold">{exp.role}</p>
                   <p className="text-sm italic mb-1">{exp.company}</p>
                   <ul className="pl-4 list-disc">
-                    {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                       <li key={i} className="text-sm">{line}</li>
                     ))}
                   </ul>

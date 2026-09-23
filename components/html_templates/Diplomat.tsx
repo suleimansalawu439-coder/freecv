@@ -59,7 +59,7 @@ export default function Diplomat({ data }: { data: ResumeData }) {
                   {exp.company}
                 </p>
                 <ul className="space-y-1.5">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                     <li key={i} className="text-[11.5px] leading-[1.7] text-[#444] flex gap-3">
                       <span className="mt-[7px] w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: c }} />
                       <span className="flex-1">{line}</span>

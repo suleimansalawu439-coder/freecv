@@ -239,7 +239,7 @@ export default function Elegant({ data }: TemplateProps) {
                 <Text style={styles.companyText}>{exp.company}</Text>
                 <View style={styles.bulletList}>
                   {exp.description
-                    .split('\n')
+                    .split(/\\n|\r?\n/)
                     .filter((line) => line.trim())
                     .map((line, i) => (
                       <View key={i} style={styles.bulletRow}>

@@ -175,11 +175,11 @@ export function RisoNav() {
 }
 
 export function RisoFooter() {
-  const cols: [string, string[]][] = [
-    ["product", ["Builder", "ATS Grader", "Cover Letter", "Templates"]],
-    ["company", ["Career Blog", "Recruiter Portal", "Why free"]],
-    ["legal", ["Privacy & GDPR", "Manage Data", "Terms"]],
-    ["elsewhere", ["X / Twitter", "LinkedIn", "GitHub"]],
+  const cols: [string, { label: string; href: string }[]][] = [
+    ["product", [{ label: "Builder", href: "/build" }, { label: "ATS Grader", href: "/ats-grader" }, { label: "Cover Letter", href: "/cover-letter" }, { label: "Templates", href: "/build" }]],
+    ["company", [{ label: "Career Blog", href: "/blog" }, { label: "Recruiter Portal", href: "/recruiter" }, { label: "Support", href: "/support" }]],
+    ["legal", [{ label: "Privacy & GDPR", href: "/privacy" }, { label: "Manage Data", href: "/manage-data" }, { label: "Terms", href: "/terms" }]],
+    ["connect", [{ label: "Email us", href: "mailto:hello@cvyon.com" }, { label: "Developers", href: "/developers" }]],
   ];
   return (
     <footer className="relative overflow-hidden border-t-[3px] border-[#141312] bg-[#E8E7E1] px-5 pb-8 pt-14 lg:px-8">
@@ -192,9 +192,9 @@ export function RisoFooter() {
               </div>
               <ul className="space-y-2 text-sm">
                 {items.map((it) => (
-                  <li key={it}>
-                    <Link href="/" className="hover:text-[#FF4326]">
-                      {it}
+                  <li key={it.label}>
+                    <Link href={it.href} className="hover:text-[#FF4326]">
+                      {it.label}
                     </Link>
                   </li>
                 ))}

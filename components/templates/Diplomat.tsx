@@ -282,7 +282,7 @@ export default function Diplomat({ data }: TemplateProps) {
                 </View>
                 <Text style={[styles.companyName, { color: c }]}>{exp.company}</Text>
                 {exp.description
-                  .split('\n')
+                  .split(/\\n|\r?\n/)
                   .filter(l => l.trim())
                   .map((line, i) => (
                     <View key={i} style={styles.bulletRow}>

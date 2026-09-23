@@ -102,7 +102,7 @@ export default function Marketing({ data }: TemplateProps) {
                   <Text style={styles.expCompany}>{exp.company}</Text>
                   {exp.description
                     ? exp.description
-                        .split('\n')
+                        .split(/\\n|\r?\n/)
                         .filter((l) => l.trim())
                         .map((line, i) => (
                           <View key={i} style={styles.bulletRow}>

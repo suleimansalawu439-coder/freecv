@@ -306,7 +306,7 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                     <Text style={styles.expCompany}>{exp.company}</Text>
                     {exp.description
                       ? exp.description
-                          .split('\n')
+                          .split(/\\n|\r?\n/)
                           .filter((l) => l.trim())
                           .map((line, j) => (
                             <View key={j} style={styles.bulletRow}>

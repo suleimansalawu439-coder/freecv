@@ -266,7 +266,7 @@ export default function TypographyFirst({ data }: TemplateProps) {
                 <View style={styles.colRight}>
                   <Text style={styles.roleTitle}>{exp.role}</Text>
                   <View style={styles.bulletList}>
-                    {exp.description.split('\n').filter(l => l.trim()).map((line, i) => (
+                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
                       <Text key={i} style={styles.bulletItem}>{line}</Text>
                     ))}
                   </View>

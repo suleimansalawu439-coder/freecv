@@ -51,7 +51,7 @@ export default function ModernGradient({ data }: { data: ResumeData }) {
                   </span>
                 </div>
                 <ul className="space-y-2">
-                  {exp.description.split('\n').filter(l => l.trim()).map((line, j) => (
+                  {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, j) => (
                     <li key={j} className="text-sm text-gray-600 flex gap-3">
                       <span className="mt-1" style={{ color: c }}>•</span>
                       {line}
