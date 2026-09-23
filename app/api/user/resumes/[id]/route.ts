@@ -1,32 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { cookies } from 'next/headers';
-import * as jose from 'jose';
+import { createClient } from '@/utils/supabase/server';
 
 export const runtime = 'edge';
 
 async function getUser() {
-  const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll();
-  const authCookie = allCookies.find(c => c.name.includes('-auth-token'));
-  
-  if (!authCookie) return null;
-  
-  try {
-    const parsed = JSON.parse(authCookie.value);
-    const token = parsed[0] || parsed.access_token;
-    if (!token) return null;
-
-    let secretStr = process.env.SUPABASE_JWT_SECRET || 'super-secret-jwt-token-with-at-least-32-characters-long';
-    // If it's a base64 encoded secret from the Supabase UI (no hyphens, typical for legacy JWT)
-    const isBase64 = !secretStr.includes('-') && secretStr.length > 50;
-    // Edge runtime compatible base64 decoding (Buffer is not available on Edge)
-    const secret = isBase64 ? Uint8Array.from(atob(secretStr), c => c.charCodeAt(0)) : new TextEncoder().encode(secretStr);
-    const { payload } = await jose.jwtVerify(token, secret);
-    return payload.sub;
-  } catch (e) {
-    return null;
-  }
+  // Session validated via the Supabase Auth API — no JWT secret required,
+  // so no fallback secret exists anywhere in this file (SEC-07).
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user?.id ?? null;
 }
 
 export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
