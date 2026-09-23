@@ -42,6 +42,7 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
   const [uploadingContent, setUploadingContent] = useState(false);
   const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null);
   const deleteArmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editorEverFocused = useRef(false);
   const headerFileRef = useRef<HTMLInputElement>(null);
   const contentFileRef = useRef<HTMLInputElement>(null);
 
@@ -166,9 +167,13 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
       return;
     }
     const node = { type: 'blogImage', attrs: { src: img.image_url, alt: img.caption || '' } };
-    let inserted = editorInstance.chain().focus().insertContent(node).run();
+    let inserted = false;
+    if (editorEverFocused.current) {
+      // Editor had a cursor before — restore it and insert there.
+      inserted = editorInstance.chain().focus().insertContent(node).run();
+    }
     if (!inserted) {
-      // No cursor/selection in the editor — drop the image at the end of the document.
+      // No cursor was ever placed in the editor — append at the end of the document.
       try {
         const endPos = editorInstance.state.doc.content.size;
         inserted = editorInstance.chain().setTextSelection(endPos).insertContent(node).run();
@@ -303,7 +308,8 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
                       key={editingPost.id || 'new'}
                       content={editingPost.content} 
                       onChange={(content) => setEditingPost({ ...editingPost, content })}
-                      onReady={setEditorInstance}
+                      onReady={(editor) => { editorEverFocused.current = false; setEditorInstance(editor); }}
+                      onFocus={() => { editorEverFocused.current = true; }}
                       isDarkMode={isDarkMode}
                     />
                   </div>
@@ -626,7 +632,7 @@ const MenuBar = ({ editor, isDarkMode }: { editor: any, isDarkMode: boolean }) =
   );
 };
 
-const TiptapEditor = ({ content, onChange, onReady, isDarkMode }: { content: string, onChange: (html: string) => void, onReady?: (editor: any) => void, isDarkMode: boolean }) => {
+const TiptapEditor = ({ content, onChange, onReady, onFocus, isDarkMode }: { content: string, onChange: (html: string) => void, onReady?: (editor: any) => void, onFocus?: () => void, isDarkMode: boolean }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -636,6 +642,7 @@ const TiptapEditor = ({ content, onChange, onReady, isDarkMode }: { content: str
     ],
     content: content || '<p>Start writing your post here...</p>',
     onCreate: ({ editor }) => { onReady?.(editor); },
+    onFocus: () => { onFocus?.(); },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
