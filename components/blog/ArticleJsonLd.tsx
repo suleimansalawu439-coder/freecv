@@ -24,7 +24,8 @@ export function ArticleJsonLd({ post }: { post: any }) {
     jsonLd.author = { '@type': 'Person', name: authorName };
   }
   if (post?.header_image) {
-    jsonLd.image = post.header_image;
+    const raw = String(post.header_image);
+    jsonLd.image = raw.startsWith('http') ? raw : `https://cvyon.com${raw.startsWith('/') ? '' : '/'}${raw}`;
   }
 
   return (

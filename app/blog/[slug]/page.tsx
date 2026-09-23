@@ -42,8 +42,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .trim()
     .slice(0, 160);
   const description = post.meta_description || contentExcerpt || `Read ${post.title} on the Cvyon Career Hub.`;
-  // og:image fallback: header_image → site default og image.
-  const ogImage = post.header_image || 'https://cvyon.com/og-image.jpg';
+  // og:image fallback: header_image (absolutized) → site default og image.
+  const rawOg = post.header_image || 'https://cvyon.com/og-image.jpg';
+  const ogImage = rawOg.startsWith('http') ? rawOg : `https://cvyon.com${rawOg.startsWith('/') ? '' : '/'}${rawOg}`;
 
   return {
     title: `${post.title} | Cvyon Blog`,

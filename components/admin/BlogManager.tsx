@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Heading from '@tiptap/extension-heading';
 import Link from '@tiptap/extension-link';
-import { Plus, Edit2, Trash2, Check, X, FileText, Globe, EyeOff, Save, Bold, Italic, List, ListOrdered } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, FileText, Globe, EyeOff, Save, Bold, Italic, List, ListOrdered, ImagePlus, Upload, Loader2, Images } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import toast from 'react-hot-toast';
@@ -14,10 +15,152 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Minimal image node so post-body images render in the editor without extra deps. */
+const BlogImage = Node.create({
+  name: 'blogImage',
+  group: 'block',
+  atom: true,
+  draggable: true,
+  addAttributes() {
+    return {
+      src: { default: null },
+      alt: { default: null },
+      title: { default: null },
+    };
+  },
+  parseHTML() { return [{ tag: 'img[src]' }]; },
+  renderHTML({ HTMLAttributes }) { return ['img', mergeAttributes(HTMLAttributes)]; },
+});
+
 export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[], isDarkMode: boolean }) {
   const [posts, setPosts] = useState<any[]>(blogPosts || []);
   const [editingPost, setEditingPost] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<any>(null);
+  const [contentImages, setContentImages] = useState<any[]>([]);
+  const [uploadingHeader, setUploadingHeader] = useState(false);
+  const [uploadingContent, setUploadingContent] = useState(false);
+  const headerFileRef = useRef<HTMLInputElement>(null);
+  const contentFileRef = useRef<HTMLInputElement>(null);
+
+  // Load content images whenever the edited post changes
+  useEffect(() => {
+    if (editingPost?.id) {
+      fetch(`/api/admin/blog/images?post_id=${editingPost.id}`)
+        .then(r => r.json())
+        .then(d => { if (Array.isArray(d)) setContentImages(d); })
+        .catch(() => {});
+    } else {
+      setContentImages([]);
+    }
+    setEditorInstance(null);
+  }, [editingPost?.id]);
+
+  const uploadImage = async (file: File, kind: 'header' | 'content', caption = '') => {
+    if (!editingPost?.id) {
+      toast.error('Save the post first, then add images');
+      return null;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    form.append('post_id', editingPost.id);
+    form.append('kind', kind);
+    if (caption) form.append('caption', caption);
+    const res = await fetch('/api/admin/blog/images', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    return data;
+  };
+
+  const handleHeaderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingHeader(true);
+    try {
+      const data = await uploadImage(file, 'header');
+      if (data) {
+        setEditingPost({ ...editingPost, header_image: data.image_url });
+        toast.success('Header image uploaded');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Header upload failed');
+    } finally {
+      setUploadingHeader(false);
+      if (headerFileRef.current) headerFileRef.current.value = '';
+    }
+  };
+
+  const handleHeaderRemove = async () => {
+    if (!editingPost?.id || !editingPost.header_image) return;
+    if (!confirm('Remove the header image?')) return;
+    try {
+      const res = await fetch(`/api/admin/blog/images?post_id=${editingPost.id}&kind=header`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to remove header image');
+      setEditingPost({ ...editingPost, header_image: '' });
+      toast.success('Header image removed');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to remove header image');
+    }
+  };
+
+  const handleContentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setUploadingContent(true);
+    try {
+      for (const file of files) {
+        const data = await uploadImage(file, 'content');
+        if (data) setContentImages(prev => [...prev, data]);
+      }
+      toast.success(files.length === 1 ? 'Image uploaded' : `${files.length} images uploaded`);
+    } catch (err: any) {
+      toast.error(err.message || 'Image upload failed');
+    } finally {
+      setUploadingContent(false);
+      if (contentFileRef.current) contentFileRef.current.value = '';
+    }
+  };
+
+  const handleCaptionSave = async (img: any, caption: string) => {
+    try {
+      const res = await fetch('/api/admin/blog/images', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: img.id, caption }),
+      });
+      if (!res.ok) throw new Error('Failed to save caption');
+      setContentImages(prev => prev.map(i => i.id === img.id ? { ...i, caption } : i));
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save caption');
+    }
+  };
+
+  const handleImageDelete = async (img: any) => {
+    if (!confirm('Delete this image?')) return;
+    try {
+      const res = await fetch(`/api/admin/blog/images?id=${img.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete image');
+      setContentImages(prev => prev.filter(i => i.id !== img.id));
+      toast.success('Image deleted');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete image');
+    }
+  };
+
+  const insertImageIntoPost = (img: any) => {
+    if (!editorInstance) {
+      toast.error('Editor is not ready yet');
+      return;
+    }
+    editorInstance
+      .chain()
+      .focus()
+      .insertContent({ type: 'blogImage', attrs: { src: img.image_url, alt: img.caption || '' } })
+      .run();
+    const html = editorInstance.getHTML();
+    setEditingPost({ ...editingPost, content: html });
+    toast.success('Image inserted into post');
+  };
 
   const handleEdit = (post: any) => {
     setEditingPost({ ...post });
@@ -136,8 +279,10 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
                   <label className={cn("block text-sm font-medium mb-1", isDarkMode ? "text-gray-300" : "text-gray-700")}>Content</label>
                   <div className={cn("border rounded-lg overflow-hidden", isDarkMode ? "border-gray-700" : "border-gray-300")}>
                     <TiptapEditor 
+                      key={editingPost.id || 'new'}
                       content={editingPost.content} 
                       onChange={(content) => setEditingPost({ ...editingPost, content })}
+                      onReady={setEditorInstance}
                       isDarkMode={isDarkMode}
                     />
                   </div>
@@ -173,23 +318,118 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
                   />
                 </div>
                 
-                <div>
-                  <label className={cn("block text-sm font-medium mb-1", isDarkMode ? "text-gray-300" : "text-gray-700")}>Header Image URL</label>
-                  <input 
-                    type="text" 
+                <div className={cn("rounded-xl border p-4", isDarkMode ? "border-gray-700 bg-gray-900/40" : "border-gray-200 bg-gray-50")}>
+                  <h4 className="font-bold text-sm mb-3 flex items-center gap-2">
+                    <ImagePlus size={16} className="text-blue-500" />
+                    Post Images
+                  </h4>
+
+                  {/* Header image */}
+                  <label className={cn("block text-xs font-semibold uppercase tracking-wider mb-1", isDarkMode ? "text-gray-400" : "text-gray-500")}>
+                    Header image
+                  </label>
+                  <input ref={headerFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleHeaderUpload} />
+                  {editingPost.header_image ? (
+                    <div className="relative rounded-lg overflow-hidden border border-gray-700">
+                      <img src={editingPost.header_image} alt="Header preview" className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <button
+                          onClick={() => headerFileRef.current?.click()}
+                          disabled={uploadingHeader}
+                          className="px-2.5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1.5 shadow"
+                        >
+                          {uploadingHeader ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                          Replace
+                        </button>
+                        <button
+                          onClick={handleHeaderRemove}
+                          className="px-2.5 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-1.5 shadow"
+                        >
+                          <Trash2 size={14} />
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => editingPost.id ? headerFileRef.current?.click() : toast.error('Save the post first, then add a header image')}
+                      disabled={uploadingHeader}
+                      className={cn("w-full py-6 rounded-lg border-2 border-dashed text-sm font-medium flex flex-col items-center gap-2 transition-colors", isDarkMode ? "border-gray-700 text-gray-400 hover:border-blue-500 hover:text-blue-400" : "border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-600")}
+                    >
+                      {uploadingHeader ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+                      {uploadingHeader ? 'Uploading…' : 'Upload header image'}
+                    </button>
+                  )}
+                  <input
+                    type="text"
                     value={editingPost.header_image || ''}
                     onChange={(e) => setEditingPost({ ...editingPost, header_image: e.target.value })}
-                    className={cn("w-full px-3 py-2 text-sm rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all", isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-300")}
-                    placeholder="https://example.com/image.jpg"
+                    className={cn("mt-2 w-full px-3 py-2 text-xs rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono", isDarkMode ? "bg-gray-900 border-gray-700" : "bg-white border-gray-300")}
+                    placeholder="…or paste an image URL"
                   />
                   <p className={cn("text-xs mt-1", isDarkMode ? "text-gray-500" : "text-gray-400")}>
                     Used as the hero image and OpenGraph image for social sharing.
                   </p>
-                  {editingPost.header_image && (
-                    <div className="mt-2 rounded-lg overflow-hidden border border-gray-700">
-                      <img src={editingPost.header_image} alt="Header preview" className="w-full h-32 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+
+                  {/* Content images */}
+                  <div className="mt-4 pt-4 border-t border-gray-700/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className={cn("text-xs font-semibold uppercase tracking-wider", isDarkMode ? "text-gray-400" : "text-gray-500")}>
+                        Content images ({contentImages.length})
+                      </label>
+                      <button
+                        onClick={() => editingPost.id ? contentFileRef.current?.click() : toast.error('Save the post first, then add images')}
+                        disabled={uploadingContent}
+                        className="px-2.5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1.5"
+                      >
+                        {uploadingContent ? <Loader2 size={14} className="animate-spin" /> : <Images size={14} />}
+                        {uploadingContent ? 'Uploading…' : 'Add images'}
+                      </button>
                     </div>
-                  )}
+                    <input ref={contentFileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple className="hidden" onChange={handleContentUpload} />
+                    {!editingPost.id && (
+                      <p className={cn("text-xs", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+                        Save the post first to attach images.
+                      </p>
+                    )}
+                    {contentImages.length > 0 && (
+                      <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        {contentImages.map((img) => (
+                          <div key={img.id} className={cn("flex gap-2 p-2 rounded-lg border", isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white")}>
+                            <img src={img.image_url} alt={img.caption || 'Content image'} className="w-16 h-16 object-cover rounded-md border border-gray-700/50 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <input
+                                type="text"
+                                defaultValue={img.caption || ''}
+                                onBlur={(e) => { if (e.target.value !== (img.caption || '')) handleCaptionSave(img, e.target.value); }}
+                                placeholder="Caption (alt text)…"
+                                className={cn("w-full px-2 py-1 text-xs rounded border outline-none focus:ring-1 focus:ring-blue-500", isDarkMode ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-300")}
+                              />
+                              <div className="flex gap-1 mt-1.5">
+                                <button
+                                  onClick={() => insertImageIntoPost(img)}
+                                  className="px-2 py-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded flex items-center gap-1"
+                                >
+                                  <ImagePlus size={12} />
+                                  Insert into post
+                                </button>
+                                <button
+                                  onClick={() => handleImageDelete(img)}
+                                  className="px-2 py-1 text-[11px] font-bold bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded flex items-center gap-1"
+                                >
+                                  <Trash2 size={12} />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className={cn("text-xs mt-2", isDarkMode ? "text-gray-500" : "text-gray-400")}>
+                      Insert images into the post at your cursor. They render framed in the article style.
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="pt-4 border-t border-gray-700">
@@ -360,14 +600,16 @@ const MenuBar = ({ editor, isDarkMode }: { editor: any, isDarkMode: boolean }) =
   );
 };
 
-const TiptapEditor = ({ content, onChange, isDarkMode }: { content: string, onChange: (html: string) => void, isDarkMode: boolean }) => {
+const TiptapEditor = ({ content, onChange, onReady, isDarkMode }: { content: string, onChange: (html: string) => void, onReady?: (editor: any) => void, isDarkMode: boolean }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
+      BlogImage,
       Heading.configure({ levels: [1, 2, 3] }),
       Link.configure({ openOnClick: false })
     ],
     content: content || '<p>Start writing your post here...</p>',
+    onCreate: ({ editor }) => { onReady?.(editor); },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -380,6 +622,7 @@ const TiptapEditor = ({ content, onChange, isDarkMode }: { content: string, onCh
 
   return (
     <div className={cn("flex flex-col h-full", isDarkMode ? "bg-gray-900" : "bg-white")}>
+      <style>{`.ProseMirror img{max-width:100%;height:auto;border:3px solid #141312;margin:0.75em 0;display:block;}`}</style>
       <MenuBar editor={editor} isDarkMode={isDarkMode} />
       <EditorContent editor={editor} className="flex-1 overflow-y-auto" />
     </div>
