@@ -119,6 +119,15 @@ export default function RecruiterPortal() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  // payment callback feedback (?payment=success|failed from Paystack return)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment === "success") toast.success("Payment confirmed — pro access activated.");
+    else if (payment === "failed") toast.error("We couldn't confirm your payment yet — it may still be processing.");
+    if (payment) router.replace("/recruiter/dashboard");
+  }, [router]);
+
   // escape closes the detail drawer
   useEffect(() => {
     if (!selected) return;
@@ -148,7 +157,7 @@ export default function RecruiterPortal() {
     finally { setCheckingOut(false); }
   };
 
-  const priceLabel = billing ? `${billing.currency} ${(Number(billing.amount) / 100).toLocaleString()}/mo` : "$99/mo";
+  const priceLabel = billing ? `${billing.currency} ${(Number(billing.amount) / 100).toLocaleString()}/mo` : "NGN 9,900/mo";
 
   const shell = (ticker: boolean, children: React.ReactNode) => (
     <RisoPage pageName="recruiter" ticker={ticker}>

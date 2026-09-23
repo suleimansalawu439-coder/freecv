@@ -35,6 +35,35 @@ async function claim(eventId: string): Promise<boolean> {
   }
 }
 
+/* One-time (non-subscription) payment: grant 30 days of pro access so a
+ * successful charge ALWAYS activates the recruiter. Uses a prefixed code so
+ * it never collides with real Paystack subscription codes. Idempotent via
+ * the claim() on the charge reference performed by the caller. */
+async function activateOneTimeAccess(reference: string, recruiterId: string, d: any) {
+  const code = `onetime:${reference}`;
+  const periodEnd = new Date(Date.now() + 30 * 864e5).toISOString();
+  const amount = d?.amount;
+  const cur = d?.currency || 'NGN';
+  try {
+    await supabaseAdmin.from('subscriptions').upsert({
+      recruiter_id: recruiterId,
+      paystack_subscription_code: code,
+      status: 'active',
+      tier: planName(d),
+      plan: planName(d),
+      current_period_end: periodEnd,
+      paid_at: new Date().toISOString(),
+      amount_minor: amount != null ? Number(amount) : null,
+      currency: cur,
+      fx_to_usd: fxFor(cur),
+    }, { onConflict: 'paystack_subscription_code' });
+    logger.info('webhook', '[webhook] one-time access activated for recruiter', recruiterId);
+  } catch (e: any) {
+    logger.error('webhook', '[webhook] one-time activation failed:', e?.message);
+    throw e;
+  }
+}
+
 /* Resolve the recruiter for this event: metadata first, then customer code. */
 async function resolveRecruiterId(d: any): Promise<string | null> {
   const metaId = d?.metadata?.recruiter_id;
@@ -179,6 +208,10 @@ export async function processPaystackEvent(event: any): Promise<boolean> {
       const subscriptionCode = d?.subscription?.subscription_code || d?.subscription_code;
       if (subscriptionCode && recruiterId) {
         await upsertSubscription(subscriptionCode, recruiterId, d);
+      } else if (!subscriptionCode && recruiterId) {
+        // one-time payment (no Paystack plan attached): grant 30 days of
+        // pro access so the charge actually unlocks the product.
+        await activateOneTimeAccess(reference, recruiterId, d);
       } else if (subscriptionCode && !recruiterId) {
         // renewal where metadata is gone but the sub row exists: extend by code
         const amount = d?.amount, cur = d?.currency || 'NGN';

@@ -10,8 +10,28 @@ export default function RecruiterLanding() {
   const router = useRouter();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) router.push("/recruiter/dashboard");
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session?.user) return;
+      // Returning from Paystack? Verify the transaction server-side before
+      // landing on the dashboard, so activation never depends on the webhook.
+      const params = new URLSearchParams(window.location.search);
+      const reference = params.get("reference") || params.get("trxref");
+      if (reference) {
+        try {
+          const res = await fetch("/api/paystack/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ reference }),
+          });
+          const json = await res.json().catch(() => ({}));
+          router.push(json.ok ? "/recruiter/dashboard?payment=success" : "/recruiter/dashboard?payment=failed");
+        } catch {
+          router.push("/recruiter/dashboard?payment=failed");
+        }
+      } else {
+        router.push("/recruiter/dashboard");
+      }
     });
   }, [router]);
 

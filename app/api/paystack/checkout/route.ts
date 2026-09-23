@@ -33,6 +33,18 @@ export async function POST(req: Request) {
 
     const billingSettings = settings?.value || { amount: 990000, currency: 'NGN' };
 
+    // Optional: a real Paystack plan code (e.g. PLN_xxxx) configured in the
+    // `paystack_plans` app setting. When present, initialize() creates a true
+    // recurring subscription; otherwise this is a one-time charge that the
+    // webhook converts into 30 days of pro access.
+    const { data: planSettings } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'paystack_plans')
+      .single();
+
+    const planCode = (planSettings?.value as any)?.plan_code || null;
+
     // Call Paystack API
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
@@ -45,6 +57,7 @@ export async function POST(req: Request) {
         email: user.email,
         amount: billingSettings.amount,
         currency: billingSettings.currency,
+        ...(planCode ? { plan: planCode } : {}),
         callback_url: `${siteUrl}/recruiter`,
         metadata: {
           recruiter_id: recruiter.id,
