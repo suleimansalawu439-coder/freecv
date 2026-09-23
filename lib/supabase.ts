@@ -17,7 +17,6 @@ const supabaseServiceKey =
   process.env.SUPABASE_SERVICE_KEY || 
   process.env.SUPABASE_SECRET_KEY || 
   process.env.SUPABASE_SERVICE_ROLE || 
-  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || 
   '';
 
 const mockClient = (table: string) => {

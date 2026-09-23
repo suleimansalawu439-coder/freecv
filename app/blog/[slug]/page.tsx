@@ -11,11 +11,17 @@ export const revalidate = 60; // Revalidate every minute
 // Generate dynamic metadata for SEO + OpenGraph
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const { data: post } = await supabaseAdmin
-    .from('blog_posts')
-    .select('title, meta_description, header_image')
-    .eq('slug', resolvedParams.slug)
-    .single();
+  let post: any = null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('title, meta_description, header_image')
+      .eq('slug', resolvedParams.slug)
+      .maybeSingle();
+    if (!error) post = data;
+  } catch {
+    post = null;
+  }
 
   if (!post) {
     return { title: 'Post Not Found' };
@@ -45,11 +51,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
-  const { data: post } = await supabaseAdmin
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', resolvedParams.slug)
-    .single();
+  let post: any = null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', resolvedParams.slug)
+      .maybeSingle();
+    if (error) throw error;
+    post = data;
+  } catch {
+    // Database/network failure: let the error boundary render a friendly page
+    // instead of a raw 500.
+    throw new Error('Failed to load this article. Please try again.');
+  }
 
   if (!post || !post.is_published) {
     notFound();

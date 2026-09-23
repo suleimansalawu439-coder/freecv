@@ -155,7 +155,7 @@ export default function FreeCVApp() {
     certifications: storeData.certifications || [],
     references: storeData.references || [],
     customSections: storeData.customSections || [],
-    consents: storeData.consents || { recruiterShare: true, emailJobs: true, analytics: true }
+    consents: storeData.consents || { recruiterShare: false, emailJobs: false, analytics: false }
   }), [storeData]);
 
   const [skillInput, setSkillInput] = useState('');
@@ -476,6 +476,7 @@ export default function FreeCVApp() {
 
   return (
     <main className={cn("flex flex-col lg:flex-row min-h-screen w-full font-sans selection:bg-black selection:text-white print:block print:h-auto print:overflow-visible", 'bg-[#E8E7E1] text-[#141312] cv-riso')}>
+      <h1 className="sr-only">Free Resume Builder — create, edit, and download your resume</h1>
 
       {/* EDITOR PANEL */}
       <section className="w-full lg:w-[45%] border-r-[3px] border-[#141312] print:hidden px-6 py-8 lg:px-10 lg:py-12 flex-shrink-0 relative bg-white">

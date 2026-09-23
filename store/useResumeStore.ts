@@ -28,7 +28,7 @@ export const useResumeStore = create<StoreState>()(
           if (version < 2) {
             const data = persistedState.data || {};
             if (!data.consents) {
-              data.consents = { recruiterShare: false, emailJobs: false, analytics: true };
+              data.consents = { recruiterShare: false, emailJobs: false, analytics: false };
             }
             if (!Array.isArray(data.experience)) data.experience = [];
             if (!Array.isArray(data.education)) data.education = [];

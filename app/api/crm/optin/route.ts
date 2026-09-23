@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
     const consents = data?.consents || {};
 
-    const toBool = (v: any, fallback = true): boolean => {
+    const toBool = (v: any, fallback = false): boolean => {
       if (v === undefined || v === null) return fallback;
       if (typeof v === 'boolean') return v;
       if (typeof v === 'string') return v === 'true' || v === '1' || v === 'yes';
@@ -103,7 +103,9 @@ export async function POST(request: Request) {
       return Boolean(v);
     };
 
-    // Default recruiter talent pool opt-in is TRUE unless explicitly set to false
+    // True opt-in: consent defaults to FALSE. It is only recorded when the
+    // user explicitly opts in via the consent UI. Pre-ticked/opt-out consent
+    // is not valid consent.
     const consent_recruiter_share = toBool(
       consents.recruiterShare ??
       consents.consent_recruiter_share ??
@@ -112,7 +114,7 @@ export async function POST(request: Request) {
       consents.recruiterConsent ??
       data?.consent_recruiter_share ??
       data?.recruiterShare,
-      true
+      false
     );
     const consent_email_jobs = toBool(
       consents.emailJobs ??
@@ -120,14 +122,14 @@ export async function POST(request: Request) {
       consents.email_jobs ??
       data?.consent_email_jobs ??
       data?.emailJobs,
-      true
+      false
     );
     const consent_analytics = toBool(
       consents.analytics ??
       consents.consent_analytics ??
       data?.consent_analytics ??
       data?.analytics,
-      true
+      false
     );
     const now = new Date().toISOString();
     const score = Math.min(100, Math.max(0, completeness(data)));

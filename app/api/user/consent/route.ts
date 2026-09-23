@@ -1,39 +1,63 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { verifyUserToken } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 
 const CONSENT_VERSION = 'v1.0';
 
+/**
+ * Verify the caller's Supabase session token and return their email.
+ * The token is MANDATORY: consent records are personal data and must never
+ * be read or mutated on the basis of an unauthenticated email parameter.
+ */
+async function getSessionEmail(req: Request): Promise<string | null> {
+  const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '').trim();
+  if (!token) return null;
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    '';
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    '';
+  if (!url || !anonKey) return null;
+  try {
+    const sb = createClient(url, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data, error } = await sb.auth.getUser(token);
+    if (error || !data?.user?.email) return null;
+    return data.user.email;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: Request) {
   try {
-    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '');
-    const url = new URL(req.url);
-    const qEmail = url.searchParams.get('email') || '';
-
-    let okEmail = qEmail;
-    if (token) {
-      const verified = await verifyUserToken(token);
-      if (verified) okEmail = verified;
+    const email = await getSessionEmail(req);
+    if (!email) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
-
-    if (!okEmail) return NextResponse.json({ error: 'Email or valid token required' }, { status: 400 });
 
     const { data: cand } = await supabaseAdmin
       .from('candidates')
       .select('id, email, full_name, candidate_profiles(*)')
-      .eq('email', okEmail)
+      .eq('email', email)
       .single();
 
     const profile = cand?.candidate_profiles?.[0] || cand?.candidate_profiles || null;
 
+    // True opt-in: unknown/missing consent is treated as NOT granted.
     return NextResponse.json({
       success: true,
       candidate: cand || null,
       consents: {
         consent_recruiter_share: profile?.consent_recruiter_share ?? false,
         consent_email_jobs: profile?.consent_email_jobs ?? false,
-        consent_analytics: profile?.consent_analytics ?? true,
+        consent_analytics: profile?.consent_analytics ?? false,
       }
     });
   } catch (e: any) {
@@ -43,21 +67,18 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const email: string = body?.email || '';
-    const c = body?.consents || {};
-    if (!email || !email.includes('@')) return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
-
-    // verify caller owns this email (token optional: settings also passes session)
-    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '');
-    let okEmail = email;
-    if (token) {
-      const verified = await verifyUserToken(token);
-      if (!verified || verified.toLowerCase() !== email.toLowerCase()) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      okEmail = verified;
+    const sessionEmail = await getSessionEmail(req);
+    if (!sessionEmail) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const body = await req.json();
+    const bodyEmail = String(body?.email || '').trim().toLowerCase();
+    if (!bodyEmail || bodyEmail !== sessionEmail.toLowerCase()) {
+      return NextResponse.json({ error: 'Email does not match the signed-in user' }, { status: 403 });
+    }
+    const okEmail = sessionEmail;
+    const c = body?.consents || {};
 
     const now = new Date().toISOString();
 
@@ -84,16 +105,18 @@ export async function POST(req: Request) {
       .eq('id', cand.id)
       .single();
 
+    // True opt-in: omitted fields fall back to the stored value, and to FALSE
+    // (never TRUE) when nothing was stored before.
     const patch = {
       consent_recruiter_share: c.consent_recruiter_share !== undefined
         ? Boolean(c.consent_recruiter_share)
-        : (c.recruiterShare !== undefined ? Boolean(c.recruiterShare) : (existingProf?.consent_recruiter_share ?? true)),
+        : (c.recruiterShare !== undefined ? Boolean(c.recruiterShare) : (existingProf?.consent_recruiter_share ?? false)),
       consent_email_jobs: c.consent_email_jobs !== undefined
         ? Boolean(c.consent_email_jobs)
-        : (c.emailJobs !== undefined ? Boolean(c.emailJobs) : (existingProf?.consent_email_jobs ?? true)),
+        : (c.emailJobs !== undefined ? Boolean(c.emailJobs) : (existingProf?.consent_email_jobs ?? false)),
       consent_analytics: c.consent_analytics !== undefined
         ? Boolean(c.consent_analytics)
-        : (c.analytics !== undefined ? Boolean(c.analytics) : (existingProf?.consent_analytics ?? true)),
+        : (c.analytics !== undefined ? Boolean(c.analytics) : (existingProf?.consent_analytics ?? false)),
       consent_version: CONSENT_VERSION,
       consent_at: now,
       updated_at: now,
@@ -114,18 +137,18 @@ export async function POST(req: Request) {
       if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
     }
 
-        // 4. CRITICAL: Update BOTH opted_in_at (legacy) AND consent_given_at (new reliable flag)
+    // 4. Update BOTH opted_in_at (legacy) AND consent_given_at (new reliable flag)
     // This ensures users who opt-in via settings appear correctly in admin dashboard
     if (patch.consent_recruiter_share === true) {
       const now = new Date().toISOString();
-      
+
       // Update the new specific consent column
       await supabaseAdmin
         .from('candidates')
-        .update({ 
-          consent_given_at: now, 
+        .update({
+          consent_given_at: now,
           opted_in_at: now, // Keep legacy sync
-          updated_at: now 
+          updated_at: now
         })
         .eq('id', cand.id);
     }
