@@ -40,6 +40,8 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
   const [contentImages, setContentImages] = useState<any[]>([]);
   const [uploadingHeader, setUploadingHeader] = useState(false);
   const [uploadingContent, setUploadingContent] = useState(false);
+  const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null);
+  const deleteArmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const headerFileRef = useRef<HTMLInputElement>(null);
   const contentFileRef = useRef<HTMLInputElement>(null);
 
@@ -136,7 +138,18 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
   };
 
   const handleImageDelete = async (img: any) => {
-    if (!confirm('Delete this image?')) return;
+    // Two-click inline confirm (native confirm() dialogs are unreliable in
+    // embedded/automated browsers and get silently dismissed).
+    if (deleteArmedId !== img.id) {
+      setDeleteArmedId(img.id);
+      if (deleteArmTimer.current) clearTimeout(deleteArmTimer.current);
+      deleteArmTimer.current = setTimeout(() => {
+        setDeleteArmedId((cur) => (cur === img.id ? null : cur));
+      }, 5000);
+      return;
+    }
+    setDeleteArmedId(null);
+    if (deleteArmTimer.current) clearTimeout(deleteArmTimer.current);
     try {
       const res = await fetch(`/api/admin/blog/images?id=${img.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete image');
@@ -152,11 +165,19 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
       toast.error('Editor is not ready yet');
       return;
     }
-    editorInstance
-      .chain()
-      .focus()
-      .insertContent({ type: 'blogImage', attrs: { src: img.image_url, alt: img.caption || '' } })
-      .run();
+    const node = { type: 'blogImage', attrs: { src: img.image_url, alt: img.caption || '' } };
+    let inserted = editorInstance.chain().focus().insertContent(node).run();
+    if (!inserted) {
+      // No cursor/selection in the editor — drop the image at the end of the document.
+      try {
+        const endPos = editorInstance.state.doc.content.size;
+        inserted = editorInstance.chain().setTextSelection(endPos).insertContent(node).run();
+      } catch { /* fall through to the error toast below */ }
+    }
+    if (!inserted) {
+      toast.error('Could not insert image — click inside the post content first, then try again.');
+      return;
+    }
     const html = editorInstance.getHTML();
     setEditingPost({ ...editingPost, content: html });
     toast.success('Image inserted into post');
@@ -415,10 +436,15 @@ export default function BlogManager({ blogPosts, isDarkMode }: { blogPosts: any[
                                 </button>
                                 <button
                                   onClick={() => handleImageDelete(img)}
-                                  className="px-2 py-1 text-[11px] font-bold bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded flex items-center gap-1"
+                                  className={cn(
+                                    "px-2 py-1 text-[11px] font-bold rounded flex items-center gap-1",
+                                    deleteArmedId === img.id
+                                      ? "bg-red-600 text-white hover:bg-red-700"
+                                      : "bg-red-600/10 hover:bg-red-600/20 text-red-500"
+                                  )}
                                 >
                                   <Trash2 size={12} />
-                                  Delete
+                                  {deleteArmedId === img.id ? 'Confirm delete?' : 'Delete'}
                                 </button>
                               </div>
                             </div>
