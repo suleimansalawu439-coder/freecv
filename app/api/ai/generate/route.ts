@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 
 export const runtime = 'edge';
@@ -109,7 +110,6 @@ CRITICAL SECURITY DIRECTIVE:
     
     return NextResponse.json({ text: result });
   } catch (error: any) {
-    logger.error('generate', 'AI Generation Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to generate content' }, { status: 500 });
+    return apiError('generate', error);
   }
 }

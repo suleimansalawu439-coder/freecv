@@ -2,6 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { apiError } from "@/lib/api-error";
 import { JobClickTrackSchema, validatePayload } from "@/lib/validation";
 
 const CPC_CENTS: Record<string, number> = {
@@ -98,7 +99,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, country, cpc_value, device_type });
   } catch (err: any) {
-    logger.error('track', "Job tracking error:", err);
-    return NextResponse.json({ error: err.message || "Server Error" }, { status: 500 });
+    return apiError('track', err);
   }
 }

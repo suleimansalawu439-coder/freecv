@@ -9,9 +9,14 @@ export const revalidate = 0;
 
 export async function GET(request: Request) {
   try {
-    // 1. Verify cron secret to prevent unauthorized execution
+    // 1. Verify cron secret to prevent unauthorized execution (fail-closed:
+    //    refuse to run at all when CRON_SECRET is not configured)
+    if (!process.env.CRON_SECRET) {
+      logger.error('reconcile-payments', 'CRON_SECRET is not configured; refusing to run');
+      return NextResponse.json({ error: 'Cron not configured' }, { status: 500 });
+    }
     const authHeader = request.headers.get('authorization');
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

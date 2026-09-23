@@ -1,15 +1,31 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { SupportTicketSchema } from '@/lib/validation';
+import { apiError } from '@/lib/api-error';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { user_email, subject, message } = body;
+    const rateLimitResponse = await checkRateLimit(request);
+    if (rateLimitResponse) return rateLimitResponse;
 
-    if (!user_email || !subject || !message) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const rawBody = await request.json();
+    // Validate via the shared schema; the form posts `user_email` (legacy field
+    // name) so map it onto the schema's `email`. `name` is optional client-side.
+    const validation = SupportTicketSchema.safeParse({
+      name: rawBody.name ?? 'Anonymous',
+      email: rawBody.user_email ?? rawBody.email,
+      subject: rawBody.subject,
+      message: rawBody.message,
+    });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues?.[0]?.message || 'Invalid ticket data' },
+        { status: 400 }
+      );
     }
+    const { email: user_email, subject, message } = validation.data;
 
     // 1. Insert into database
     const { data: ticket, error: dbError } = await supabaseAdmin
@@ -56,7 +72,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, ticket });
   } catch (error: any) {
-    logger.error('support', 'Support ticket error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError('support', error);
   }
 }

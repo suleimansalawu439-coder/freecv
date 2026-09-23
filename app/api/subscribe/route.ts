@@ -1,17 +1,26 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+const EmailSchema = z.string().trim().email().max(320);
 
 export async function POST(request: Request) {
   try {
+    const rateLimitResponse = await checkRateLimit(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const { email, source } = await request.json();
 
-    if (!email || !email.includes('@')) {
+    const emailCheck = EmailSchema.safeParse(email);
+    if (!emailCheck.success) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
     }
+    const cleanEmail = emailCheck.data;
 
     const { error } = await supabase
       .from('newsletter_subscribers')
-      .insert([{ email, source: source || 'blog' }]);
+      .insert([{ email: cleanEmail, source: source || 'blog' }]);
 
     // Ignore unique constraint errors (if they are already subscribed, just return success)
     if (error && error.code !== '23505') {

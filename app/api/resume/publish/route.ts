@@ -2,10 +2,15 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { nanoid } from 'nanoid';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { sanitizeResumeData } from '@/lib/validation';
 
 export async function POST(req: Request) {
   try {
+    const rateLimitResponse = await checkRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     let data = await req.json();
     try {
       data = sanitizeResumeData(data);
@@ -51,10 +56,6 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    logger.error('publish', 'Publish API Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'An error occurred while publishing.' },
-      { status: 500 }
-    );
+    return apiError('publish', error);
   }
 }

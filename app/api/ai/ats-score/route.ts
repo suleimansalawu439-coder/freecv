@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { Redis } from '@upstash/redis';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 
@@ -103,7 +104,6 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
 
     return NextResponse.json(result);
   } catch (error: any) {
-    logger.error('ats-score', 'ATS Score Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to generate ATS score' }, { status: 500 });
+    return apiError('ats-score', error);
   }
 }

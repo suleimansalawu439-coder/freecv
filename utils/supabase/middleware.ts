@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { isAdminEmail } from '@/lib/admin-emails';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -48,8 +49,7 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
     // Check if user is an admin by validating against ADMIN_EMAILS env variable
-    const adminEmails = (process.env.ADMIN_EMAILS || 'hamis@cvyon.com').split(',').map(e => e.trim().toLowerCase());
-    if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+    if (!isAdminEmail(user.email)) {
       // User is logged in but NOT an admin
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
@@ -60,8 +60,7 @@ export async function updateSession(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const adminEmails = (process.env.ADMIN_EMAILS || 'hamis@cvyon.com').split(',').map(e => e.trim().toLowerCase());
-    if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+    if (!isAdminEmail(user.email)) {
       return NextResponse.json({ error: 'Forbidden: Admins only' }, { status: 403 });
     }
   }

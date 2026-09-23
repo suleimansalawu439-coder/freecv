@@ -1,11 +1,15 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {
+    const rateLimitResponse = await checkRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const token = (req.headers.get('Authorization') || '').replace('Bearer ', '');
     const { data: ud, error: ue } = await supabase.auth.getUser(token);
     if (ue || !ud?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

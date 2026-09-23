@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { isAdminEmail } from './admin-emails';
 
 /**
  * Requires admin authentication.
@@ -11,8 +12,7 @@ export async function requireAdmin() {
 
   if (!user) throw new Error('UNAUTHORIZED');
 
-  const adminEmails = (process.env.ADMIN_EMAILS || 'hamis@cvyon.com').split(',').map(e => e.trim().toLowerCase());
-  if (!user.email || !adminEmails.includes(user.email.toLowerCase())) {
+  if (!isAdminEmail(user.email)) {
     throw new Error('UNAUTHORIZED');
   }
 

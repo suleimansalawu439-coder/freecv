@@ -19,16 +19,40 @@ export async function POST(req: Request) {
 
     const supabase = supabaseAdmin;
 
-    // Delete from public_resumes first if they have one (if handle is email-based, though we use handles, we can look it up, but for now we delete from candidates and cascade)
-    // Actually we just delete from candidates. If candidate_profiles has a foreign key with CASCADE, it will auto-delete.
-    // If public_resumes is linked, we should delete it too, but public resumes aren't directly linked by email in the schema currently. We might just leave it for now or delete by matching resume_data email.
+    // SOFT-DELETE ONLY: set deleted_at instead of hard-deleting. The row stays
+    // in the DB so admins can recover it; public/consent-facing RLS policies
+    // already filter on deleted_at IS NULL.
+    const now = new Date().toISOString();
 
-    const { error } = await supabase
+    // Resolve ALL candidate row(s) by email, including already soft-deleted ones:
+    // candidate_profiles links via candidate_profiles.id -> candidates.id, so a
+    // profile's email is its parent candidate row's email.
+    const { data: rows, error: lookupError } = await supabase
       .from('candidates')
-      .delete()
+      .select('id')
       .eq('email', email);
 
-    if (error) throw error;
+    if (lookupError) throw lookupError;
+
+    const ids = (rows || []).map((r: { id: string }) => r.id);
+
+    if (ids.length > 0) {
+      const { error: profileError } = await supabase
+        .from('candidate_profiles')
+        .update({ deleted_at: now })
+        .in('id', ids)
+        .is('deleted_at', null);
+
+      if (profileError) throw profileError;
+
+      const { error: candidateError } = await supabase
+        .from('candidates')
+        .update({ deleted_at: now })
+        .in('id', ids)
+        .is('deleted_at', null);
+
+      if (candidateError) throw candidateError;
+    }
 
     return NextResponse.json({ success: true, message: 'Your data has been successfully deleted.' });
   } catch (error) {

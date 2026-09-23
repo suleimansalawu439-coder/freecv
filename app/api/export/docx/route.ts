@@ -1,6 +1,8 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { sanitizeResumeData } from '@/lib/validation';
 
 interface PersonalInfo {
@@ -31,7 +33,21 @@ interface ResumeData {
 
 export async function POST(request: Request) {
   try {
-    const data: ResumeData = await request.json();
+    const rateLimitResponse = await checkRateLimit(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
+    const rawData = await request.json();
+
+    // Sanitize the incoming payload (validation + XSS stripping). The builder
+    // payload predates the full resume schema (themeColor/fontFamily), so fall
+    // back to the raw payload rather than 400-ing a legitimate export.
+    let data: ResumeData;
+    try {
+      data = sanitizeResumeData(rawData) as ResumeData;
+    } catch (zodError: any) {
+      logger.warn('docx', 'Payload did not fully match resume schema; exporting raw payload:', zodError?.message);
+      data = rawData as ResumeData;
+    }
     
     if (!data.personalInfo) {
       return NextResponse.json({ error: 'Invalid resume data' }, { status: 400 });
@@ -191,7 +207,6 @@ export async function POST(request: Request) {
       }
     });
   } catch (error: any) {
-    logger.error('docx', 'Docx Export Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to generate word document' }, { status: 500 });
+    return apiError('docx', error);
   }
 }

@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 import mammoth from 'mammoth';
 
@@ -142,7 +143,6 @@ export async function POST(req: Request) {
     }
 
   } catch (error: any) {
-    logger.error('standalone-ats-score', 'Standalone ATS error:', error);
-    return NextResponse.json({ error: error.message || 'An unexpected error occurred' }, { status: 500 });
+    return apiError('standalone-ats-score', error);
   }
 }

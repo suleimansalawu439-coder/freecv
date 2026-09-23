@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-error';
 
 /* ---- country code (from Vercel geo header) -> name + CareerJet locale ---- */
 const CODE2NAME: Record<string, string> = {
@@ -185,7 +186,6 @@ export async function POST(req: Request) {
       suggestions,
     });
   } catch (error: any) {
-    logger.error('jobs', 'Affiliate jobs route error:', error);
-    return NextResponse.json({ success: false, data: [], error: error?.message || 'unknown' }, { status: 500 });
+    return apiError('jobs', error);
   }
 }

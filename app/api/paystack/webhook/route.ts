@@ -161,7 +161,7 @@ async function emailInvoice(d: any, reference: string) {
         sender: { email: process.env.BREVO_SENDER_EMAIL || 'noreply@cvyon.com', name: 'Cvyon' },
         to: [{ email, name: d?.customer?.first_name || '' }],
         subject: `Your Cvyon invoice (${reference})`,
-        htmlContent: `<p>Hi there,</p><p>Thank you for your subscription. Please find your invoice attached.</p><p>The Cvyon Team</p>`,
+        htmlContent: `<p>Hi there,</p><p>Thank you for your Cvyon recruiter-access purchase. Your invoice is attached.</p><p>The Cvyon Team</p>`,
         attachment: [{ name: `Invoice-${reference}.pdf`, content: pdfBuffer.toString('base64') }],
       }),
     });
@@ -271,7 +271,12 @@ export async function POST(req: Request) {
     }
 
     const hash = crypto.createHmac('sha512', secret).update(rawBody).digest('hex');
-    if (hash !== signature) return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    // Constant-time comparison to avoid leaking signature bytes via timing
+    const hashBuf = Buffer.from(hash, 'hex');
+    const sigBuf = Buffer.from(signature, 'hex');
+    if (hashBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hashBuf, sigBuf)) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+    }
 
     event = JSON.parse(rawBody);
     logger.info('webhook', `Paystack event received: ${event.event}`);

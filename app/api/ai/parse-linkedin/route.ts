@@ -1,5 +1,6 @@
-import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { GoogleGenAI } from '@google/genai';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -9,11 +10,18 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimitResponse = await checkRateLimit(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const formData = await req.formData();
     const file = formData.get('file') as File;
     
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File exceeds 5MB limit' }, { status: 400 });
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -88,7 +96,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(parsedData);
 
   } catch (error: any) {
-    logger.error('parse-linkedin', 'LinkedIn Parse Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return apiError('parse-linkedin', error);
   }
 }

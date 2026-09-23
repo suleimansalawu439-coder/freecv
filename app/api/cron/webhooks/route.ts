@@ -1,7 +1,7 @@
-import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { processPaystackEvent } from '@/app/api/paystack/webhook/route';
+import { apiError } from '@/lib/api-error';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +12,12 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: Request) {
   try {
+    // Cron endpoints require the shared CRON_SECRET bearer token
+    const authHeader = req.headers.get('authorization');
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // 1. Fetch pending or failed retry events due for processing
     const now = new Date().toISOString();
     const { data: pendingEvents, error } = await supabaseAdmin
@@ -24,8 +30,7 @@ export async function GET(req: Request) {
       .limit(20);
 
     if (error) {
-      logger.error('webhooks', '[cron/webhooks] Fetch queue error:', error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+      return apiError('webhooks', error);
     }
 
     if (!pendingEvents || pendingEvents.length === 0) {
@@ -82,7 +87,6 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ success: true, processed: results.length, results });
   } catch (error: any) {
-    logger.error('webhooks', '[cron/webhooks] Worker unhandled error:', error);
-    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
+    return apiError('webhooks', error);
   }
 }

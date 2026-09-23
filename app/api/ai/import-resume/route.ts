@@ -1,9 +1,10 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { apiError } from '@/lib/api-error';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   const rateLimitResponse = await checkRateLimit(req);
@@ -19,6 +20,10 @@ export async function POST(req: Request) {
 
     if (file.type !== 'application/pdf') {
       return NextResponse.json({ error: 'Please upload a valid PDF file' }, { status: 400 });
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: 'File exceeds 5MB limit' }, { status: 400 });
     }
 
     // Read PDF as base64
@@ -125,10 +130,6 @@ JSON Schema to match:
 
     return NextResponse.json(parsedData);
   } catch (error: any) {
-    logger.error('import-resume', 'Resume Import Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'An error occurred during resume import.' },
-      { status: 500 }
-    );
+    return apiError('import-resume', error);
   }
 }

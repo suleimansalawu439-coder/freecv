@@ -61,7 +61,7 @@ function emailHtml(name: string, title: string, countryName: string, jobs: any[]
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" align="center" style="max-width:560px;width:100%;background:#fff;border:3px solid #141312;box-shadow:8px 8px 0 #141312;">
       <tr><td style="background:#141312;padding:20px 28px;">
         <span style="font-weight:900;font-size:22px;color:#E8E7E1;letter-spacing:-0.5px;">CVYON</span>
-        <span style="font-family:monospace;font-size:10px;letter-spacing:3px;color:#FF4326;text-transform:uppercase;"> · your weekly matches</span>
+        <span style="font-family:monospace;font-size:10px;letter-spacing:3px;color:#FF4326;text-transform:uppercase;"> · your daily matches</span>
       </td></tr>
       <tr><td style="padding:32px 28px;">
         <h1 style="margin:0 0 12px;font-size:24px;color:#141312;">${name ? name.split(' ')[0].replace(/</g,'&lt;') + ',' : ''} ${jobs.length} role${jobs.length === 1 ? '' : 's'} matched to you.</h1>
@@ -83,9 +83,10 @@ function emailHtml(name: string, title: string, countryName: string, jobs: any[]
 
 export async function GET(request: Request) {
   try {
+    // Cron secret travels in the Authorization header only — never in the
+    // query string (vercel.json schedules this as a plain path).
     const auth = request.headers.get('authorization');
-    const qSecret = new URL(request.url).searchParams.get('secret');
-    if (auth !== `Bearer ${process.env.CRON_SECRET}` && qSecret !== process.env.CRON_SECRET) {
+    if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -107,7 +108,7 @@ export async function GET(request: Request) {
         const code = String(p.country || '').toUpperCase().slice(0, 2);
         const countryName = CODE2NAME[code] || p.country || 'Remote';
         const locale = CODE2LOCALE[code] || 'en_US';
-        const title = p.current_title || 'Professional';
+        const title = p.current_title || 'New';
         const skills = (Array.isArray(p.skills) ? p.skills : []).slice(0, 6).join(' ');
         const keywords = `${title} ${skills}`.trim();
 

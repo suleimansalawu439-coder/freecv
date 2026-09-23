@@ -2,6 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { apiError } from "@/lib/api-error";
 
 // Estimated CPC in USD cents by candidate country. Reconcile against your
 // CareerJet publisher reports for actuals; structure stays identical.
@@ -26,33 +27,22 @@ export async function POST(req: NextRequest) {
     const country = String(rawCountry).toUpperCase().trim().slice(0, 2) || "US";
 
     // 1. Handle Affiliate Referral Tracking (?ref=CODE)
+    // Only EXISTING affiliate codes are honored. Unknown ref codes are
+    // recorded as click-only events; no affiliate row is auto-created
+    // (previously any code silently created a partner row at 20% commission).
     if (ref_code) {
-      let targetRef = ref_code;
+      const cleanRef = ref_code.slice(0, 100);
+      let targetRef = cleanRef;
       // Check if affiliate exists
       const { data: existingAffiliate } = await supabaseAdmin
         .from('affiliates')
         .select('ref_code, name')
-        .ilike('ref_code', ref_code)
+        .ilike('ref_code', cleanRef)
         .limit(1)
         .maybeSingle();
 
       if (existingAffiliate?.ref_code) {
         targetRef = existingAffiliate.ref_code;
-      } else {
-        // Auto-provision affiliate partner record to guarantee referential integrity
-        const { data: newAffiliate, error: createAffErr } = await supabaseAdmin
-          .from('affiliates')
-          .insert({
-            name: ref_code,
-            ref_code: ref_code,
-            commission_rate: 20.00,
-          })
-          .select('ref_code')
-          .maybeSingle();
-
-        if (!createAffErr && newAffiliate?.ref_code) {
-          targetRef = newAffiliate.ref_code;
-        }
       }
 
       const sessionId = body?.session_id || `${ip}_${Date.now()}`;
@@ -66,7 +56,7 @@ export async function POST(req: NextRequest) {
 
       if (clickErr) {
         logger.error('track', "affiliate_clicks insert error:", clickErr);
-        return NextResponse.json({ error: "Failed to record affiliate click", details: clickErr.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to record affiliate click" }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -111,7 +101,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: "Either ref_code or job_url is required" }, { status: 400 });
   } catch (err: any) {
-    logger.error('track', "Affiliate tracking error:", err);
-    return NextResponse.json({ error: err.message || "Server Error" }, { status: 500 });
+    return apiError('track', err);
   }
 }

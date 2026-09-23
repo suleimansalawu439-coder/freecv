@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { createClient } from '@/utils/supabase/server';
+import { isAdminEmail } from '@/lib/admin-emails';
 
 export async function POST(request: Request) {
   try {
@@ -16,8 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Email and password required' }, { status: 400 });
     }
 
-    const adminEmails = (process.env.ADMIN_EMAILS || 'hamis@cvyon.com').split(',').map(e => e.trim().toLowerCase());
-    if (!adminEmails.includes(email.toLowerCase())) {
+    if (!isAdminEmail(email)) {
       // Fake rejection for non-admins to prevent email enumeration
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
