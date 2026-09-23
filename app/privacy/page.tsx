@@ -70,7 +70,7 @@ export default function PrivacyPolicy() {
             If you have any questions about this Privacy Policy, your rights, or how we handle your data, please contact our Data Protection Officer:
             <br /><br />
             <strong>Cvyon Privacy Team</strong><br />
-            Email: <a href="mailto:dpo@cvyon.dev" className="text-blue-600 hover:underline">dpo@cvyon.dev</a>
+            Email: <a href="mailto:hello@cvyon.com" className="text-blue-600 hover:underline">hello@cvyon.com</a>
           </p>
 
           <div className="mt-12 pt-8 border-t border-gray-200">

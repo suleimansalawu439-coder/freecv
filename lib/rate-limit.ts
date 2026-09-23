@@ -8,15 +8,17 @@ interface MemoryWindow {
 }
 const memoryStore = new Map<string, MemoryWindow>();
 
-// Periodic memory cleanup every 5 minutes
+// Periodic memory cleanup every 5 minutes.
+// unref()'d so the timer never keeps a process (or test runner) alive on its own.
 if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
+  const cleanupTimer = setInterval(() => {
     const now = Date.now();
     for (const [key, val] of memoryStore.entries()) {
       val.tokens = val.tokens.filter((t) => now - t < 60_000);
       if (val.tokens.length === 0) memoryStore.delete(key);
     }
   }, 300_000);
+  (cleanupTimer as unknown as { unref?: () => void }).unref?.();
 }
 
 const upstashRedis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN

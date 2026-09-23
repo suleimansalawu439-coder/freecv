@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 
 const FAQS = [
   {
-    q: "Is FreeCV really free?",
+    q: "Is Cvyon really free?",
     a: "Yes! Creating your resume, downloading it as PDF/DOCX, and using the ATS grader are 100% free forever for job seekers."
   },
   {

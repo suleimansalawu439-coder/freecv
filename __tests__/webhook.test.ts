@@ -1,75 +1,55 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+// NOTE: runs against the built-in mock Supabase client (no DB env vars in CI)
+// and the in-memory rate limiter. No jest dependency.
 import { POST } from '../app/api/paystack/webhook/route';
-import crypto from 'crypto';
 
-// Mock dependencies
-jest.mock('@/lib/supabase', () => ({
-  supabaseAdmin: {
-    from: jest.fn(() => ({
-      insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          limit: jest.fn().mockResolvedValue({ data: [], error: null })
-        }))
-      })),
-      update: jest.fn(() => ({
-        eq: jest.fn().mockResolvedValue({ data: null, error: null })
-      })),
-      upsert: jest.fn().mockResolvedValue({ data: null, error: null })
-    }))
-  }
-}));
+const secret = 'test_secret';
 
-jest.mock('@/lib/invoice-generator', () => ({
-  generateInvoicePdfBuffer: jest.fn().mockResolvedValue(Buffer.from('pdf'))
-}));
+function createMockRequest(body: any, signatureStr?: string) {
+  const jsonStr = JSON.stringify(body);
+  const sig = signatureStr ?? crypto.createHmac('sha512', secret).update(jsonStr).digest('hex');
 
-jest.mock('@/lib/rate-limit', () => ({
-  checkRateLimit: jest.fn().mockResolvedValue(null),
-  RATE_LIMITS: { WEBHOOK: {} }
-}));
-
-describe('Paystack Webhook', () => {
-  const secret = 'test_secret';
-  
-  beforeAll(() => {
-    process.env.PAYSTACK_SECRET_KEY = secret;
+  return new Request('https://cvyon.com/api/paystack/webhook', {
+    method: 'POST',
+    headers: {
+      'x-paystack-signature': sig,
+      'content-type': 'application/json',
+    },
+    body: jsonStr,
   });
+}
 
-  afterAll(() => {
-    delete process.env.PAYSTACK_SECRET_KEY;
-  });
-
-  function createMockRequest(body: any, signatureStr?: string) {
-    const jsonStr = JSON.stringify(body);
-    const sig = signatureStr ?? crypto.createHmac('sha512', secret).update(jsonStr).digest('hex');
-    
-    return new Request('https://cvyon.com/api/paystack/webhook', {
-      method: 'POST',
-      headers: {
-        'x-paystack-signature': sig,
-        'content-type': 'application/json'
-      },
-      body: jsonStr
-    });
-  }
-
-  it('rejects missing signature', async () => {
+test('Paystack webhook rejects missing signature', async () => {
+  process.env.PAYSTACK_SECRET_KEY = secret;
+  try {
     const req = new Request('https://cvyon.com/api/paystack/webhook', {
       method: 'POST',
-      body: JSON.stringify({ event: 'charge.success' })
+      body: JSON.stringify({ event: 'charge.success' }),
     });
-    
-    const res = await POST(req);
-    expect(res.status).toBe(400);
-  });
 
-  it('rejects invalid signature', async () => {
+    const res = await POST(req);
+    assert.equal(res.status, 400);
+  } finally {
+    delete process.env.PAYSTACK_SECRET_KEY;
+  }
+});
+
+test('Paystack webhook rejects invalid signature', async () => {
+  process.env.PAYSTACK_SECRET_KEY = secret;
+  try {
     const req = createMockRequest({ event: 'charge.success' }, 'invalid_sig');
     const res = await POST(req);
-    expect(res.status).toBe(400);
-  });
+    assert.equal(res.status, 400);
+  } finally {
+    delete process.env.PAYSTACK_SECRET_KEY;
+  }
+});
 
-  it('processes charge.success successfully', async () => {
+test('Paystack webhook processes charge.success successfully', async () => {
+  process.env.PAYSTACK_SECRET_KEY = secret;
+  try {
     const req = createMockRequest({
       event: 'charge.success',
       data: {
@@ -78,11 +58,13 @@ describe('Paystack Webhook', () => {
         amount: 5000,
         currency: 'NGN',
         customer: { customer_code: 'CUS_xyz' },
-        metadata: { recruiter_id: 'rec_1' }
-      }
+        metadata: { recruiter_id: 'rec_1' },
+      },
     });
-    
+
     const res = await POST(req);
-    expect(res.status).toBe(200);
-  });
+    assert.equal(res.status, 200);
+  } finally {
+    delete process.env.PAYSTACK_SECRET_KEY;
+  }
 });

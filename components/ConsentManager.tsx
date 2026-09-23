@@ -72,9 +72,10 @@ export function ConsentManager() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-3 left-3 z-40 print:hidden">
+      <div className="fixed bottom-3 left-3 z-[60] print:hidden">
         <button 
           onClick={() => setIsOpen(true)}
+          aria-label="Open privacy and data preferences"
           className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border shadow-sm px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider text-gray-700 hover:text-black transition-all hover:scale-105"
         >
           <Shield size={10} /> Privacy

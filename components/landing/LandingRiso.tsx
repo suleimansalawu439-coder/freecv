@@ -289,9 +289,9 @@ export default function LandingRiso() {
           <div className="grid grid-cols-2 gap-8 border-b-2 border-[#141312] pb-10 md:grid-cols-4">
             {[
               ["Product", [{ label: "Builder", href: "/build" }, { label: "Cover Letter", href: "/build?tab=cover" }]],
-              ["Company", [{ label: "Career Blog", href: "/blog" }, { label: "Recruiter Portal", href: "/recruiter" }, { label: "About", href: "/about" }]],
+              ["Company", [{ label: "Career Blog", href: "/blog" }, { label: "Recruiter Portal", href: "/recruiter" }, { label: "Support", href: "/support" }]],
               ["Legal", [{ label: "Privacy & GDPR", href: "/privacy" }, { label: "Manage Data", href: "/manage-data" }, { label: "Terms", href: "/terms" }]],
-              ["Connect", [{ label: "X / Twitter", href: "https://twitter.com/cvyon" }, { label: "LinkedIn", href: "https://linkedin.com/company/cvyon" }, { label: "GitHub", href: "https://github.com/cvyon" }]]
+              ["Connect", [{ label: "Email us", href: "mailto:hello@cvyon.com" }, { label: "Developers", href: "/developers" }]]
             ].map(([h, items]) => (
               <div key={h as string}>
                 <div className="fm mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/50">{h as string}</div>

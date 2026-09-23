@@ -60,7 +60,7 @@ export function PWAInstallBanner() {
           </button>
           <button
             onClick={handleDismiss}
-            className="px-2 py-1 text-lg text-white/60 hover:text-white"
+            className="px-3 py-2 text-lg leading-none text-white/60 hover:text-white"
             aria-label="Dismiss"
           >
             ×

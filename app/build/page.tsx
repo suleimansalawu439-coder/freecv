@@ -620,6 +620,9 @@ export default function FreeCVApp() {
                       }).catch((e) => console.warn('Background consent sync error', e));
                     }
                   }}
+                    role="switch"
+                    aria-checked={data.consents.recruiterShare}
+                    aria-label="Make profile public"
                     className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0 border-2 border-[#141312]", data.consents.recruiterShare ? 'bg-[#2233FF]' : 'bg-gray-300')}>
                     <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-6' : 'translate-x-1')} />
                   </button>
