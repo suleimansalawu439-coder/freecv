@@ -25,7 +25,7 @@ const CODE2LOCALE: Record<string, string> = {
 const searchUrl = (kw: string, loc: string) =>
   `https://www.careerjet.com/search/jobs?keywords=${encodeURIComponent(kw)}&location=${encodeURIComponent(loc)}${AFF_TAG ? '&' + AFF_TAG : ''}`;
 
-async function fetchJobs(keywords: string, countryName: string, locale: string) {
+async function fetchJobs(keywords: string, countryName: string, locale: string, userIp: string, userAgent: string) {
   if (!PROXY_SECRET) return [];
   try {
     const r = await fetch(PROXY_URL, {
@@ -36,9 +36,9 @@ async function fetchJobs(keywords: string, countryName: string, locale: string) 
         keywords,
         location: countryName,
         locale_code: locale,
-        user_ip: '102.89.23.45',
+        user_ip: userIp,
         referer: 'https://www.cvyon.com',
-        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        user_agent: userAgent,
         page: 1,
         page_size: 3
       }),
@@ -90,6 +90,16 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    /* ---- real caller IP + UA only; never fabricate either ----
+       This is a server-side cron: no end user exists, so we pass through the
+       actual incoming request's IP/UA (the scheduler calling this endpoint),
+       exactly like /api/affiliate/jobs does for real clients. */
+    const callerIp =
+      (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      '';
+    const callerUa = request.headers.get('user-agent') || '';
+
     // 1. ONLY candidates who consented to job emails
     const { data: profiles, error: pErr } = await supabaseAdmin
       .from('candidate_profiles')
@@ -112,7 +122,7 @@ export async function GET(request: Request) {
         const skills = (Array.isArray(p.skills) ? p.skills : []).slice(0, 6).join(' ');
         const keywords = `${title} ${skills}`.trim();
 
-        const jobs = await fetchJobs(keywords, countryName, locale);
+        const jobs = await fetchJobs(keywords, countryName, locale, callerIp, callerUa);
         if (!jobs.length) { skipped++; continue; }
 
         if (BREVO_KEY) {
