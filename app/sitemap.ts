@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase'
+import { templateSeoEntries } from '@/lib/template-seo'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
 
@@ -26,6 +27,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'weekly' as const,
     priority: r.priority,
   }));
+
+  // Per-template SEO landing pages, derived from the data file (43 slugs).
+  const templateSlugs = templateSeoEntries.map((e) => e.slug);
+  for (const slug of templateSlugs) {
+    routes.push({
+      url: `${baseUrl}/templates/${slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    });
+  }
 
   // Dynamic blog article URLs (only when a real database is configured —
   // never emit the local mock fixture's sample URLs).

@@ -1058,7 +1058,7 @@ export default function FreeCVApp() {
               {(Object.keys(templates) as TemplateKey[]).map((key) => {
                 const isActive = data.templateId === key;
                 return (
-                  <button key={key} onClick={() => { setTemplateId(key); setIsGalleryOpen(false); }}
+                  <button key={key} onClick={() => { trackEvent('template_selected', key); setTemplateId(key); setIsGalleryOpen(false); }}
                     className={cn("flex flex-col text-left group bg-white border-[3px] rounded-none overflow-hidden transition-all relative", isActive ? "border-[#2233FF] shadow-[8px_8px_0_#2233FF] scale-[1.02]" : "border-[#141312] hs hover:-translate-y-1")}
                     style={{ contentVisibility: 'auto', containIntrinsicSize: '300px 400px' }}>
                     <HTMLThumbnail Tmpl={htmlTemplates[key as keyof typeof htmlTemplates]} data={data} />

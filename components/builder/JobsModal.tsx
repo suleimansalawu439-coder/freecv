@@ -83,7 +83,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   }, [isOpen, data.skills, data.personalInfo.jobTitle, data.templateId]);
 
   const handleJobClick = (job: Job) => {
-    trackEvent("affiliate_job_clicked", undefined, { company: job.company, link: job.link });
+    trackEvent("affiliate_job_clicked", data.templateId, { title: job.title, company: job.company, link: job.link, source: "CareerJet" });
     // server computes the geo-based CPC + country; we send candidate telemetry
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
     const isMobile = /mobi|iphone|ipod|android.*mobile/i.test(ua);
