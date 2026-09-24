@@ -20,6 +20,9 @@ for (const envVar of requiredEnvVars) {
 }
 
 const nextConfig: NextConfig = {
+  // pdfjs-dist must run from node_modules (not bundled) so its worker file
+  // resolves correctly at runtime for server-side PDF text extraction.
+  serverExternalPackages: ['pdfjs-dist'],
   async headers() {
     return [
       {
