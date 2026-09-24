@@ -22,9 +22,9 @@ const PROXY_SECRET = process.env.CAREERJET_PROXY_SECRET || '';
 /* real keyword-overlap match score (no more static 90%) */
 function matchScore(job: any, skills: string[], title: string): number {
   const hay = `${job.title || ''} ${job.description || ''} ${job.company || ''}`.toLowerCase();
-  const terms = [...skills, ...title.split(/\s+/)].map(t => t.trim().toLowerCase()).filter(t => t.length > 2);
+  const terms = [...skills, ...title.split(/\s+/).map((t: string) => t.trim())].filter((t: string) => t.length > 2);
   if (!terms.length) return 60;
-  const hits = terms.filter(t => hay.includes(t)).length;
+  const hits = terms.filter((t: string) => hay.includes(t)).length;
   return Math.min(98, 52 + Math.round((hits / terms.length) * 46));
 }
 
@@ -34,6 +34,9 @@ function urlId(url: string): string {
   for (let i = 0; i < url.length; i++) h = (Math.imul(31, h) + url.charCodeAt(i)) | 0;
   return 'cj' + Math.abs(h).toString(36);
 }
+
+// Popular suggestions for search
+const SUGGESTIONS = ['Software Engineer', 'Product Manager', 'Data Analyst', 'UI/UX Designer', 'Accountant', 'Marketing Specialist', 'Sales Representative', 'Project Manager'];
 
 export async function POST(req: Request) {
   try {
@@ -50,7 +53,7 @@ export async function POST(req: Request) {
     const countryName = CODE2NAME[code] || '';
     const locale = CODE2LOCALE[code] || 'en_US';
 
-    /* ---- real client IP + UA, NO fake fallback (8.8.8.8 broke apply links) ---- */
+    /* ---- real client IP + UA only; never fabricate either ---- */
     const userIp =
       (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
       req.headers.get('x-real-ip') ||
@@ -63,70 +66,15 @@ export async function POST(req: Request) {
     const primarySkill = skills[0] ? skills[0].replace(/[^\w\s-]/g, '').trim() : '';
     const keywords = customQuery || [cleanTitle, primarySkill].filter(Boolean).join(' ').trim() || cleanTitle || 'Developer';
 
-// Popular suggestions for search
-    const suggestions = ['Software Engineer', 'Product Manager', 'Data Analyst', 'UI/UX Designer', 'Accountant', 'Marketing Specialist', 'Sales Representative', 'Project Manager'];
-
-    // Helper to generate dynamic, high-match partner jobs tailored to role and country
-    const generatePartnerJobs = (title: string, country: string, primarySkills: string[]) => {
-      const displayTitle = title || 'Professional';
-      const loc = country || 'Remote';
-      const affiliateId = process.env.CAREERJET_AFFID || process.env.CAREERJET_API_KEY || 'cvyon';
-      const qEncoded = encodeURIComponent(displayTitle);
-      const locEncoded = encodeURIComponent(loc);
-
-      const partnerFeed = [
-        {
-          title: `Senior ${displayTitle}`,
-          company: 'Global Talent Network',
-          location: loc,
-          salary: '$85,000 – $130,000 / yr',
-          link: `https://www.careerjet.com/search/jobs?s=${qEncoded}&l=${locEncoded}&affid=${affiliateId}&utm_source=cvyon`,
-          description: `Exciting opportunity for a skilled ${displayTitle}. Fully aligned with your background in ${primarySkills.slice(0, 3).join(', ') || 'your field'}.`,
-          match: 97,
-        },
-        {
-          title: `${displayTitle} (Immediate Opening)`,
-          company: 'Nexus Innovations',
-          location: loc,
-          salary: '$70,000 – $110,000 / yr',
-          link: `https://www.careerjet.com/search/jobs?s=${qEncoded}+Specialist&l=${locEncoded}&affid=${affiliateId}&utm_source=cvyon`,
-          description: `Fast-growing firm actively recruiting for ${displayTitle} positions. Competitive benefits package and flexible work model.`,
-          match: 94,
-        },
-        {
-          title: `Lead ${displayTitle}`,
-          company: 'Apex Solutions International',
-          location: loc,
-          salary: '$95,000 – $145,000 / yr',
-          link: `https://www.careerjet.com/search/jobs?s=Lead+${qEncoded}&l=${locEncoded}&affid=${affiliateId}&utm_source=cvyon`,
-          description: `Seeking an experienced ${displayTitle} to lead initiatives and drive project deliverables. Apply directly with your freshly created CV.`,
-          match: 91,
-        },
-        {
-          title: `${displayTitle} – Remote / Hybrid`,
-          company: 'Horizon Enterprise Group',
-          location: loc,
-          salary: '$65,000 – $98,000 / yr',
-          link: `https://www.careerjet.com/search/jobs?s=${qEncoded}+Remote&l=${locEncoded}&affid=${affiliateId}&utm_source=cvyon`,
-          description: `Collaborative environment seeking dynamic professionals with experience in ${primarySkills[0] || 'your specialization'}.`,
-          match: 88,
-        },
-        {
-          title: `Associate ${displayTitle}`,
-          company: 'Vanguard Global Partners',
-          location: loc,
-          salary: '$55,000 – $82,000 / yr',
-          link: `https://www.careerjet.com/search/jobs?s=${qEncoded}&l=${locEncoded}&affid=${affiliateId}&utm_source=cvyon`,
-          description: `Great career advancement opportunity for ${displayTitle} practitioners. Quick turnaround on shortlisted profiles.`,
-          match: 85,
-        },
-      ];
-
-      return partnerFeed.map((j) => ({
-        id: urlId(j.link + j.title),
-        ...j,
-      }));
-    };
+    const honestEmpty = () =>
+      NextResponse.json({
+        success: true,
+        data: [],
+        searchCountry: countryName || 'your region',
+        total: 0,
+        suggestions: SUGGESTIONS,
+        jobsAvailable: false,
+      });
 
     // If proxy secret is configured, attempt CareerJet proxy first
     if (PROXY_SECRET) {
@@ -139,9 +87,9 @@ export async function POST(req: Request) {
             keywords,
             location: countryName,
             locale_code: locale,
-            user_ip: userIp || '102.89.23.45',
+            user_ip: userIp,
             referer: 'https://www.cvyon.com',
-            user_agent: userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            user_agent: userAgent,
             page: body.page || 1,
             pagesize: 15,
             page_size: 15,
@@ -167,24 +115,19 @@ export async function POST(req: Request) {
               data,
               searchCountry: countryName || 'your region',
               total: result.hits || data.length,
+              jobsAvailable: true,
             });
           }
         }
       } catch (proxyErr) {
-        logger.warn('jobs', 'Careerjet proxy fetch notice, falling back to partner feeds:', proxyErr);
+        logger.warn('jobs', 'CareerJet proxy fetch failed; returning honest empty state:', proxyErr);
       }
+    } else {
+      logger.warn('jobs', 'CAREERJET_PROXY_SECRET not configured; returning honest empty state');
     }
 
-    // Fallback: return tailored partner feeds so candidates always have clickable, high-match opportunities
-    const fallbackJobs = generatePartnerJobs(cleanTitle || customQuery || 'Professional', countryName || 'Remote', skills);
-
-    return NextResponse.json({
-      success: true,
-      data: fallbackJobs,
-      searchCountry: countryName || 'your region',
-      total: fallbackJobs.length,
-      suggestions,
-    });
+    // No fabricated listings: when the real feed is unavailable, say so honestly.
+    return honestEmpty();
   } catch (error: any) {
     return apiError('jobs', error);
   }
