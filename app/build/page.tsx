@@ -984,8 +984,10 @@ export default function FreeCVApp() {
         </div>
       </section>
 
-      {/* MOBILE FAB */}
-      <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 print:hidden w-full max-w-sm px-6">
+      {/* MOBILE FAB — positioning is inline (not Tailwind utilities) so it
+          can never be dropped by the utility scanner: fixed bottom-center. */}
+      <div className="lg:hidden fixed z-40 print:hidden w-full max-w-sm px-6"
+        style={{ position: 'fixed', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)' }}>
         <button onClick={() => { trackEvent('milestone_previewed', data.templateId); setIsPreviewOpen(true); }}
           className="w-full bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] hs px-8 py-4 fh text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-3 active:translate-y-[3px] active:shadow-none transition-all">
           <Eye size={18} /> Preview Resume
