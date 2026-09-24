@@ -101,20 +101,29 @@ export async function generateContentWithRetry<T = unknown>(
           text = text.substring(firstBracket, lastBracket + 1);
         }
         
-        // Basic JSON sanitization for common AI mistakes
-        text = text.replace(/\\n/g, "\\n")  
-               .replace(/\\'/g, "\\'")
-               .replace(/\\"/g, '\\"')
-               .replace(/\\&/g, "\\&")
-               .replace(/\\r/g, "\\r")
-               .replace(/\\t/g, "\\t")
-               .replace(/\\b/g, "\\b")
-               .replace(/\\f/g, "\\f");
+        // Escape raw control characters inside JSON string values. Raw
+        // newlines/tabs/returns inside strings are invalid JSON and a common
+        // model mistake. NOTE: the previous version of this sanitizer was a
+        // complete no-op (its regexes matched literal backslash sequences
+        // instead of real control characters due to double-escaping), so
+        // malformed model output could never be repaired.
+        text = text.replace(/"(?:[^"\\]|\\.)*"/g, (str) =>
+          str
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t')
+        );
                
         // Remove trailing commas
         text = text.replace(/,\s*([}\]])/g, '$1');
 
-        return JSON.parse(text) as T;
+        try {
+          return JSON.parse(text) as T;
+        } catch (parseError) {
+          // PII-safe diagnostic for server logs (position info only, no content).
+          const msg = parseError instanceof Error ? parseError.message : String(parseError);
+          throw new SyntaxError(`JSON parse failed: ${msg} (response length ${text.length})`);
+        }
       }
 
       return text;
@@ -128,7 +137,9 @@ export async function generateContentWithRetry<T = unknown>(
       console.warn(`AI Generation Attempt ${attempt} failed:`, errMessage);
       
       if (attempt >= maxRetries) {
-        throw new Error(forceJson ? 'Failed to generate valid JSON after 3 attempts' : 'AI generation failed after 3 attempts');
+        const lastMsg = error instanceof Error ? error.message : String(error);
+        const kind = error instanceof SyntaxError ? 'parse' : 'api';
+        throw new Error(forceJson ? `Failed to generate valid JSON after 3 attempts (last failure: ${kind}: ${lastMsg})` : `AI generation failed after 3 attempts (last failure: ${kind}: ${lastMsg})`);
       }
       
       await delay(baseDelay * Math.pow(2, attempt - 1));

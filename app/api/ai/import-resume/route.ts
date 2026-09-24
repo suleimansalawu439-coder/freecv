@@ -5,6 +5,39 @@ import { apiError } from '@/lib/api-error';
 import { generateContentWithRetry } from '@/lib/ai-retry';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+// Minimum extracted characters to trust the text path. Below this the PDF is
+// probably scanned/image-based, so we fall back to Gemini's native PDF input.
+const MIN_TEXT_CHARS = 100;
+const MAX_TEXT_CHARS = 30000;
+
+/**
+ * Extract selectable text from a PDF server-side with pdfjs-dist (already a
+ * dependency via react-pdf). The legacy build runs in Node without a worker
+ * for pure text extraction.
+ */
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  const pdfjsLib: any = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+  const doc = await pdfjsLib.getDocument({ data }).promise;
+  try {
+    let text = '';
+    const maxPages = Math.min(doc.numPages, 10);
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = (content.items as any[])
+        .map((item) => (typeof item?.str === 'string' ? item.str : ''))
+        .join(' ');
+      text += pageText + '\n';
+      if (text.length > MAX_TEXT_CHARS) break;
+    }
+    return text.replace(/[ \t\u00a0]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  } finally {
+    await doc.destroy().catch(() => {});
+  }
+}
 
 export async function POST(req: Request) {
   const rateLimitResponse = await checkRateLimit(req);
@@ -26,13 +59,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File exceeds 5MB limit' }, { status: 400 });
     }
 
-    // Read PDF as base64
     const arrayBuffer = await file.arrayBuffer();
-    const base64Data = Buffer.from(arrayBuffer).toString('base64');
+    const buffer = Buffer.from(arrayBuffer);
 
     const systemInstruction = `You are an expert ATS (Applicant Tracking System) parser. Your job is to read the attached PDF and structure it EXACTLY according to the JSON schema.`;
-    
-    const prompt = `
+
+    const schemaBlock = `
 Rules:
 1. Extract as much relevant information as possible.
 2. If a field is missing, leave it as an empty string ("") or empty array ([]).
@@ -119,15 +151,34 @@ JSON Schema to match:
   ]
 }`;
 
+    // Primary path: extract text locally and send TEXT to the model. The
+    // text+JSON path is the proven reliable one (same as ATS scoring); the
+    // multimodal PDF path has been observed to fail consistently.
+    let resumeText = '';
+    try {
+      resumeText = await extractPdfText(buffer);
+    } catch (extractError) {
+      logger.warn('import-resume', 'PDF text extraction failed, trying native PDF input:', extractError);
+    }
+
+    if (resumeText.length >= MIN_TEXT_CHARS) {
+      const prompt = `${schemaBlock}\n\nRESUME TEXT:\n${resumeText.substring(0, MAX_TEXT_CHARS)}`;
+      const parsedData = await generateContentWithRetry(prompt, systemInstruction, 8192, true, [], 'import_resume');
+      return NextResponse.json(parsedData);
+    }
+
+    // Fallback for scanned/image PDFs with no selectable text: send the raw
+    // PDF bytes and let Gemini read the document natively.
+    logger.warn('import-resume', `Only ${resumeText.length} chars extracted; falling back to native PDF input.`);
+    const base64Data = buffer.toString('base64');
     const mediaParts = [{
       inlineData: {
         data: base64Data,
         mimeType: 'application/pdf'
       }
     }];
-
-    const parsedData = await generateContentWithRetry(prompt, systemInstruction, 8192, true, mediaParts, 'import_resume');
-
+    const fallbackPrompt = `${schemaBlock}\n\nThe resume is attached as a PDF document. Read it and extract the details.`;
+    const parsedData = await generateContentWithRetry(fallbackPrompt, systemInstruction, 8192, true, mediaParts, 'import_resume_pdf');
     return NextResponse.json(parsedData);
   } catch (error: any) {
     return apiError('import-resume', error);
