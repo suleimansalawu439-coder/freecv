@@ -110,7 +110,7 @@ export default function TypographyFirst({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )}\n
+            )}
           {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
             section.items.length > 0 && (
               <div key={section.id} className="mb-6">
