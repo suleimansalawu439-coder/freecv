@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Sparkles,
   CheckCircle2,
@@ -84,8 +85,10 @@ export function LiveAtsScore() {
         {isOpen ? <ChevronUp size={13} className="text-[#141312]" /> : <ChevronDown size={13} className="text-[#141312]" />}
       </button>
 
-      {/* Centered Modal Overlay (Guaranteed visible and centered on mobile & desktop) */}
-      {isOpen && (
+      {/* Centered Modal Overlay (portaled to document.body so ancestor
+          backdrop-filters/transforms — e.g. the sticky builder header — can
+          never trap it and clip the top of the card on mobile or desktop) */}
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
           {/* Backdrop Click Dismiss */}
           <div
@@ -333,7 +336,8 @@ export function LiveAtsScore() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
