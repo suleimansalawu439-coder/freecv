@@ -53,8 +53,16 @@ export async function generateContentWithRetry<T = unknown>(
       }
       const ai = new GoogleGenAI({ apiKey });
 
+      // Model is env-configurable (GEMINI_MODEL); defaults to gemini-3.6-flash.
+      // NOTE 2026-09-25: the GEMINI_API_KEY is on the Gemini free tier
+      // (20 generate requests/day/model). When one model's daily quota is
+      // exhausted the API returns 429; switching GEMINI_MODEL to another
+      // model with fresh quota restores service. Long-term fix: upgrade the
+      // key to a paid tier (billing decision for Hamis).
+      const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model,
         contents: [{ role: 'user', parts: parts as any }], // GenAI SDK internal type mismatch
         config: { 
           temperature: 0.1 + (attempt * 0.1),
