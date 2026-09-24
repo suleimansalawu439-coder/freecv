@@ -13,11 +13,35 @@ const MIN_TEXT_CHARS = 100;
 const MAX_TEXT_CHARS = 30000;
 
 /**
+ * pdfjs-dist references DOMMatrix at module load (rendering path), which
+ * does not exist in the Node.js serverless runtime. Text extraction never
+ * renders, so a minimal stand-in is sufficient to let the module load.
+ */
+function ensureDomMatrix() {
+  const g = globalThis as any;
+  if (g.DOMMatrix) return;
+  g.DOMMatrix = class DOMMatrixPolyfill {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    constructor(init?: number[] | string) {
+      if (Array.isArray(init) && init.length >= 6) {
+        [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+      }
+    }
+    multiplySelf(_m?: any) { return this; }
+    preMultiplySelf(_m?: any) { return this; }
+    translate(_x = 0, _y = 0) { return this; }
+    scale(_x = 1, _y?: number) { return this; }
+    invertSelf() { return this; }
+  };
+}
+
+/**
  * Extract selectable text from a PDF server-side with pdfjs-dist (already a
  * dependency via react-pdf). The legacy build runs in Node without a worker
  * for pure text extraction.
  */
 async function extractPdfText(buffer: Buffer): Promise<string> {
+  ensureDomMatrix();
   const pdfjsLib: any = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
   const doc = await pdfjsLib.getDocument({ data }).promise;
@@ -35,18 +59,15 @@ async function extractPdfText(buffer: Buffer): Promise<string> {
     }
     return text.replace(/[ \t\u00a0]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
   } finally {
-    await doc.destroy().catch(() => {});
+    if (typeof doc.destroy === 'function') {
+      await doc.destroy().catch(() => {});
+    }
   }
 }
 
 export async function POST(req: Request) {
   const rateLimitResponse = await checkRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
-
-  // TEMPORARY diagnostic hook (remove after debugging import failures).
-  const diagToken = new URL(req.url).searchParams.get('diag');
-  const diagEnabled = diagToken === 'tmp-diag-9f3k7q2';
-  const diag: Record<string, unknown> = {};
 
   try {
     const formData = await req.formData();
@@ -163,13 +184,10 @@ JSON Schema to match:
     try {
       resumeText = await extractPdfText(buffer);
     } catch (extractError) {
-      diag.extractError = extractError instanceof Error ? extractError.message : String(extractError);
       logger.warn('import-resume', 'PDF text extraction failed, trying native PDF input:', extractError);
     }
-    diag.extractedChars = resumeText.length;
 
     if (resumeText.length >= MIN_TEXT_CHARS) {
-      diag.path = 'text';
       const prompt = `${schemaBlock}\n\nRESUME TEXT:\n${resumeText.substring(0, MAX_TEXT_CHARS)}`;
       const parsedData = await generateContentWithRetry(prompt, systemInstruction, 8192, true, [], 'import_resume');
       return NextResponse.json(parsedData);
@@ -177,7 +195,6 @@ JSON Schema to match:
 
     // Fallback for scanned/image PDFs with no selectable text: send the raw
     // PDF bytes and let Gemini read the document natively.
-    diag.path = 'pdf-fallback';
     logger.warn('import-resume', `Only ${resumeText.length} chars extracted; falling back to native PDF input.`);
     const base64Data = buffer.toString('base64');
     const mediaParts = [{
@@ -190,10 +207,6 @@ JSON Schema to match:
     const parsedData = await generateContentWithRetry(fallbackPrompt, systemInstruction, 8192, true, mediaParts, 'import_resume_pdf');
     return NextResponse.json(parsedData);
   } catch (error: any) {
-    if (diagEnabled) {
-      diag.error = error instanceof Error ? error.message : String(error);
-      return NextResponse.json({ diag }, { status: 500 });
-    }
     return apiError('import-resume', error);
   }
 }
