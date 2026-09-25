@@ -48,9 +48,15 @@ export async function checkRateLimit(
 
   let id = identifier;
   if (identifier === 'ip') {
-    const forwarded = req.headers.get('x-forwarded-for');
+    // Prefer x-real-ip: on Vercel the edge sets it from the actual TCP peer
+    // and overwrites any client-sent value, while x-forwarded-for's leftmost
+    // entry is client-controlled. Using x-forwarded-for first would let an
+    // attacker rotate the rate-limit bucket at will via header spoofing.
     const realIp = req.headers.get('x-real-ip');
-    id = forwarded ? forwarded.split(',')[0].trim() : (realIp || 'anonymous');
+    const forwarded = req.headers.get('x-forwarded-for');
+    id = (realIp && realIp.trim()) ||
+      (forwarded ? forwarded.split(',')[0].trim() : '') ||
+      'anonymous';
   }
 
   // 1. Try Upstash if configured

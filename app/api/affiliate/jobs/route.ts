@@ -1,5 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
 
 /* ---- country code (from Vercel geo header) -> name + CareerJet locale ---- */
@@ -39,6 +40,11 @@ function urlId(url: string): string {
 const SUGGESTIONS = ['Software Engineer', 'Product Manager', 'Data Analyst', 'UI/UX Designer', 'Accountant', 'Marketing Specialist', 'Sales Representative', 'Project Manager'];
 
 export async function POST(req: Request) {
+  // Each request triggers an upstream CareerJet proxy fetch: bound it so the
+  // endpoint can't be used as an unchecked reflector/amplifier.
+  const rateLimitResponse = await checkRateLimit(req, { limit: 30, windowMs: 60_000 });
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const body = await req.json().catch(() => ({}));
     const jobTitle: string = (body.jobTitle || '').trim();
