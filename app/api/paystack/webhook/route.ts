@@ -118,11 +118,11 @@ async function upsertSubscription(subscriptionCode: string, recruiterId: string,
 }
 
 /* Record the actual cash movement. Unique index on ref prevents double-cash. */
-async function recordCash(reference: string, recruiterId: string | null, amount: number, currency: string) {
+async function recordCash(reference: string, recruiterId: string | null, amount: number, currency: string, source = 'subscription') {
   if (!reference || amount == null) return;
   try {
     await supabaseAdmin.from('revenue_ledger').insert({
-      source: 'subscription', ref: reference, recruiter_id: recruiterId,
+      source, ref: reference, recruiter_id: recruiterId,
       amount_minor: Number(amount), currency: currency || 'NGN',
       fx_to_usd: fxFor(currency), status: 'settled',
       period_start: new Date().toISOString(),
@@ -130,6 +130,39 @@ async function recordCash(reference: string, recruiterId: string | null, amount:
   } catch (e: any) {
     logger.warn('webhook', '[webhook] revenue_ledger insert skipped:', e?.message);
   }
+}
+
+/* Credit-pack purchase (recruiter marketplace): credit the recruiter's ledger
+ * with the pack's unlock credits. Idempotent: the caller already claimed the
+ * charge reference, so a retried webhook can never double-credit. A pack with
+ * unknown/inactive pack_id is logged and skipped rather than failed. */
+async function creditPackPurchase(reference: string, recruiterId: string, d: any) {
+  const packId = d?.metadata?.pack_id;
+  if (!packId) {
+    logger.warn('webhook', '[webhook] credit_pack charge missing pack_id, ref:', reference);
+    return;
+  }
+  const { data: pack } = await supabaseAdmin
+    .from('credit_packs')
+    .select('id, name, credits')
+    .eq('id', packId)
+    .eq('active', true)
+    .single();
+  if (!pack) {
+    logger.warn('webhook', '[webhook] credit_pack pack not found/inactive:', packId);
+    return;
+  }
+  const { data: newBalance, error } = await supabaseAdmin.rpc('adjust_recruiter_credits', {
+    p_recruiter_id: recruiterId,
+    p_delta: Number(pack.credits),
+    p_reason: 'pack_purchase',
+    p_ref: reference,
+  });
+  if (error) {
+    logger.error('webhook', '[webhook] credit_pack ledger credit failed:', error?.message);
+    throw error;
+  }
+  logger.info('webhook', `[webhook] credited pack ${pack.id} to recruiter ${recruiterId}, new balance: ${newBalance}`);
 }
 
 /* Email a PDF invoice via Brevo. Fully best-effort + permissively typed so a
@@ -201,14 +234,23 @@ export async function processPaystackEvent(event: any): Promise<boolean> {
       const recruiterId = await resolveRecruiterId(d);
       if (recruiterId) await rememberCustomerCode(recruiterId, d);
 
+      const kind = d?.metadata?.kind;
+
       // record the cash (unique index on ref => never double-counted)
-      await recordCash(reference, recruiterId, d?.amount, d?.currency || 'NGN');
+      await recordCash(reference, recruiterId, d?.amount, d?.currency || 'NGN', kind === 'credit_pack' ? 'credit_pack' : 'subscription');
+
+      // credit-pack purchase: credit the ledger, do NOT touch subscriptions.
+      if (kind === 'credit_pack' && recruiterId) {
+        await creditPackPurchase(reference, recruiterId, d);
+      } else if (kind === 'credit_pack') {
+        logger.warn('webhook', '[webhook] credit_pack charge: could not resolve recruiter for', reference);
+      }
 
       // if this charge belongs to a subscription, (re)activate + extend it
       const subscriptionCode = d?.subscription?.subscription_code || d?.subscription_code;
-      if (subscriptionCode && recruiterId) {
+      if (subscriptionCode && recruiterId && kind !== 'credit_pack') {
         await upsertSubscription(subscriptionCode, recruiterId, d);
-      } else if (!subscriptionCode && recruiterId) {
+      } else if (!subscriptionCode && recruiterId && kind !== 'credit_pack') {
         // one-time payment (no Paystack plan attached): grant 30 days of
         // pro access so the charge actually unlocks the product.
         await activateOneTimeAccess(reference, recruiterId, d);

@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  verification: {
+    google: "Yg_Y3Iu-WAx7l6TkcVEehUCuSbEAVS7DkFBLGkWg78A",
+  },
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com'),
   title: "Cvyon | Build a Premium, ATS-Friendly Resume for Free",
   description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
@@ -38,9 +41,6 @@ export const metadata: Metadata = {
     title: "Cvyon | Premium, ATS-Friendly Resume Builder",
     description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     images: ["/og-image.jpg"],
-  },
-  verification: {
-    google: "Yg_Y3Iu-WAx7l6TkcVEehUCuSbEAVS7DkFBLGkWg78A",
   },
 };
 

@@ -92,7 +92,7 @@ export default function RecruiterSignup() {
           Start sourcing.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-[#141312]/70">
-          Free to create. Buy 30-day access only when you&apos;re ready to search.
+          Free to create. Search the pool free — pay only when you unlock a contact.
         </p>
         <Suspense fallback={null}>
           <SelectedPlanLine />

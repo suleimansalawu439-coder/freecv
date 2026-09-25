@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Plus, FileText, Copy, Trash2, Edit2, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { RecruiterOptInCard } from '@/components/candidate/RecruiterOptInCard';
+import { RecruiterActivityCard } from '@/components/candidate/RecruiterActivityCard';
 import { Archivo, Archivo_Black, DM_Sans, Space_Mono } from '@/lib/fonts';
 
 const display = Archivo_Black({ subsets: ["latin"], weight: "400", display: "swap" });
@@ -166,6 +168,12 @@ export default function DashboardClient() {
               <p className="text-sm font-bold">{fetchError}</p>
             </div>
           )}
+
+          {/* recruiter discovery — opt-in moment #2 */}
+          <RecruiterOptInCard variant="card" />
+
+          {/* candidate transparency: real recruiter activity on their profile */}
+          <RecruiterActivityCard />
 
           {resumes.length === 0 ? (
             <div className="riso-card p-12 text-center flex flex-col items-center">

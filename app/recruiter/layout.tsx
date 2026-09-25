@@ -5,9 +5,9 @@ import type { Metadata } from 'next';
 // wraps /recruiter/login, /recruiter/signup, and /recruiter/dashboard, and a
 // shared canonical would be wrong for those subpages.
 export const metadata: Metadata = {
-  title: 'Cvyon for Recruiters — Search the opt-in talent pool',
+  title: 'Cvyon for Recruiters — Paste the JD, meet the shortlist',
   description:
-    'Recruiters pay for access to Cvyon\u2019s opt-in talent pool. Buy 30 days of search and contact access via Paystack — one-time, no subscription.',
+    'Recruiters search Cvyon\u2019s opt-in talent pool free with a job description. Tiered matches (Excellent / Strong / Moderate) up front; unlock a candidate\u2019s contact for 1 credit. Billed via Paystack.',
 };
 
 export default function RecruiterLayout({ children }: { children: React.ReactNode }) {

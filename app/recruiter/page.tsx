@@ -4,7 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { RisoPage, RisoSectionLabel } from "@/components/riso/RisoChrome";
-import { ArrowRight, ArrowUpRight, ShieldCheck, Users, Search, Zap } from "lucide-react";
+import { JdSearchForm, JdInput } from "@/components/recruiter/JdSearchForm";
+import { MatchResult } from "@/lib/recruiter-api";
+import {
+  ArrowRight, ArrowUpRight, ShieldCheck, Search, Unlock, FileText,
+  Check, EyeOff, Coins,
+} from "lucide-react";
+
+const PACKS = [
+  { name: "Single unlock", credits: 1, price: "₦2,500", per: "₦2,500 / contact", note: "One perfect candidate, one price.", cta: "Start free", hot: false },
+  { name: "10-pack", credits: 10, price: "₦19,900", per: "₦1,990 / contact", note: "For an active hiring sprint.", cta: "Start free", hot: true },
+  { name: "50-pack", credits: 50, price: "₦74,900", per: "₦1,498 / contact", note: "For teams hiring at volume.", cta: "Start free", hot: false },
+];
 
 export default function RecruiterLanding() {
   const router = useRouter();
@@ -35,11 +46,23 @@ export default function RecruiterLanding() {
     });
   }, [router]);
 
+  const handleHeroSearch = async (result: MatchResult, input: JdInput) => {
+    try { sessionStorage.setItem("cvyon_jd_result", JSON.stringify({ result, input })); } catch {}
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      router.push("/recruiter/dashboard");
+    } else {
+      // Keep the JD so the dashboard can run it right after sign-in.
+      try { sessionStorage.setItem("cvyon_pending_jd", JSON.stringify(input)); } catch {}
+      router.push("/recruiter/login?next=/recruiter/dashboard");
+    }
+  };
+
   return (
     <RisoPage pageName="recruiter_landing" ticker={true}>
-      {/* ─── HERO ─── */}
+      {/* ─── HERO: the JD-match flow ─── */}
       <section className="dots relative grid grid-cols-1 gap-10 border-b-[3px] border-[#141312] py-14 lg:grid-cols-12 lg:py-20">
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <div className="fm mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.22em]">
             <span className="inline-flex items-center gap-2 border-[3px] border-[#141312] bg-white px-3 py-1.5 hs">
               <span className="blink inline-block h-2 w-2 rounded-full bg-[#FF4326]" />
@@ -47,13 +70,15 @@ export default function RecruiterLanding() {
             </span>
             <span className="text-[#141312]/50">est. 2026</span>
           </div>
-          <h1 className="fd text-[12vw] leading-[0.86] tracking-[-0.02em] sm:text-7xl lg:text-[5.4rem]">
-            Source talent<br />that <span className="relative inline-block"><span className="relative z-10">asked</span><span className="absolute inset-x-[-4px] bottom-1 z-0 h-[0.42em] bg-[#FFE14D]" /></span> to<br />be found.
+          <h1 className="fd text-[12vw] leading-[0.86] tracking-[-0.02em] sm:text-7xl lg:text-[5rem]">
+            Paste the JD.<br />
+            Meet the <span className="relative inline-block"><span className="relative z-10">shortlist</span><span className="absolute inset-x-[-4px] bottom-1 z-0 h-[0.42em] bg-[#FFE14D]" /></span>.
           </h1>
           <p className="mt-7 max-w-md text-lg leading-relaxed text-[#141312]/75">
-            Every candidate in Cvyon&apos;s pool explicitly opted in to recruiter contact.
-            Filter by role, skill and country, read a completeness score, and reach
-            them directly — no scraping, no guesswork, no noise.
+            Drop in a job description and Cvyon matches it against every opted-in
+            candidate — ranked <strong>Excellent / Strong / Moderate</strong>, with
+            counts shown <em>before</em> you spend anything. Unlock a contact for
+            1 credit. No database to trawl. No scraping.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -70,65 +95,113 @@ export default function RecruiterLanding() {
             </Link>
           </div>
           <div className="mt-9 flex flex-wrap gap-2 fm text-[10px] font-bold uppercase tracking-[0.16em]">
-            {["consent-verified", "completeness scored", "direct contact", "GDPR-first"].map((c) => (
+            {["free to search", "consent-verified", "anonymized until unlock", "₦0 to try"].map((c) => (
               <span key={c} className="border-2 border-[#141312] bg-white px-3 py-1.5">{c}</span>
             ))}
           </div>
         </div>
 
-        {/* RIGHT COL — feature ledger */}
-        <div className="relative lg:col-span-5">
-          <div className="border-[3px] border-[#141312] bg-white hs p-7">
-            <div className="fm mb-5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#141312]/50">what you actually get</div>
-            <ol>
-              {[
-                ["01", "Consent-verified pool", "Only candidates who allow recruiters to find their profile.", ShieldCheck],
-                ["02", "Structured & scored", "Skills, experience, location and a 0\u2013100 completeness score.", Zap],
-                ["03", "Direct contact", "Email candidates straight from the card — no middleman markup.", Users],
-                ["04", "Search that scales", "Filter by title and country across the whole opt-in pool.", Search],
-              ].map(([num, t, d, Icon]: any, i: number) => (
-                <li key={t} className={`flex gap-4 border-t-2 border-[#141312]/15 py-4 ${i === 3 ? "border-b-2" : ""}`}>
-                  <span className="fd text-2xl leading-none text-[#FF4326]">{num}</span>
-                  <div>
-                    <div className="fh font-extrabold">{t}</div>
-                    <div className="mt-0.5 text-sm text-[#141312]/60">{d}</div>
-                  </div>
-                </li>
-              ))}
-            </ol>
+        {/* RIGHT COL — live JD search */}
+        <div className="lg:col-span-6">
+          <div className="border-[3px] border-[#141312] bg-white hs p-5 sm:p-7">
+            <div className="fm mb-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.22em] text-[#141312]/50">
+              <span>§ try it now</span>
+              <span className="text-[#FF4326]">live match</span>
+            </div>
+            <JdSearchForm variant="hero" onResult={handleHeroSearch} />
           </div>
         </div>
       </section>
 
-      {/* ─── STAT STRIP ─── */}
-      <div className="mt-12 grid grid-cols-2 border-[3px] border-[#141312] bg-white sm:grid-cols-4">
-        {[
-          ["0", "paywalls for candidates"],
-          ["100%", "opt-in pool"],
-          ["18", "resume layouts"],
-          ["GDPR", "consent-first"],
-        ].map(([v, l], i) => (
-          <div
-            key={l}
-            className={[
-              "p-6",
-              i % 2 === 0 ? "border-r-2 border-[#141312]" : "",
-              i < 2 ? "border-b-2 border-[#141312] sm:border-b-0" : "",
-              i === 1 ? "sm:border-r-2" : "",
-            ].filter(Boolean).join(" ")}
-          >
-            <div className="fd text-3xl tracking-tight text-[#141312]">{v}</div>
-            <div className="fm mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#141312]/55">{l}</div>
-          </div>
-        ))}
-      </div>
+      {/* ─── HOW IT WORKS ─── */}
+      <section className="mt-16">
+        <RisoSectionLabel color="#FF4326">how it works</RisoSectionLabel>
+        <h2 className="fd text-4xl tracking-tight sm:text-5xl">Sell the match,<br />not the database.</h2>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {[
+            { n: "01", icon: FileText, t: "Paste the job description", d: "The full JD — not keywords. Cvyon extracts the title, must-have and nice-to-have skills, years, and location automatically." },
+            { n: "02", icon: Search, t: "See tiered matches", d: "Every candidate is ranked Excellent, Strong, or Moderate with plain-English reasons — “8/10 required skills, 5 yrs experience”. Counts up front, free." },
+            { n: "03", icon: Unlock, t: "Unlock the contact", d: "Found the one? Spend 1 credit to reveal their name, email, and phone. Nothing is ever shown before you choose to unlock." },
+          ].map((s) => (
+            <div key={s.n} className="border-[3px] border-[#141312] bg-white hs p-7">
+              <div className="flex items-center justify-between">
+                <span className="fd text-3xl text-[#FF4326]">{s.n}</span>
+                <s.icon size={26} className="text-[#141312]" />
+              </div>
+              <h3 className="fh mt-5 text-xl font-extrabold tracking-tight">{s.t}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#141312]/70">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── PRICING ─── */}
+      <section className="mt-20">
+        <RisoSectionLabel color="#0E8A4B">pricing</RisoSectionLabel>
+        <h2 className="fd text-4xl tracking-tight sm:text-5xl">Pay per hire-lead.<br />Nothing else.</h2>
+        <p className="mt-4 max-w-lg text-lg text-[#141312]/70">
+          Searching is free, forever. You only pay when you unlock a candidate&apos;s contact — 1 credit each.
+        </p>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {PACKS.map((p) => (
+            <div
+              key={p.name}
+              className={`relative flex flex-col border-[3px] border-[#141312] bg-white p-8 ${p.hot ? "hs-v" : "hs"}`}
+            >
+              {p.hot && (
+                <span className="fm absolute -top-4 left-6 border-[3px] border-[#141312] bg-[#FF4326] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                  most popular
+                </span>
+              )}
+              <div className="flex items-center gap-2 fm text-[11px] font-bold uppercase tracking-[0.2em] text-[#141312]/55">
+                <Coins size={14} className="text-[#FF4326]" /> {p.credits} credit{p.credits === 1 ? "" : "s"}
+              </div>
+              <h3 className="fh mt-2 text-2xl font-extrabold tracking-tight">{p.name}</h3>
+              <div className="fd mt-3 text-5xl tracking-tight">{p.price}</div>
+              <div className="fm mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0E8A4B]">{p.per}</div>
+              <p className="mt-3 text-sm text-[#141312]/65">{p.note}</p>
+              <Link
+                href="/recruiter/signup"
+                className={`mt-6 flex items-center justify-center gap-2 border-[3px] border-[#141312] px-6 py-3.5 fh text-xs font-extrabold uppercase tracking-wider transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${p.hot ? "bg-[#FF4326] text-[#141312] hs" : "bg-[#141312] text-[#E8E7E1] hs"}`}
+              >
+                {p.cta} <ArrowUpRight size={15} />
+              </Link>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-center fm text-[11px] uppercase tracking-[0.16em] text-[#141312]/50">
+          credits never expire · billed securely via Paystack · receipts on every unlock
+        </p>
+      </section>
+
+      {/* ─── TRUST / PRIVACY ─── */}
+      <section className="mt-20 border-[3px] border-[#141312] bg-white hs p-8 sm:p-10">
+        <RisoSectionLabel>trust & privacy</RisoSectionLabel>
+        <div className="grid gap-8 md:grid-cols-3">
+          {[
+            { icon: ShieldCheck, t: "100% opted in", d: "Every profile in the pool explicitly allowed recruiters to find them. Consent is timestamped and revocable — the moment someone opts out, they vanish from search." },
+            { icon: EyeOff, t: "Anonymized until unlock", d: "You see headlines, skills, experience, and match reasons — never names, photos, or contact details — until you spend a credit to unlock." },
+            { icon: Check, t: "Honest counts", d: "Every search shows the real number of excellent, strong, and moderate matches first. A small pool is labeled as a small, growing pool — never padded." },
+          ].map((c) => (
+            <div key={c.t} className="flex gap-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center border-[3px] border-[#141312] bg-[#E8E7E1] text-[#141312]">
+                <c.icon size={20} />
+              </span>
+              <div>
+                <h3 className="fh text-lg font-extrabold">{c.t}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-[#141312]/65">{c.d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ─── CTA BANNER ─── */}
       <section className="mt-16 border-[3px] border-[#141312] bg-[#141312] hs-v p-10 text-center text-[#E8E7E1] sm:p-14">
-        <h2 className="fd text-4xl tracking-tight sm:text-5xl">Ready to hire?</h2>
+        <h2 className="fd text-4xl tracking-tight sm:text-5xl">Your next hire is one JD away.</h2>
         <p className="mx-auto mt-4 max-w-lg text-[#E8E7E1]/70">
-          Create a free account, buy 30-day access when you&apos;re ready, and start contacting
-          opted-in candidates today.
+          Create a free recruiter account, paste a job description, and see your
+          tiered shortlist in seconds. Pay only when you unlock.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link

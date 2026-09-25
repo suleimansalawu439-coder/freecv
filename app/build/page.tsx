@@ -39,6 +39,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 import { useResumeStore, initialData, type ResumeData, type PersonalInfo, type Experience, type Education, type Skill, type Project, type Certification, type CustomSection, type CustomSectionItem, type Reference } from '@/store/useResumeStore';
+import { setRecruiterConsent } from '@/lib/recruiter-api';
 
 // --- Riso primitives ---
 const Input = ({ label, ...props }: any) => (
@@ -195,6 +196,33 @@ export default function FreeCVApp() {
   const [publishedUrl, setPublishedUrl] = useState('');
 
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+
+  // OAuth return: finish a recruiter-discovery opt-in started (Allow → sign in)
+  // before the user had a session. Explicit + timestamped via the consent API.
+  useEffect(() => {
+    let pending = false;
+    try { pending = sessionStorage.getItem("cvyon_pending_optin") === "1"; } catch {}
+    if (!pending) return;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      try { sessionStorage.removeItem("cvyon_pending_optin"); } catch {}
+      try {
+        await setRecruiterConsent(true);
+        setConsents({ ...(data.consents || {}), recruiterShare: true });
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.2 }, colors: ["#FF4326", "#FFE14D", "#2233FF"] });
+        toast.success("You're discoverable — recruiters can now find you.");
+      } catch (e: any) {
+        toast.error(e?.message || "Couldn't save your preference.");
+      }
+      // clean the ?optin=pending marker without a reload
+      try {
+        const u = new URL(window.location.href);
+        if (u.searchParams.has("optin")) { u.searchParams.delete("optin"); window.history.replaceState(null, "", u.toString()); }
+      } catch {}
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onDragEnd = (result: any) => {
     if (!result.destination) return;

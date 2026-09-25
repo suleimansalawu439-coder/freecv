@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Shield, Download, Trash2, Mail, Lock, Settings as SettingsIcon, LogOut, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils'; // if exists, otherwise I'll need to define it or use another
+import { RecruiterOptInCard } from '@/components/candidate/RecruiterOptInCard';
+import { RecruiterActivityCard } from '@/components/candidate/RecruiterActivityCard';
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null);
@@ -120,23 +122,21 @@ export default function SettingsPage() {
               <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Shield size={20} className="text-blue-600" /> Privacy & Consent
               </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
-                  <div>
-                    <div className="font-semibold text-gray-900">Allow recruiters to find my profile</div>
-                    <div className="text-sm text-gray-500">Allow verified top companies to find your profile.</div>
-                  </div>
-                  <button 
-                    disabled={saving}
-                    onClick={() => handleToggle('consent_recruiter_share', !consents.consent_recruiter_share)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${consents.consent_recruiter_share ? 'bg-blue-600' : 'bg-gray-300'}`}
-                  >
-                    <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${consents.consent_recruiter_share ? 'translate-x-5' : 'translate-x-0'}`}></div>
-                  </button>
-                </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+              {/* recruiter discovery — opt-in moment #3: benefit-framed, explicit, one-tap revoke */}
+              <div className="mb-6">
+                <RecruiterOptInCard
+                  variant="card"
+                  onChange={(optedIn) => setConsents((c) => ({ ...c, consent_recruiter_share: optedIn }))}
+                />
+              </div>
+
+              {/* candidate transparency: real recruiter activity on their profile */}
+              <div className="mb-6">
+                <RecruiterActivityCard />
+              </div>
+
+              <div className="space-y-4">                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div>
                     <div className="font-semibold text-gray-900">Job Match Emails</div>
                     <div className="text-sm text-gray-500">Receive emails when we match you with new roles.</div>

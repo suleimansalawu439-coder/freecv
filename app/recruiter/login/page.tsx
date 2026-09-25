@@ -1,14 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { RisoPage } from "@/components/riso/RisoChrome";
 import { ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function RecruiterLogin() {
+/** Where to land after sign-in. Only same-origin relative paths are honored. */
+function useNextPath() {
+  const params = useSearchParams();
+  const n = params.get("next") || "";
+  return n.startsWith("/") && !n.startsWith("//") ? n : "/recruiter/dashboard";
+}
+
+function RecruiterLoginInner() {
   const router = useRouter();
+  const nextPath = useNextPath();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,9 +24,9 @@ export default function RecruiterLogin() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) router.push("/recruiter/dashboard");
+      if (data.session?.user) router.push(nextPath);
     });
-  }, [router]);
+  }, [router, nextPath]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +35,7 @@ export default function RecruiterLogin() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Signed in.");
-      router.push("/recruiter/dashboard");
+      router.push(nextPath);
       router.refresh();
     } catch (err: any) {
       toast.error(err.message || "Sign in failed");
@@ -193,5 +201,13 @@ export default function RecruiterLogin() {
         </p>
       </div>
     </RisoPage>
+  );
+}
+
+export default function RecruiterLogin() {
+  return (
+    <Suspense fallback={null}>
+      <RecruiterLoginInner />
+    </Suspense>
   );
 }

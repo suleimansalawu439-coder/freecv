@@ -6,6 +6,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useResumeStore } from "@/store/useResumeStore";
 import { trackEvent } from "@/lib/analytics";
+import { RecruiterOptInCard } from "@/components/candidate/RecruiterOptInCard";
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -176,6 +177,16 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
             <X size={18} />
           </button>
         </div>
+
+        {/* recruiter-discovery opt-in — the post-download completion moment.
+            The banner variant carries its own strip styling and renders nothing when dismissed. */}
+        <RecruiterOptInCard
+          variant="banner"
+          onChange={(optedIn: boolean) => {
+            // keep the builder's Personal-Info toggle in sync with the canonical consent
+            useResumeStore.getState().setConsents({ recruiterShare: optedIn });
+          }}
+        />
 
         {/* search bar */}
         <div className="border-b-2 border-[#141312] bg-white p-3 flex gap-2">
