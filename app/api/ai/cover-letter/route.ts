@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
-import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
 import { trackEvent } from '@/lib/analytics';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -48,6 +48,9 @@ Do NOT include generic placeholders like [Company Name] if it's in the text.`;
     }
     if (error instanceof AiOverloadedError) {
       return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
+    }
+    if (error instanceof AiAccessDeniedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
     return NextResponse.json(
       { error: 'Failed to generate cover letter. Please try again.' },

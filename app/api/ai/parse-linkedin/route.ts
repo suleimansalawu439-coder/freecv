@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -88,6 +88,9 @@ export async function POST(req: NextRequest) {
     }
     if (error instanceof AiOverloadedError) {
       return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
+    }
+    if (error instanceof AiAccessDeniedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
     return apiError('parse-linkedin', error);
   }

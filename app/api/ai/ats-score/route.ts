@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
 import { Redis } from '@upstash/redis';
-import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || '',
@@ -110,6 +110,9 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
     }
     if (error instanceof AiOverloadedError) {
       return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
+    }
+    if (error instanceof AiAccessDeniedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
     return apiError('ats-score', error);
   }

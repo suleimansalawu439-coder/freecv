@@ -31,6 +31,21 @@ export class AiQuotaExhaustedError extends Error {
 }
 
 /**
+ * Thrown when the Gemini API denies access (HTTP 401/403) on every
+ * available key. Unlike quota exhaustion this is not about usage limits —
+ * the key or its Google project is being refused. Routes should return an
+ * honest 503; the owner may need to check the key/project in Google AI
+ * Studio. (2026-09-25: seen flapping with 503s during a Gemini outage
+ * window — often transient, so denied combos are NOT marked at-cap.)
+ */
+export class AiAccessDeniedError extends Error {
+  constructor() {
+    super('The AI service is refusing requests right now (access denied). Please try again in a little while.');
+    this.name = 'AiAccessDeniedError';
+  }
+}
+
+/**
  * Thrown when the Gemini API reports the model itself is overloaded
  * (HTTP 503 UNAVAILABLE / 500 / 502 / 504) on every available key+model
  * combo after backoff retries. Routes should catch this and return an
@@ -218,7 +233,7 @@ export async function pickGeminiCombo(): Promise<GeminiCombo | null> {
 // Error classification
 // ---------------------------------------------------------------------------
 
-type GeminiFailure = 'quota' | 'ratelimit' | 'overloaded' | 'other';
+type GeminiFailure = 'quota' | 'ratelimit' | 'overloaded' | 'denied' | 'other';
 
 /**
  * 'quota'      = daily budget spent for this key+model (fail over NOW;
@@ -228,12 +243,24 @@ type GeminiFailure = 'quota' | 'ratelimit' | 'overloaded' | 'other';
  *                503/504, "high demand", "overloaded", "unavailable").
  *                Back off and spread across keys like ratelimit — the
  *                capacity crunch is usually temporary.
+ * 'denied'     = the key/project is refused (HTTP 401/403, permission
+ *                denied). Fail over to the next key immediately — another
+ *                key may be fine. NOT marked at-cap: denials often flap.
  * 'other'      = API/parse errors (limited retries, same as before).
  */
 function classifyGeminiError(err: unknown): GeminiFailure {
   const e = err as any;
   const status = e?.status ?? e?.code;
   const msg = String(e?.message ?? err ?? '').toLowerCase();
+  const looksDenied =
+    status === 401 ||
+    status === 403 ||
+    msg.includes('"code":401') ||
+    msg.includes('"code":403') ||
+    msg.includes('permission_denied') ||
+    msg.includes('permission denied') ||
+    msg.includes('denied access');
+  if (looksDenied) return 'denied';
   const looks5xxTransient =
     status === 500 ||
     status === 502 ||
@@ -375,6 +402,7 @@ export async function generateContentWithRetry<T = unknown>(
   let attempts = 0;
   let rateLimitStreak = 0;
   let overloadFailures = 0;
+  let deniedFailures = 0;
   let sawOverload = false;
   let otherFailures = 0;
 
@@ -447,6 +475,21 @@ export async function generateContentWithRetry<T = unknown>(
       }
 
       const kind = classifyGeminiError(error);
+
+      if (kind === 'denied') {
+        // This key/project is refused (401/403). Don't wait and don't
+        // burn the 3-strike budget — try the next key immediately. Not
+        // marked at-cap in Redis: denials often flap (seen alternating
+        // with 503s during a Gemini outage window).
+        deniedFailures++;
+        rateLimitStreak = 0;
+        console.warn(`[gemini-pool] access denied on key#${combo.keyIndex}/${combo.model} (failure ${deniedFailures}); failing over`);
+        if (deniedFailures >= combos.length) {
+          throw new AiAccessDeniedError();
+        }
+        ci++;
+        continue;
+      }
 
       if (kind === 'quota') {
         // Daily budget for this key+model is spent — waiting cannot help.
