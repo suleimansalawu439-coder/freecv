@@ -19,906 +19,6 @@ export interface TemplateSeoEntry {
 
 export const templateSeoEntries: TemplateSeoEntry[] = [
   {
-    id: 'Academic',
-    slug: 'academic',
-    name: 'Academic',
-    tagline: 'A formal, single-column CV for scholars, lecturers, and researchers.',
-    description:
-      'Academic keeps the traditional CV structure hiring committees expect: a centered serif header with a "Curriculum Vitae" masthead, a year-anchored education grid, and relaxed line spacing that stays comfortable across long publication and teaching lists. Everything runs in one column, so multi-page CVs stay orderly and easy to scan.',
-    bestFor: [
-      'University lecturers and professors',
-      'PhD candidates and postdoctoral researchers',
-      'Grant and fellowship applicants',
-      'Research scientists',
-      'Academic administrators',
-    ],
-    designTraits: [
-      'Single-column serif layout with a centered "Curriculum Vitae" masthead',
-      'Year-anchored education grid — graduation years sit in their own left column',
-      'No photo slot, keeping the document strictly formal',
-      'Wide margins and relaxed line spacing for long, multi-page CVs',
-    ],
-    atsNotes:
-      'The single-column layout and standard serif type parse cleanly in applicant tracking systems. Keep your contact line text-based and never embed your publication list as an image, so every citation stays searchable.',
-    faqs: [
-      {
-        q: 'Is the Academic template a real CV format or a one-page resume?',
-        a: 'It is a true academic CV layout, built for multi-page documents with extended education, research, and teaching entries — not a squeezed one-pager.',
-      },
-      {
-        q: 'Does it work for PhD and postdoc applications?',
-        a: 'Yes. The year-anchored education grid puts degrees and dates front and center, and the single-column flow handles long research and teaching entries without breaking the layout.',
-      },
-      {
-        q: 'Can I add a publications section?',
-        a: 'Yes — add it as a custom section in the builder. The serif body text keeps long citation lists readable, and the single-column layout means nothing gets clipped or reflowed.',
-      },
-      {
-        q: 'Will it hold up if my CV runs to three pages?',
-        a: 'That is exactly what it is for. The generous spacing, consistent rules, and repeated structure stay clean across as many pages as you need.',
-      },
-    ],
-    metaTitle: 'Academic CV Template — Free Serif CV Builder | Cvyon',
-    metaDescription:
-      'Build a formal academic CV free with Cvyon\'s Academic template — serif type, a year-anchored education grid, and a clean single-column layout for scholars.',
-  },
-  {
-    id: 'AcademicJournal',
-    slug: 'academic-journal',
-    name: 'Academic Journal',
-    tagline: 'A journal-styled CV with an "Abstract" profile and numbered sections.',
-    description:
-      'Academic Journal frames your career like a published paper: a centered serif masthead, your summary recast as an "Abstract", and a two-column body with roman-numeral section headings — I. Professional Appointments, II. Education, III. Technical Skills. It suits researchers and clinicians who want their record to read like a body of work.',
-    bestFor: [
-      'Researchers and laboratory scientists',
-      'Medical residents and clinicians',
-      'PhD candidates',
-      'Policy analysts and think-tank staff',
-      'Applicants for research posts',
-    ],
-    designTraits: [
-      'Journal-style serif layout with an "Abstract" profile section',
-      'Two-column body with roman-numeral section headings',
-      'Justified body text beneath a centered masthead',
-      'Optional numbered References section — strictly formal, no photo',
-    ],
-    atsNotes:
-      'The roman-numeral headings are decorative; the underlying section text still reads in order. Put your most keyword-rich content first — the template already leads with Professional Appointments — because some parsers read the left column before the right.',
-    faqs: [
-      {
-        q: 'Is the Academic Journal template only for people with journal publications?',
-        a: 'No. "Abstract" is simply the profile heading — use it as a professional summary. Your publications, if any, go in a custom section like any other template.',
-      },
-      {
-        q: 'Does the two-column body hurt ATS parsing?',
-        a: 'Slightly, with older parsers that read columns sequentially. This layout orders appointments before education, which matches how academic applications are screened, so the important content is found first.',
-      },
-      {
-        q: 'How is it different from the Academic template?',
-        a: 'Academic is a traditional single-column CV; Academic Journal is more stylized — a journal-paper metaphor with an "Abstract", roman numerals, and a two-column body. Choose Journal for a distinctive research voice, Academic for maximum conservatism.',
-      },
-      {
-        q: 'Can I include references?',
-        a: 'Yes — there is a numbered References section that appears when you enable references in the builder.',
-      },
-    ],
-    metaTitle: 'Academic Journal CV Template — Free | Cvyon',
-    metaDescription:
-      'A free journal-styled academic CV template: "Abstract" profile, roman-numeral sections, and a serif two-column layout. Build yours free on Cvyon.',
-  },
-  {
-    id: 'Atelier',
-    slug: 'atelier',
-    name: 'Atelier',
-    tagline: 'A gallery-grade minimalist layout for designers and visual creatives.',
-    description:
-      'Atelier treats your resume like exhibition wall text: an oversized light-weight name, widely tracked uppercase labels in the theme color, generous vertical whitespace, and a hairline rule between sections. An optional grayscale portrait keeps the focus on the work rather than the face.',
-    bestFor: [
-      'Graphic and brand designers',
-      'Architects and interior designers',
-      'Photographers and art directors',
-      'UX and UI designers',
-      'Creative directors',
-    ],
-    designTraits: [
-      'Extreme whitespace with an oversized light-weight name',
-      'Widely tracked uppercase section labels in the theme color',
-      'Optional grayscale portrait — renders cleanly without one',
-      'Hairline theme-color dividers separating each section',
-    ],
-    atsNotes:
-      'The wide tracking and light type are stylistic choices over standard, parseable text. If you are applying through a strict ATS portal, export the PDF and confirm the text layer copies cleanly, and keep the theme color dark enough for strong contrast.',
-    faqs: [
-      {
-        q: 'Is the light type readable when printed?',
-        a: 'Yes — it is light but large, with high contrast on white paper. Choose a mid-to-dark theme color for the labels and rules rather than a pale one.',
-      },
-      {
-        q: 'Is the photo required?',
-        a: 'No. The portrait only appears if you upload one; without it the header is simply your name, title, and contact lines with even more breathing room.',
-      },
-      {
-        q: 'How many pages should an Atelier resume be?',
-        a: 'One to two. The generous whitespace is the point — compressing a long career into it defeats the design. Long careers fit the Condensed or Classic templates better.',
-      },
-      {
-        q: 'Does it work for non-designers?',
-        a: 'It works for any creative or taste-driven role — writers, stylists, gallery staff. For corporate or technical roles, a more conventional template will serve you better.',
-      },
-    ],
-    metaTitle: 'Atelier Resume Template — Minimalist Designer CV | Cvyon',
-    metaDescription:
-      'A free minimalist resume template for designers and creatives — gallery-grade whitespace, tracked labels, optional grayscale portrait. Build free on Cvyon.',
-  },
-  {
-    id: 'Caliber',
-    slug: 'caliber',
-    name: 'Caliber',
-    tagline: 'Bold, high-contrast, and confident — a resume that leads with impact.',
-    description:
-      'Caliber is for people who want to be remembered: an extra-bold theme-colored name, oversized role titles, and uniform skill bars that create visual rhythm down the page. The single-column flow keeps the energy readable instead of chaotic.',
-    bestFor: [
-      'Sales professionals and account executives',
-      'Marketing and growth leaders',
-      'Operations managers',
-      'Customer success managers',
-      'Competitive corporate roles where presence matters',
-    ],
-    designTraits: [
-      'Extra-bold oversized name set in the theme color',
-      'Large role headings with generous section spacing',
-      'Uniform skill bars — decorative visual rhythm, not proficiency ratings',
-      'Single-column layout: bold but orderly',
-    ],
-    atsNotes:
-      'The skill bars are purely decorative and are ignored by parsers; what matters is the skill-name text, which is plain and readable. The single-column structure and standard headings parse reliably.',
-    faqs: [
-      {
-        q: 'Do the skill bars rate my proficiency?',
-        a: 'No — every bar renders at full width as visual rhythm. Recruiters read the skill names; the bars simply give the section a confident, structured look.',
-      },
-      {
-        q: 'Is Caliber too bold for conservative industries?',
-        a: 'Pair it with a navy or charcoal theme color and it reads as confident rather than loud. For law or finance, Classic or Corporate Blue are safer bets.',
-      },
-      {
-        q: 'Will the big headings push my resume to two pages?',
-        a: 'The oversized type uses more vertical space than compact templates. If you need a strict one-pager, Condensed fits far more content per page.',
-      },
-    ],
-    metaTitle: 'Caliber Resume Template — Bold & Confident | Cvyon',
-    metaDescription:
-      'A free bold resume template with an extra-bold name, oversized headings, and decorative skill bars. Single-column and ATS-friendly. Build free on Cvyon.',
-  },
-  {
-    id: 'Classic',
-    slug: 'classic',
-    name: 'Classic',
-    tagline: 'The timeless centered serif resume that never looks out of place.',
-    description:
-      'Classic is the traditional choice: a centered serif header with a rule underneath, uppercase section headings, bulleted experience entries, and education plus skills arranged in a tidy two-column footer. It looks right in law firms, banks, government offices — anywhere convention matters.',
-    bestFor: [
-      'Legal and compliance professionals',
-      'Banking and insurance staff',
-      'Government and civil service roles',
-      'Administrative professionals',
-      'Career changers who want a safe, credible look',
-    ],
-    designTraits: [
-      'Centered serif header with an uppercase name and bottom rule',
-      'Traditional bulleted experience entries',
-      'Two-column footer for education, certifications, and skills',
-      'No photo and no color dependence — pure black on white',
-    ],
-    atsNotes:
-      'About as ATS-friendly as resumes get: a single-column body, standard headings, black serif text, and zero graphics. One of the safest choices for strict application portals.',
-    faqs: [
-      {
-        q: 'Is Classic too old-fashioned for tech jobs?',
-        a: 'For startups, choose a modern template like Minimalist Split or Forge. For enterprise, government, or finance roles, Classic is a feature — it signals you take the process seriously.',
-      },
-      {
-        q: 'Can I add color to the Classic template?',
-        a: 'Classic is intentionally black on white. If you want the same traditional structure with a color accent, try Counsel or Corporate Blue.',
-      },
-      {
-        q: 'Does it support a second page?',
-        a: 'Yes — the centered headings and rules repeat cleanly, and the two-column footer anchors the end of the document on the final page.',
-      },
-    ],
-    metaTitle: 'Classic Resume Template — Timeless & ATS-Safe | Cvyon',
-    metaDescription:
-      'A free classic resume template: centered serif header, bulleted experience, and a tidy two-column footer. Maximum ATS safety. Build free on Cvyon.',
-  },
-  {
-    id: 'Clarity',
-    slug: 'clarity',
-    name: 'Clarity',
-    tagline: 'Accessibility-first: high contrast, large type, zero color-dependent meaning.',
-    description:
-      'Clarity was designed for maximum legibility: pure black text on white, a large base type size, bold unambiguous headings marked with a decorative accent square, underlined links, and wide section spacing. The accent color appears only on rules and markers, so nothing is lost if the resume is printed in grayscale.',
-    bestFor: [
-      'Healthcare professionals',
-      'Teachers and trainers',
-      'Anyone who wants maximum readability',
-      'Government and NGO applications',
-      'Experienced professionals who prefer plain, confident type',
-    ],
-    designTraits: [
-      'Black-on-white high contrast with a large base type size',
-      'Accent color used decoratively only — fully readable in grayscale',
-      'Bold clear headings with square markers and underlined links',
-      'Optional circular portrait; the header is clean without one',
-    ],
-    atsNotes:
-      'Excellent for ATS: all meaning is carried by text rather than color, and the headings are standard words like Experience and Skills. The large type does not affect parsing — the underlying text layer is plain.',
-    faqs: [
-      {
-        q: 'Is Clarity designed for low-vision readers?',
-        a: 'It follows accessibility-first principles — strong contrast, generous type size, and wide spacing. It is comfortable for low-vision readers and easier for everyone else too.',
-      },
-      {
-        q: 'Will the large type make my resume too long?',
-        a: 'Clarity uses more space per line than compact templates. It suits one to two pages; if you must fit a long career on one page, use Condensed instead.',
-      },
-      {
-        q: 'Does the accent color matter for ATS?',
-        a: 'No. The accent appears only on decorative squares and rules — every word that matters is pure black text, which parsers read normally.',
-      },
-    ],
-    metaTitle: 'Clarity Resume Template — Accessible & High-Contrast | Cvyon',
-    metaDescription:
-      'A free accessibility-first resume template: high contrast, large type, and decorative-only color. Readable by humans and ATS alike. Build free on Cvyon.',
-  },
-  {
-    id: 'Condensed',
-    slug: 'condensed',
-    name: 'Condensed',
-    tagline: 'Maximum content, minimum pages — small type, tight lines, total control.',
-    description:
-      'Condensed is built for long careers: compact 10–13px type, tight leading, small tracked section labels, and one-line-per-item entries that fit far more on a page than standard templates. Skills compress to a single comma-separated line, and dates tuck neatly to the right of every entry.',
-    bestFor: [
-      'Professionals with 15+ years of experience',
-      'Consultants with many engagements',
-      'Technical specialists with long skill lists',
-      'Contractors with dense work histories',
-      'Anyone who must fit everything on one page',
-    ],
-    designTraits: [
-      'Compact 10–13px type with tight leading',
-      'One-line entries with right-aligned dates',
-      'Comma-separated single-line skills section',
-      'Small tracked theme-color section labels with compact rules',
-    ],
-    atsNotes:
-      'Dense but parseable: all text is real text and the headings are standard. Do not shrink the type below the defaults if a human will read it on screen — and never rasterize the PDF, or the small type becomes unsearchable.',
-    faqs: [
-      {
-        q: 'Will recruiters dislike the small type?',
-        a: 'It is compact, not microscopic, and the one-line entries scan quickly. Use it to land a genuine one-pager — two pages of Condensed defeats the purpose.',
-      },
-      {
-        q: 'How much more fits compared to a standard template?',
-        a: 'Roughly a third more content per page, thanks to the tighter leading and one-line entries. If your career still overflows, prioritize recent roles — no template fixes an unedited resume.',
-      },
-      {
-        q: 'Is the small text still ATS-readable?',
-        a: 'Yes. Parsers read the text layer, not the font size. The risk is only human readability, so keep the exported PDF digital rather than scanned.',
-      },
-    ],
-    metaTitle: 'Condensed Resume Template — Fit More on One Page | Cvyon',
-    metaDescription:
-      'A free compact resume template for long careers: tight type, one-line entries, and single-line skills. Fit more on one page. Build free on Cvyon.',
-  },
-  {
-    id: 'CorporateBlue',
-    slug: 'corporate-blue',
-    name: 'Corporate Blue',
-    tagline: 'A navy-and-gold executive look for finance, consulting, and law.',
-    description:
-      'Corporate Blue opens with a full-bleed navy header band — your name in white, contact details tucked neatly to the right — then settles into a crisp single-column body with gold accents, pill-style skill tags, and a two-column education and skills section.',
-    bestFor: [
-      'Banking and finance professionals',
-      'Management consultants',
-      'Insurance and corporate legal staff',
-      'Real estate executives',
-      'Corporate administrators',
-    ],
-    designTraits: [
-      'Full-bleed navy header band with a right-aligned contact block',
-      'Navy-and-gold palette with pill-style skill tags',
-      'Gold-accented section labels and bullet markers',
-      'Two-column education and skills section',
-    ],
-    atsNotes:
-      'The header band is a solid color block, so export as a digital PDF to keep the text selectable. The skill pills are bordered text rather than images, so they parse normally.',
-    faqs: [
-      {
-        q: 'Can I change the navy color?',
-        a: 'Yes — the theme color control recolors the header band, headings, and accents. The gold details stay fixed as a secondary accent.',
-      },
-      {
-        q: 'Does the dark header band cause ATS problems?',
-        a: 'Not when exported digitally: the white text on navy remains a real text layer. Avoid uploading a scanned or photographed copy, which can confuse OCR.',
-      },
-      {
-        q: 'Is it suitable outside finance?',
-        a: 'Yes for any corporate or client-facing role where polish matters. For creative fields, a template like Atelier or Marketing will fit the culture better.',
-      },
-    ],
-    metaTitle: 'Corporate Blue Resume Template — Finance & Consulting | Cvyon',
-    metaDescription:
-      'A free navy-and-gold executive resume template with a full-bleed header band and skill pills. Built for finance and consulting. Build free on Cvyon.',
-  },
-  {
-    id: 'Counsel',
-    slug: 'counsel',
-    name: 'Counsel',
-    tagline: 'A brief-like serif resume with double hairline rules for legal minds.',
-    description:
-      'Counsel borrows the visual language of legal documents: a centered serif masthead, double hairline rules framing the body, theme-colored section titles in wide tracking, and justified body text with italic dates. Formal without feeling dated.',
-    bestFor: [
-      'Lawyers and attorneys',
-      'Paralegals and legal assistants',
-      'Compliance officers',
-      'Judicial clerks',
-      'Policy and regulatory professionals',
-    ],
-    designTraits: [
-      'Double hairline rules framing the body, top and bottom',
-      'Centered serif masthead with an italic job title',
-      'Wide-tracked theme-colored section titles',
-      'Justified body text with italic dates',
-    ],
-    atsNotes:
-      'Justified text and hairline rules do not affect parsing. The headings use standard legal-resume wording such as Professional Experience and Education, which maps cleanly to ATS section detection.',
-    faqs: [
-      {
-        q: 'Is Counsel only for lawyers?',
-        a: 'It suits any field that values formality — compliance, public policy, and academia-adjacent roles all wear it well.',
-      },
-      {
-        q: 'What is the difference between Counsel and Classic?',
-        a: 'Both are traditional serif resumes. Counsel adds legal-document character — double hairline rules, justified text, and colored section titles — while Classic stays strictly black and white.',
-      },
-      {
-        q: 'Can I list bar admissions and publications?',
-        a: 'Yes — add them as custom sections. The justified serif body keeps long entries tidy, and the single-column flow handles multi-page documents.',
-      },
-    ],
-    metaTitle: 'Counsel Resume Template — Legal & Formal | Cvyon',
-    metaDescription:
-      'A free legal-style resume template: serif type, double hairline rules, and justified text for lawyers and compliance professionals. Build free on Cvyon.',
-  },
-  {
-    id: 'Diplomat',
-    slug: 'diplomat',
-    name: 'Diplomat',
-    tagline: 'A refined, protocol-ready resume with a circular portrait and ornament dividers.',
-    description:
-      'Diplomat is composed like a formal introduction: a centered header with an optional circular portrait ringed in the theme color, a letter-spaced uppercase name, an italic summary, and a three-column footer for education, skills, and credentials.',
-    bestFor: [
-      'International relations professionals',
-      'NGO and nonprofit staff',
-      'Government and foreign service candidates',
-      'Hospitality and luxury service roles',
-      'Public-facing leadership positions',
-    ],
-    designTraits: [
-      'Centered header with an optional circular portrait in a colored ring',
-      'Letter-spaced uppercase name with a divider ornament',
-      'Italic centered summary',
-      'Three-column footer: education, skills, and credentials',
-    ],
-    atsNotes:
-      'The portrait is optional — skip it for ATS-strict applications and the layout stays formal. Watch the three-column footer: older parsers can mis-order columns, so keep your critical keywords in the single-column body above it.',
-    faqs: [
-      {
-        q: 'Should I include a photo on the Diplomat template?',
-        a: 'Only where photos are customary, such as many international, NGO, and hospitality roles. Omit it for US corporate ATS pipelines, where photos are discouraged.',
-      },
-      {
-        q: 'What is the default color?',
-        a: 'A deep diplomatic navy, which you can change with the theme color control. The layout stays formal regardless of the accent you choose.',
-      },
-      {
-        q: 'How is Diplomat different from Elegant?',
-        a: 'Diplomat is more ceremonial — portrait ring, ornament divider, navy accents. Elegant is quieter and more minimal, with no photo emphasis.',
-      },
-    ],
-    metaTitle: 'Diplomat Resume Template — Refined & Formal | Cvyon',
-    metaDescription:
-      'A free refined resume template with a circular portrait, ornament dividers, and a three-column footer. For NGO, government, and service roles. Build free.',
-  },
-  {
-    id: 'Elegant',
-    slug: 'elegant',
-    name: 'Elegant',
-    tagline: 'Quiet luxury: a light serif resume framed by fine double rules.',
-    description:
-      'Elegant whispers rather than shouts: a light-weight, letter-spaced name framed top and bottom by fine rules, muted gray tones, generous margins, and a three-column footer for education, skills, and references. It suits brands and roles where taste is the credential.',
-    bestFor: [
-      'Hospitality and luxury brand roles',
-      'Communications and PR professionals',
-      'Executive assistants',
-      'Fashion and beauty industry',
-      'Client-facing professional services',
-    ],
-    designTraits: [
-      'Name framed by fine double horizontal rules',
-      'Light serif type with wide letter-spacing',
-      'Muted gray palette with generous whitespace',
-      'Three-column footer for education, skills, and references',
-    ],
-    atsNotes:
-      'The muted grays are dark enough for parsing, but keep body text at the default sizes — very light gray small text can drop out of OCR in scanned PDFs. Always submit the digital PDF, not a scan.',
-    faqs: [
-      {
-        q: 'Is Elegant too subtle for applicant tracking systems?',
-        a: 'No — the headings and body text are standard and parse normally. The subtlety is visual; the text layer underneath is completely conventional.',
-      },
-      {
-        q: 'What roles suit Elegant best?',
-        a: 'Roles where presentation is part of the job: hospitality, luxury retail, PR, executive assistance, and client-facing services.',
-      },
-      {
-        q: 'Can I make it less gray?',
-        a: 'The palette is intentionally muted. If you want warmth with more color, try Elegant Editorial or Diplomat instead.',
-      },
-    ],
-    metaTitle: 'Elegant Resume Template — Quiet Luxury | Cvyon',
-    metaDescription:
-      'A free elegant resume template: light serif type, fine double rules, and muted tones for hospitality and luxury roles. Build free on Cvyon.',
-  },
-  {
-    id: 'ElegantEditorial',
-    slug: 'elegant-editorial',
-    name: 'Elegant Editorial',
-    tagline: 'A magazine-spread resume on warm paper for writers and editors.',
-    description:
-      'Elegant Editorial sets your resume like a magazine feature: warm cream paper, an italic light-weight headline name beneath a gradient rule with a diamond ornament, and a narrow sidebar for contact, skills, and education beside a roomy main column.',
-    bestFor: [
-      'Editors and copywriters',
-      'Journalists and content strategists',
-      'Publishing professionals',
-      'Fashion and lifestyle brands',
-      'Academics in the humanities',
-    ],
-    designTraits: [
-      'Warm cream paper background with editorial serif type',
-      'Gradient rules with a diamond ornament beneath the masthead',
-      'Narrow sidebar for contact, skills, and education',
-      'Optional circular portrait',
-    ],
-    atsNotes:
-      'The diamond ornament and gradient rules are decorative and ignored by parsers. Note the reading order: some older parsers read the sidebar before the main column, so keeping skills in the sidebar — which this template does — actually helps keyword discovery.',
-    faqs: [
-      {
-        q: 'Does the cream background cause printing problems?',
-        a: 'No for digital PDFs. If you must print, use a good printer — on cheap black-and-white prints the cream renders as white, which is harmless.',
-      },
-      {
-        q: 'Is it too decorative for serious applications?',
-        a: 'For publishing, media, fashion, and the humanities it reads as fluent in the culture. For finance or government, choose Classic or Counsel.',
-      },
-      {
-        q: 'How is it different from the Elegant template?',
-        a: 'Elegant is minimal and monochrome; Elegant Editorial is warmer and more expressive — cream paper, ornaments, and a sidebar layout with an editorial voice.',
-      },
-    ],
-    metaTitle: 'Elegant Editorial Resume Template — Writers | Cvyon',
-    metaDescription:
-      'A free editorial resume template on warm cream paper with a sidebar layout — for writers, editors, and publishing professionals. Build free on Cvyon.',
-  },
-  {
-    id: 'Executive',
-    slug: 'executive',
-    name: 'Executive',
-    tagline: "The authoritative serif standard — Cvyon's default for senior leaders.",
-    description:
-      'Executive is the boardroom classic: serif type, a thick 4px rule under the header, your name and title on the left with icon-accented contact details on the right, and a stately single-column flow. It is the default template for a reason — it signals seniority instantly and offends no one.',
-    bestFor: [
-      'C-suite executives and directors',
-      'Senior managers',
-      'Board and advisory candidates',
-      'Finance and operations leaders',
-      'Professionals with 10+ years of leadership experience',
-    ],
-    designTraits: [
-      'Serif type with a thick 4px black rule under the header',
-      'Split header: name and title on the left, icon contact list on the right',
-      'Stately single-column layout with generous spacing',
-      'Traditional section ordering with clear hierarchy',
-    ],
-    atsNotes:
-      'The contact icons are vector glyphs beside plain text, so your details parse normally. A single-column serif body is ideal for ATS section detection — one of the safest layouts on Cvyon.',
-    faqs: [
-      {
-        q: 'Do the contact icons confuse applicant tracking systems?',
-        a: 'No. The icons are decorative glyphs next to plain text — parsers read your email, phone, and location as normal text.',
-      },
-      {
-        q: 'Is Executive only for C-level candidates?',
-        a: 'It suits any senior professional: directors, VPs, senior managers, and experienced individual contributors who want a commanding, traditional presence.',
-      },
-      {
-        q: 'How is Executive different from Executive Split?',
-        a: 'Executive is single-column and maximally conservative. Executive Split adds a two-column body and a full-width header band for leaders who need more room and a stronger visual statement.',
-      },
-      {
-        q: 'Can a mid-career professional use it?',
-        a: 'Yes, but the stately spacing favors longer careers. Mid-career candidates who want a tighter page should look at Caliber or Minimalist Split.',
-      },
-    ],
-    metaTitle: 'Executive Resume Template — Senior Leaders | Cvyon',
-    metaDescription:
-      "A free executive resume template: serif type, a bold header rule, and a stately single-column layout. Cvyon's default for senior leaders. Build free.",
-  },
-  {
-    id: 'ExecutiveSplit',
-    slug: 'executive-split',
-    name: 'Executive Split',
-    tagline: 'A two-column executive layout with a commanding full-width header band.',
-    description:
-      'Executive Split gives senior candidates more room: a full-width header band with a 6px black rule and an icon contact row, then a 65/35 split — your Executive Profile and experience in the main column, supporting details in the sidebar. Company names lead each experience entry, with square bullets for achievements.',
-    bestFor: [
-      'Senior executives with long track records',
-      'Directors and VPs',
-      'Consultants with varied engagements',
-      'Board candidates',
-      'Leaders who want skills and highlights visible at a glance',
-    ],
-    designTraits: [
-      'Full-width header band with a 6px black rule',
-      '65/35 two-column body with an "Executive Profile" lead section',
-      'Serif type with an icon-accented contact row',
-      'Company-first experience entries with square bullets',
-    ],
-    atsNotes:
-      'Two-column layouts can occasionally scramble reading order in older parsers. The main column carries your profile and experience, so keyword coverage survives; for maximum safety on strict portals, consider the single-column Executive instead.',
-    faqs: [
-      {
-        q: 'What goes in the sidebar?',
-        a: 'Supporting details — skills, education, certifications — while the main column carries your profile, experience, and achievements.',
-      },
-      {
-        q: 'Is the two-column layout ATS-safe?',
-        a: 'Modern systems handle it well. If you are applying through an older or very strict portal, the single-column Executive template is the safer choice.',
-      },
-      {
-        q: 'How is it different from Minimalist Split?',
-        a: 'Executive Split is traditional and serif with a header band; Minimalist Split is modern and sans with a solid color sidebar. Choose Split for gravitas, Minimalist for a contemporary edge.',
-      },
-    ],
-    metaTitle: 'Executive Split Resume Template — Two-Column | Cvyon',
-    metaDescription:
-      'A free two-column executive resume template with a full-width header band and an Executive Profile section. For senior leaders. Build free on Cvyon.',
-  },
-  {
-    id: 'Forge',
-    slug: 'forge',
-    name: 'Forge',
-    tagline: 'An industrial-strength resume in heavy black type with bold color bars.',
-    description:
-      'Forge is built like it sounds: font-black uppercase headings, thick theme-color rules, a hero strip for certifications and licenses rendered as bordered cards, and ticket-style skill tags. It projects capability for hands-on, technical, and operational fields.',
-    bestFor: [
-      'Engineers and technicians',
-      'Skilled trades and manufacturing',
-      'Operations and logistics professionals',
-      'IT infrastructure and support staff',
-      'Project managers in industrial sectors',
-    ],
-    designTraits: [
-      'Font-black uppercase headings with thick theme-color rules',
-      'Certifications and licenses hero strip with bordered cards',
-      'Ticket-style skill tags',
-      'Single-column, high-density sans-serif layout',
-    ],
-    atsNotes:
-      'All-caps headings parse fine — applicant tracking systems normalize case. The bordered credential cards are plain text in boxes, so every certification stays searchable. Keep the theme color dark enough that the exported PDF stays high-contrast.',
-    faqs: [
-      {
-        q: 'Do all-caps headings hurt ATS parsing?',
-        a: 'No. Parsers normalize case, so "WORK EXPERIENCE" reads the same as "Work Experience". The heavy type is purely visual.',
-      },
-      {
-        q: 'What is the certifications hero strip?',
-        a: 'When you enable certifications in the builder, they appear in bordered cards near the top — ideal for licensed trades, safety credentials, and technical certs that employers screen for first.',
-      },
-      {
-        q: 'Is Forge suitable for software engineers?',
-        a: 'Yes — the dense, structured layout suits technical resumes. If you want something less heavy, Tech Pro or Minimalist Split are calmer alternatives.',
-      },
-    ],
-    metaTitle: 'Forge Resume Template — Engineering & Trades | Cvyon',
-    metaDescription:
-      'A free industrial resume template with heavy black type, bold color bars, and a certifications hero strip. For engineers and trades. Build free on Cvyon.',
-  },
-  {
-    id: 'Founder',
-    slug: 'founder',
-    name: 'Founder',
-    tagline: 'A startup-native resume with a "Thesis" and a "Ventures" section.',
-    description:
-      'Founder speaks startup: your summary becomes a "Thesis" set with a bold left border, projects become "Ventures", and the header pairs an optional photo with a confident single-column layout under a thick theme rule.',
-    bestFor: [
-      'Startup founders and co-founders',
-      'Early startup hires',
-      'Product managers',
-      'Venture and accelerator applicants',
-      'Entrepreneurs returning to employment',
-    ],
-    designTraits: [
-      '"Thesis" summary with a bold left-border callout',
-      '"Ventures" projects section',
-      'Optional photo with a thick theme-color rule',
-      'Clean sans-serif single-column layout',
-    ],
-    atsNotes:
-      '"Thesis" and "Ventures" are stylish labels — naive section detectors look for "Summary" and "Projects", but all of your content is present as plain text and parses normally. Human readers in startup ecosystems will get it instantly.',
-    faqs: [
-      {
-        q: 'Will recruiters understand the "Thesis" and "Ventures" labels?',
-        a: 'In startup ecosystems, yes — they read as fluent. For traditional corporate applications, consider Executive or Classic with conventional headings.',
-      },
-      {
-        q: 'I have failed startups — should I list them?',
-        a: 'Yes. Founders are judged on what they shipped and learned. The Ventures section is designed for exactly this: name, link, and a concise description of each.',
-      },
-      {
-        q: 'Is the photo required?',
-        a: 'No — it only appears if you upload one. The header works equally well as pure type.',
-      },
-    ],
-    metaTitle: 'Founder Resume Template — Startups | Cvyon',
-    metaDescription:
-      'A free founder resume template with a "Thesis" summary and "Ventures" section. Startup-native and confident. Build free on Cvyon.',
-  },
-  {
-    id: 'Gigfolio',
-    slug: 'gigfolio',
-    name: 'Gigfolio',
-    tagline: 'A freelancer-first resume with a giant name and portfolio energy.',
-    description:
-      'Gigfolio is built for people who sell their work: a bold top accent bar, an enormous 6xl black name, an optional rounded portrait, and a layout that gives projects and skills prime placement for client-facing credibility.',
-    bestFor: [
-      'Freelancers and independent contractors',
-      'Designers and developers for hire',
-      'Consultants',
-      'Creatives with portfolio careers',
-      'Gig workers applying to platforms and agencies',
-    ],
-    designTraits: [
-      'Oversized 6xl black name beneath a bold accent bar',
-      'Optional rounded portrait beside the masthead',
-      'Project-forward section ordering',
-      'Bold sans-serif with strong visual hierarchy',
-    ],
-    atsNotes:
-      'Freelance-friendly and parser-friendly: single column, plain text, standard headings. When your audience is a client rather than an ATS, the big name and accent bar make the PDF memorable as an attachment.',
-    faqs: [
-      {
-        q: 'How should freelancers list many short gigs?',
-        a: 'Group them under one heading — e.g. "Independent Designer, 2021–Present" — with client highlights as bullets. Gigfolio\'s project-forward layout supports this well.',
-      },
-      {
-        q: 'Is the huge name unprofessional?',
-        a: 'For freelancers, name recognition is the product. For conservative corporate roles, choose a quieter template like Classic or Executive.',
-      },
-      {
-        q: 'Can I link my portfolio?',
-        a: 'Yes — add your website in the contact details and link individual projects in the projects section. Links render as real, clickable text in the PDF.',
-      },
-    ],
-    metaTitle: 'Gigfolio Resume Template — Freelancers | Cvyon',
-    metaDescription:
-      'A free freelancer resume template with a bold accent bar, oversized name, and project-forward layout. For independents and creatives. Build free on Cvyon.',
-  },
-  {
-    id: 'Launchpad',
-    slug: 'launchpad',
-    name: 'Launchpad',
-    tagline: "The graduate's resume: education first, with a welcoming color header.",
-    description:
-      'Launchpad is designed for the start of a career: a colored header band with your photo and contact details, an "About Me" opener, and education promoted to the hero section with a highlighted left border — because your degree is your strongest card right now.',
-    bestFor: [
-      'Recent graduates',
-      'Students and interns',
-      'Career starters with limited experience',
-      'Bootcamp graduates',
-      'Entry-level applicants',
-    ],
-    designTraits: [
-      'Colored header band with a circular photo',
-      'Education promoted to the hero section with a highlight border',
-      '"About Me" opener instead of a formal summary',
-      'Friendly rounded type with clear section labels',
-    ],
-    atsNotes:
-      'The education-first order is a genuine advantage with campus recruiting systems, which screen on degree and graduation date. The header band is a solid color block — export as a digital PDF so the text layer stays selectable.',
-    faqs: [
-      {
-        q: 'I have no work experience — will my resume look empty?',
-        a: 'The template is designed for exactly that: education, projects, and skills carry the page, and the "About Me" opener frames your direction. Add internships, coursework projects, and volunteer work.',
-      },
-      {
-        q: 'Should graduates really put education first?',
-        a: 'Yes, while your degree is your strongest credential. Once you have two to three years of experience, move experience first — templates like Caliber or Minimalist Split suit that stage.',
-      },
-      {
-        q: 'Is the photo expected?',
-        a: 'It is optional and renders only if you upload one. Include it where photos are customary; leave it out for ATS-heavy graduate schemes that discourage them.',
-      },
-    ],
-    metaTitle: 'Launchpad Resume Template — Graduates | Cvyon',
-    metaDescription:
-      'A free graduate resume template with education first, an "About Me" opener, and a welcoming header band. For students and entry-level. Build free on Cvyon.',
-  },
-  {
-    id: 'Maitre',
-    slug: 'maitre',
-    name: 'Maître',
-    tagline: 'Warm, service-minded elegance on cream paper for hospitality careers.',
-    description:
-      "Maître brings hospitality polish: warm cream paper, a centered serif name with an italic title, a diamond-ornament divider in the theme color, and an optional circular portrait. Refined without stiffness — the resume equivalent of a well-set table.",
-    bestFor: [
-      'Hotel and restaurant professionals',
-      'Chefs and culinary staff',
-      'Event planners',
-      'Customer experience roles',
-      'Luxury retail staff',
-    ],
-    designTraits: [
-      'Warm cream paper with a centered serif masthead',
-      'Diamond-ornament divider in the theme color',
-      'Optional circular portrait',
-      'Italic titles with warm neutral tones',
-    ],
-    atsNotes:
-      'The diamond ornament is decorative and ignored by parsers. Cream backgrounds are fine in digital PDFs; if a portal requires pure-white scans, the text contrast still holds up.',
-    faqs: [
-      {
-        q: 'Is Maître only for restaurants?',
-        a: 'It suits the whole service world — hotels, events, luxury retail, customer experience. The warmth reads as hospitality fluency.',
-      },
-      {
-        q: 'Will the cream paper look odd printed in black and white?',
-        a: 'No — it renders as white on monochrome printers, and the dark text stays crisp. For digital applications it stays a soft cream.',
-      },
-      {
-        q: 'How is it different from Diplomat?',
-        a: 'Both are formal and centered, but Maître is warmer and service-oriented — cream paper, italic titles — while Diplomat is cooler and more ceremonial.',
-      },
-    ],
-    metaTitle: 'Maître Resume Template — Hospitality | Cvyon',
-    metaDescription:
-      'A free hospitality resume template on warm cream paper with a diamond divider and serif masthead. For hotels, restaurants, and events. Build free on Cvyon.',
-  },
-  {
-    id: 'Marketing',
-    slug: 'marketing',
-    name: 'Marketing',
-    tagline: 'A campaign-style resume with slash markers, pill dates, and project cards.',
-    description:
-      'Marketing looks like the work it sells: slash (/) section markers, pill-shaped date badges, and project cards in a two-column grid with rounded corners. A rotated monogram block anchors the header — this is a resume with a point of view.',
-    bestFor: [
-      'Marketing managers and specialists',
-      'Social media managers',
-      'Brand and content marketers',
-      'Growth and SEO professionals',
-      'PR and communications staff',
-    ],
-    designTraits: [
-      'Slash (/) section markers with pill-shaped date badges',
-      'Two-column project cards with rounded corners',
-      'Rotated monogram block in the header',
-      'Bold sans-serif with an energetic hierarchy',
-    ],
-    atsNotes:
-      'The project cards sit in a two-column grid — keep project titles keyword-rich, since older parsers can read them out of order. The date pills are plain text and parse normally.',
-    faqs: [
-      {
-        q: 'Is the Marketing template too playful for senior roles?',
-        a: 'For senior marketing leadership it reads as on-brand. For CMO-level applications at conservative companies, Executive or Corporate Blue carry more weight.',
-      },
-      {
-        q: 'How should I use the project cards?',
-        a: 'Treat each card like a mini case study: campaign name, link, and one to two lines on the outcome. Metrics in the description — not invented, real ones — do the heavy lifting.',
-      },
-      {
-        q: 'Does the two-column project grid hurt ATS?',
-        a: 'Modern systems handle it. Keep each card\'s title descriptive on its own, so nothing important is lost if an older parser reads the grid out of order.',
-      },
-    ],
-    metaTitle: 'Marketing Resume Template — Bold & Creative | Cvyon',
-    metaDescription:
-      'A free marketing resume template with slash markers, pill dates, and project cards. Campaign energy for marketers. Build free on Cvyon.',
-  },
-  {
-    id: 'Mentor',
-    slug: 'mentor',
-    name: 'Mentor',
-    tagline: 'An education-first resume for teachers, coaches, and trainers.',
-    description:
-      'Mentor leads with learning: after a clean photo header with a thick theme rule, education comes before experience, certifications become "Credentials" cards with dot markers, and the profile reads in a warm italic. Built for people whose job is helping others grow.',
-    bestFor: [
-      'Teachers and lecturers',
-      'Tutors and coaches',
-      'Corporate trainers',
-      'Instructional designers',
-      'Education administrators',
-    ],
-    designTraits: [
-      'Education placed before experience',
-      '"Credentials" cards with dot markers',
-      'Photo header with a thick theme-color rule',
-      'Warm italic profile text',
-    ],
-    atsNotes:
-      'Education-first ordering matches how schools and training organizations screen. "Credentials" may not match an ATS filter literally looking for "Certifications", but the card text — name, issuer, date — parses as plain searchable text.',
-    faqs: [
-      {
-        q: 'Should teachers put education before experience?',
-        a: 'Generally yes — schools screen on qualifications first. Once your teaching record outweighs your degrees, any experience-first template works just as well.',
-      },
-      {
-        q: 'What counts as a credential here?',
-        a: 'Teaching licenses, coaching certifications, first-aid and safeguarding certs, trainer accreditations — anything an employer would verify. Each renders as a clear card with issuer and date.',
-      },
-      {
-        q: 'Is the photo required?',
-        a: 'No. It appears only if you upload one; the thick theme rule and header carry the design without it.',
-      },
-    ],
-    metaTitle: 'Mentor Resume Template — Teachers & Coaches | Cvyon',
-    metaDescription:
-      'A free education-first resume template with credential cards for teachers, coaches, and trainers. Warm and professional. Build free on Cvyon.',
-  },
-  {
-    id: 'MinimalistSplit',
-    slug: 'minimalist-split',
-    name: 'Minimalist Split',
-    tagline: 'A bold sidebar resume: solid color column, crisp white content.',
-    description:
-      'Minimalist Split makes a confident first impression: a solid theme-color sidebar holding your name, contact details, and skills beside a clean white main column for experience and education. Modern, compact, and unmistakable in a stack of lookalike resumes.',
-    bestFor: [
-      'Tech professionals',
-      'Designers',
-      'Startup applicants',
-      'One-page resume fans',
-      'Anyone who wants to stand out in a stack',
-    ],
-    designTraits: [
-      'Solid theme-color sidebar (35%) with name, contact, and skills',
-      'Clean white main column for experience and education',
-      'Initial-badge monogram in the sidebar',
-      'High-contrast, compact one-page feel',
-    ],
-    atsNotes:
-      'The sidebar is the tradeoff: it looks striking, but some older parsers read the sidebar before the main column, which can reorder your content. Modern systems handle it well; for strict portals, pair this look with a single-column template like Clarity or Classic.',
-    faqs: [
-      {
-        q: 'Does the colored sidebar cause ATS problems?',
-        a: 'With modern applicant tracking systems, no. Very old parsers can read the sidebar first, reordering your content — if you are worried, use a single-column template for that application.',
-      },
-      {
-        q: 'Can I change the sidebar color?',
-        a: 'Yes — the theme color control recolors the entire sidebar. Dark, saturated colors keep the white text crisp; avoid pale colors that wash out the text.',
-      },
-      {
-        q: 'Is it really one page?',
-        a: 'It is designed to feel like one page. Concise careers fit beautifully; long careers will flow to two pages, where the sidebar simply continues.',
-      },
-      {
-        q: 'How is it different from Executive Split?',
-        a: 'Minimalist Split is modern and sans with a solid color sidebar; Executive Split is traditional and serif with a header band and a white two-column body.',
-      },
-    ],
-    metaTitle: 'Minimalist Split Resume Template — Modern Sidebar | Cvyon',
-    metaDescription:
-      'A free modern resume template with a bold color sidebar and clean white content column. For tech and startups. Build free on Cvyon.',
-  },
-  {
     id: "Noir",
     slug: "noir",
     name: "Noir",
@@ -1830,47 +930,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaTitle: "Density Resume Template — Free Compact One-Page CV | Cvyon",
     metaDescription:
       "Free Density resume template: a compact high-density one-pager with tight disciplined spacing. Fit more on one page without looking cramped.",
-  },
-{
-    id: "Regent",
-    slug: "regent",
-    name: "Regent",
-    tagline: "Centered serif formality with a double-rule masthead.",
-    description:
-      "Regent is built for authority: a centered serif name above a double black rule, section titles set between flanking hairlines, and a centered skills line that reads like a signature. Every section is single-column and calmly spaced, so long careers read as composed rather than crowded — the visual language of board papers and formal correspondence.",
-    bestFor: [
-      "C-suite and senior executives",
-      "Board members and advisors",
-      "Legal professionals",
-      "Academics and researchers",
-      "Anyone whose industry still respects formal stationery",
-    ],
-    designTraits: [
-      "Centered serif name with double black rule",
-      "Section titles bracketed by hairlines",
-      "Skills as a centered comma-joined line",
-      "Italic company names under bold roles",
-      "Fully single-column layout",
-    ],
-    atsNotes:
-      "Excellent for parsing: single-column flow, real text throughout, and standard section headings. The decorative rules are pure CSS and invisible to parsers.",
-    faqs: [
-      {
-        q: "Is Regent too formal for tech jobs?",
-        a: "Regent's formality suits leadership, legal, and academic roles best. For startups or creative roles, pick a template with more modern energy.",
-      },
-      {
-        q: "Can I change the serif font?",
-        a: "The template uses your browser's default serif stack for that classic editorial feel; the theme color controls the job-title accent.",
-      },
-      {
-        q: "Will the centered layout hurt ATS parsing?",
-        a: "No — centering is a visual style applied to real, selectable text in a single column, which parsers handle without issue.",
-      },
-    ],
-    metaTitle: "Regent Resume Template — Free Formal Serif CV | Cvyon",
-    metaDescription:
-      "Free Regent resume template: centered serif formality with a double-rule masthead. Ideal for executives, legal, and academic professionals.",
   },
   {
     id: "Chancellor",
@@ -2897,47 +1956,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaDescription:
       "Free Compass resume template: a deep-navy sidebar with dot-rated skills beside a bright main column. Steady direction for PMs and operations.",
   },
-{
-    id: "Anchor",
-    slug: "anchor",
-    name: "Anchor",
-    tagline: "Serif elegance anchored by a bordered white sidebar.",
-    description:
-      "Anchor pairs a stately serif main column with a 35% white sidebar divided by a theme-colored rule. Your initials sit in a bordered monogram medallion above contact, a ruled skills list, and education — while the main column carries your name, profile, and experience under theme-bordered section headers. It reads as composed and trustworthy, the kind of resume that suits established professionals who want polish without noise.",
-    bestFor: [
-      "Senior managers and directors",
-      "Finance and consulting professionals",
-      "Legal and compliance roles",
-      "Academics and researchers",
-      "Established professionals with 10+ years of experience",
-    ],
-    designTraits: [
-      "White left sidebar divided by a theme-colored border",
-      "Serif typography throughout for a formal feel",
-      "Initials monogram in a bordered circle",
-      "Ruled skills list in the sidebar",
-      "Theme-bordered section headers in the main column",
-    ],
-    atsNotes:
-      "All text is real and selectable, and the single reading flow of the main column parses cleanly. Keep job titles and employers in the main column so older parsers catch them first.",
-    faqs: [
-      {
-        q: "Is the sidebar too formal for creative roles?",
-        a: "Anchor is deliberately formal — it is aimed at corporate, legal, finance, and academic applications. Creative candidates will find a better match in the Gallery or Studio templates.",
-      },
-      {
-        q: "Can I change the sidebar border color?",
-        a: "Yes — the border, monogram, and headers all follow your Cvyon theme color, so the whole accent system shifts together.",
-      },
-      {
-        q: "Will the sidebar confuse applicant tracking systems?",
-        a: "Modern parsers handle two-column resumes well, and the main column reads top to bottom. If a portal is very old, a single-column template is the safest fallback.",
-      },
-    ],
-    metaTitle: "Anchor Resume Template — Free Serif Sidebar CV | Cvyon",
-    metaDescription:
-      "Free Anchor resume template: a bordered white sidebar with serif typography and a monogram medallion. Ideal for senior and formal professionals.",
-  },
   {
     id: "Meridian",
     slug: "meridian",
@@ -3963,47 +2981,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaDescription:
       "Free Hush resume template: muted tones with soft dotted dividers. Gentle and understated for people-focused roles.",
   },
-{
-    id: "Lucid",
-    slug: "lucid",
-    name: "Lucid",
-    tagline: "Pure clarity through generous leading and crisp hierarchy.",
-    description:
-      "Lucid is restraint done well: a single ink column where your name, title, and contact line stack in clear typographic order, then generous line spacing carries every section. Section titles are small, widely tracked caps with real breathing room above them, and skills sit in a clean three-column grid with hairline dividers. Nothing shouts — the design earns its authority from precision and whitespace.",
-    bestFor: [
-      "Writers and editors",
-      "Consultants and analysts",
-      "Legal and compliance professionals",
-      "Project managers",
-      "Anyone who wants a calm, supremely readable resume",
-    ],
-    designTraits: [
-      "Single ink-only column with generous leading",
-      "Widely tracked small-caps section titles",
-      "Three-column skills grid with hairline dividers",
-      "Clear name/title/contact hierarchy",
-      "Ample vertical rhythm between sections",
-    ],
-    atsNotes:
-      "Fully single-column with real text and conventional headings, so parsing is straightforward. The wide letter-spacing on headings is decorative styling on plain text, not an image.",
-    faqs: [
-      {
-        q: "Does the wide letter-spacing on headings cause parsing problems?",
-        a: "No — the headings are ordinary selectable text with CSS letter-spacing applied. Parsers read them as normal words.",
-      },
-      {
-        q: "Is Lucid too plain for competitive roles?",
-        a: "Its calm confidence is the point. Recruiters read every word when nothing on the page fights for attention.",
-      },
-      {
-        q: "Can I add accent color?",
-        a: "Lucid is deliberately ink-on-white, but your Cvyon theme color can be introduced through section accents in the builder preview if you want a touch of color.",
-      },
-    ],
-    metaTitle: "Lucid Resume Template — Free Clean Minimal CV | Cvyon",
-    metaDescription:
-      "Free Lucid resume template: a calm single-column resume with generous spacing and crisp hierarchy. Perfect for writers, analysts, and consultants.",
-  },
   {
     id: "Meadow",
     slug: "meadow",
@@ -4987,47 +3964,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaTitle: "Calligraphy Resume Template — Free Elegant Script CV | Cvyon",
     metaDescription:
       "Free Calligraphy resume template: an elegant resume with a swash-script name and italic serif grace. Refined presentation for creatives.",
-  },
-{
-    id: "Gilt",
-    slug: "gilt",
-    name: "Gilt",
-    tagline: "Gold accents on charcoal — quiet luxury for distinguished careers.",
-    description:
-      "Gilt frames a distinguished career in gold: charcoal serif text with gleaming gold section headers flanked by hairline rules, a diamond ornament crowning your name, and gold-bordered skill chips. The centered, symmetrical layout reads like a formal certificate — ideal for candidates who want their resume to feel earned and prestigious without a single flashy element.",
-    bestFor: [
-      "Senior executives and board candidates",
-      "Finance, private banking, and wealth management professionals",
-      "Luxury hospitality and premium brand leaders",
-      "Partners at professional services firms",
-      "Anyone who wants a formal, prestigious presentation",
-    ],
-    designTraits: [
-      "Gold hairline rules framing every section header",
-      "Diamond ornament above the centered name",
-      "Gold-bordered skill chips on a warm ivory tint",
-      "Diamond-bulleted achievements in gold",
-      "Centered serif composition throughout",
-    ],
-    atsNotes:
-      "Single-column flow with standard section headings parses cleanly. The gold styling is color-only — all text is real and selectable, so applicant tracking systems read it normally.",
-    faqs: [
-      {
-        q: "Is the gold color appropriate for conservative industries?",
-        a: "Yes — Gilt uses a muted antique gold as an accent, not a background, so it reads as refined rather than flashy. It suits finance, law, and executive roles well.",
-      },
-      {
-        q: "Can I change the gold accent to my own theme color?",
-        a: "The gold is a fixed signature of this template's identity, giving it its distinctive gilt character regardless of theme.",
-      },
-      {
-        q: "Does the centered layout hurt readability?",
-        a: "No — Gilt centers headers while keeping body text in a comfortable measure, balancing ceremony with comfortable reading.",
-      },
-    ],
-    metaTitle: "Gilt Resume Template — Free Gold-Accent Executive CV | Cvyon",
-    metaDescription:
-      "Free Gilt resume template: gold accents on charcoal serif type with diamond details. A prestigious, formal CV for senior leaders.",
   },
   {
     id: "Parchment",
@@ -6013,47 +4949,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaDescription:
       "Free Advocate resume template: Roman-numeral sections with formal serif structure. A brief-like CV for legal professionals.",
   },
-{
-    id: "Pedagogue",
-    slug: "pedagogue",
-    name: "Pedagogue",
-    tagline: "A warm, approachable design made for educators.",
-    description:
-      "Pedagogue speaks the language of the classroom: a warm fixed orange identity with a deep-brown name, an inviting job title line, and section headers finished with a soft rounded underline. Skills appear as friendly warm-toned pills and experience reads in generous, readable type. It feels encouraging and human — the tone schools and training organizations respond to.",
-    bestFor: [
-      "Teachers and lecturers",
-      "Tutors and academic coaches",
-      "Training and L&D professionals",
-      "Education administrators",
-      "Childcare and youth-work professionals",
-    ],
-    designTraits: [
-      "Fixed warm orange identity that does not change with theme",
-      "Deep-brown name with an inviting orange job title",
-      "Rounded warm-toned skill pills",
-      "Section headers with a soft rounded underline bar",
-      "Generous readable body type with a human touch",
-    ],
-    atsNotes:
-      "Single-column layout with real text and standard headings; the warm background tints are fills behind selectable text, so parsing is straightforward.",
-    faqs: [
-      {
-        q: "Can I change the orange color?",
-        a: "No — Pedagogue's warm orange identity is fixed by design, chosen to keep the friendly educator tone consistent. Other templates let your theme color drive the palette if you want that control.",
-      },
-      {
-        q: "Is this template suitable outside education?",
-        a: "Its warmth works anywhere approachability matters — customer success, HR, community roles — but it was designed with educators in mind.",
-      },
-      {
-        q: "Will the warm styling parse in ATS software?",
-        a: "Yes. All text is real and selectable in a single-column flow; the warm colors are fills behind text, not images.",
-      },
-    ],
-    metaTitle: "Pedagogue Resume Template — Free Teacher CV | Cvyon",
-    metaDescription:
-      "Free Pedagogue resume template: a warm, approachable design made for educators, with friendly skill pills and readable type. Ideal for teachers and trainers.",
-  },
   {
     id: "Engine",
     slug: "engine",
@@ -7037,47 +5932,6 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaTitle: "Ladder Resume Template — Free Career-Growth CV | Cvyon",
     metaDescription:
       "Free Ladder resume template: your career as rungs on a ladder, with fading header bars and clean rails for steady, upward professionals.",
-  },
-{
-    id: "Academic",
-    slug: "academic",
-    name: "Academic",
-    tagline: "A formal curriculum vitae in classic serif type.",
-    description:
-      "Academic is built like a proper CV: a centered serif header with a “Curriculum Vitae” subtitle, education placed before experience, and every entry set in a two-column date grid so appointments read chronologically at a glance. Pure black ink, uppercase section headers with hairline rules, and generous one-inch margins give it the gravity that hiring committees and academic panels expect.",
-    bestFor: [
-      "University faculty and researchers",
-      "PhD candidates and postdocs",
-      "Medical and clinical academics",
-      "Grant and fellowship applicants",
-      "Anyone submitting a formal CV rather than a resume",
-    ],
-    designTraits: [
-      "Centered serif header with “Curriculum Vitae” subtitle",
-      "Education section placed before experience",
-      "Two-column date grid for appointments",
-      "Uppercase section headers with hairline rules",
-      "Pure black ink on white with one-inch margins",
-    ],
-    atsNotes:
-      "Single-column flow with standard headings parses cleanly; the date-grid uses real text in a simple two-column layout. Academic CVs often run long — every page keeps the same clean structure.",
-    faqs: [
-      {
-        q: "Is Academic a resume or a CV?",
-        a: "It is structured as a curriculum vitae: education leads, appointments carry date columns, and sections like Research & Projects and Certifications & Awards are built in — ideal for academic applications.",
-      },
-      {
-        q: "Can it handle a multi-page CV?",
-        a: "Yes. The disciplined grid and consistent headers scale naturally across pages, which is exactly what academic CVs need.",
-      },
-      {
-        q: "Why is education listed first?",
-        a: "Academic hiring evaluates credentials before roles. Academic leads with your degrees and appointments so committees see qualifications immediately.",
-      },
-    ],
-    metaTitle: "Academic Resume Template — Free Serif CV Template | Cvyon",
-    metaDescription:
-      "Free Academic resume template: a formal serif curriculum vitae with education-first ordering and date-grid appointments. Ideal for faculty and researchers.",
   },
   {
     id: "AcademicJournal",
@@ -8308,6 +7162,252 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaTitle: "ZenJapanese Resume Template — Free Zen Minimal CV | Cvyon",
     metaDescription:
       "Free ZenJapanese resume template: Japanese minimalism with warm paper and wide-tracked labels. Calm, confident resumes.",
+  },
+  {
+    id: "Academic",
+    slug: "academic",
+    name: "Academic",
+    tagline: "A formal curriculum vitae in classic serif type.",
+    description:
+      "Academic is built like a proper CV: a centered serif header with a “Curriculum Vitae” subtitle, education placed before experience, and every entry set in a two-column date grid so appointments read chronologically at a glance. Pure black ink, uppercase section headers with hairline rules, and generous one-inch margins give it the gravity that hiring committees and academic panels expect.",
+    bestFor: [
+      "University faculty and researchers",
+      "PhD candidates and postdocs",
+      "Medical and clinical academics",
+      "Grant and fellowship applicants",
+      "Anyone submitting a formal CV rather than a resume",
+    ],
+    designTraits: [
+      "Centered serif header with “Curriculum Vitae” subtitle",
+      "Education section placed before experience",
+      "Two-column date grid for appointments",
+      "Uppercase section headers with hairline rules",
+      "Pure black ink on white with one-inch margins",
+    ],
+    atsNotes:
+      "Single-column flow with standard headings parses cleanly; the date-grid uses real text in a simple two-column layout. Academic CVs often run long — every page keeps the same clean structure.",
+    faqs: [
+      {
+        q: "Is Academic a resume or a CV?",
+        a: "It is structured as a curriculum vitae: education leads, appointments carry date columns, and sections like Research & Projects and Certifications & Awards are built in — ideal for academic applications.",
+      },
+      {
+        q: "Can it handle a multi-page CV?",
+        a: "Yes. The disciplined grid and consistent headers scale naturally across pages, which is exactly what academic CVs need.",
+      },
+      {
+        q: "Why is education listed first?",
+        a: "Academic hiring evaluates credentials before roles. Academic leads with your degrees and appointments so committees see qualifications immediately.",
+      },
+    ],
+    metaTitle: "Academic Resume Template — Free Serif CV Template | Cvyon",
+    metaDescription:
+      "Free Academic resume template: a formal serif curriculum vitae with education-first ordering and date-grid appointments. Ideal for faculty and researchers.",
+  },
+  {
+    id: "Anchor",
+    slug: "anchor",
+    name: "Anchor",
+    tagline: "Serif elegance anchored by a bordered white sidebar.",
+    description:
+      "Anchor pairs a stately serif main column with a 35% white sidebar divided by a theme-colored rule. Your initials sit in a bordered monogram medallion above contact, a ruled skills list, and education — while the main column carries your name, profile, and experience under theme-bordered section headers. It reads as composed and trustworthy, the kind of resume that suits established professionals who want polish without noise.",
+    bestFor: [
+      "Senior managers and directors",
+      "Finance and consulting professionals",
+      "Legal and compliance roles",
+      "Academics and researchers",
+      "Established professionals with 10+ years of experience",
+    ],
+    designTraits: [
+      "White left sidebar divided by a theme-colored border",
+      "Serif typography throughout for a formal feel",
+      "Initials monogram in a bordered circle",
+      "Ruled skills list in the sidebar",
+      "Theme-bordered section headers in the main column",
+    ],
+    atsNotes:
+      "All text is real and selectable, and the single reading flow of the main column parses cleanly. Keep job titles and employers in the main column so older parsers catch them first.",
+    faqs: [
+      {
+        q: "Is the sidebar too formal for creative roles?",
+        a: "Anchor is deliberately formal — it is aimed at corporate, legal, finance, and academic applications. Creative candidates will find a better match in the Gallery or Studio templates.",
+      },
+      {
+        q: "Can I change the sidebar border color?",
+        a: "Yes — the border, monogram, and headers all follow your Cvyon theme color, so the whole accent system shifts together.",
+      },
+      {
+        q: "Will the sidebar confuse applicant tracking systems?",
+        a: "Modern parsers handle two-column resumes well, and the main column reads top to bottom. If a portal is very old, a single-column template is the safest fallback.",
+      },
+    ],
+    metaTitle: "Anchor Resume Template — Free Serif Sidebar CV | Cvyon",
+    metaDescription:
+      "Free Anchor resume template: a bordered white sidebar with serif typography and a monogram medallion. Ideal for senior and formal professionals.",
+  },
+  {
+    id: "Gilt",
+    slug: "gilt",
+    name: "Gilt",
+    tagline: "Gold accents on charcoal — quiet luxury for distinguished careers.",
+    description:
+      "Gilt frames a distinguished career in gold: charcoal serif text with gleaming gold section headers flanked by hairline rules, a diamond ornament crowning your name, and gold-bordered skill chips. The centered, symmetrical layout reads like a formal certificate — ideal for candidates who want their resume to feel earned and prestigious without a single flashy element.",
+    bestFor: [
+      "Senior executives and board candidates",
+      "Finance, private banking, and wealth management professionals",
+      "Luxury hospitality and premium brand leaders",
+      "Partners at professional services firms",
+      "Anyone who wants a formal, prestigious presentation",
+    ],
+    designTraits: [
+      "Gold hairline rules framing every section header",
+      "Diamond ornament above the centered name",
+      "Gold-bordered skill chips on a warm ivory tint",
+      "Diamond-bulleted achievements in gold",
+      "Centered serif composition throughout",
+    ],
+    atsNotes:
+      "Single-column flow with standard section headings parses cleanly. The gold styling is color-only — all text is real and selectable, so applicant tracking systems read it normally.",
+    faqs: [
+      {
+        q: "Is the gold color appropriate for conservative industries?",
+        a: "Yes — Gilt uses a muted antique gold as an accent, not a background, so it reads as refined rather than flashy. It suits finance, law, and executive roles well.",
+      },
+      {
+        q: "Can I change the gold accent to my own theme color?",
+        a: "The gold is a fixed signature of this template's identity, giving it its distinctive gilt character regardless of theme.",
+      },
+      {
+        q: "Does the centered layout hurt readability?",
+        a: "No — Gilt centers headers while keeping body text in a comfortable measure, balancing ceremony with comfortable reading.",
+      },
+    ],
+    metaTitle: "Gilt Resume Template — Free Gold-Accent Executive CV | Cvyon",
+    metaDescription:
+      "Free Gilt resume template: gold accents on charcoal serif type with diamond details. A prestigious, formal CV for senior leaders.",
+  },
+  {
+    id: "Lucid",
+    slug: "lucid",
+    name: "Lucid",
+    tagline: "Pure clarity through generous leading and crisp hierarchy.",
+    description:
+      "Lucid is restraint done well: a single ink column where your name, title, and contact line stack in clear typographic order, then generous line spacing carries every section. Section titles are small, widely tracked caps with real breathing room above them, and skills sit in a clean three-column grid with hairline dividers. Nothing shouts — the design earns its authority from precision and whitespace.",
+    bestFor: [
+      "Writers and editors",
+      "Consultants and analysts",
+      "Legal and compliance professionals",
+      "Project managers",
+      "Anyone who wants a calm, supremely readable resume",
+    ],
+    designTraits: [
+      "Single ink-only column with generous leading",
+      "Widely tracked small-caps section titles",
+      "Three-column skills grid with hairline dividers",
+      "Clear name/title/contact hierarchy",
+      "Ample vertical rhythm between sections",
+    ],
+    atsNotes:
+      "Fully single-column with real text and conventional headings, so parsing is straightforward. The wide letter-spacing on headings is decorative styling on plain text, not an image.",
+    faqs: [
+      {
+        q: "Does the wide letter-spacing on headings cause parsing problems?",
+        a: "No — the headings are ordinary selectable text with CSS letter-spacing applied. Parsers read them as normal words.",
+      },
+      {
+        q: "Is Lucid too plain for competitive roles?",
+        a: "Its calm confidence is the point. Recruiters read every word when nothing on the page fights for attention.",
+      },
+      {
+        q: "Can I add accent color?",
+        a: "Lucid is deliberately ink-on-white, but your Cvyon theme color can be introduced through section accents in the builder preview if you want a touch of color.",
+      },
+    ],
+    metaTitle: "Lucid Resume Template — Free Clean Minimal CV | Cvyon",
+    metaDescription:
+      "Free Lucid resume template: a calm single-column resume with generous spacing and crisp hierarchy. Perfect for writers, analysts, and consultants.",
+  },
+  {
+    id: "Pedagogue",
+    slug: "pedagogue",
+    name: "Pedagogue",
+    tagline: "A warm, approachable design made for educators.",
+    description:
+      "Pedagogue speaks the language of the classroom: a warm fixed orange identity with a deep-brown name, an inviting job title line, and section headers finished with a soft rounded underline. Skills appear as friendly warm-toned pills and experience reads in generous, readable type. It feels encouraging and human — the tone schools and training organizations respond to.",
+    bestFor: [
+      "Teachers and lecturers",
+      "Tutors and academic coaches",
+      "Training and L&D professionals",
+      "Education administrators",
+      "Childcare and youth-work professionals",
+    ],
+    designTraits: [
+      "Fixed warm orange identity that does not change with theme",
+      "Deep-brown name with an inviting orange job title",
+      "Rounded warm-toned skill pills",
+      "Section headers with a soft rounded underline bar",
+      "Generous readable body type with a human touch",
+    ],
+    atsNotes:
+      "Single-column layout with real text and standard headings; the warm background tints are fills behind selectable text, so parsing is straightforward.",
+    faqs: [
+      {
+        q: "Can I change the orange color?",
+        a: "No — Pedagogue's warm orange identity is fixed by design, chosen to keep the friendly educator tone consistent. Other templates let your theme color drive the palette if you want that control.",
+      },
+      {
+        q: "Is this template suitable outside education?",
+        a: "Its warmth works anywhere approachability matters — customer success, HR, community roles — but it was designed with educators in mind.",
+      },
+      {
+        q: "Will the warm styling parse in ATS software?",
+        a: "Yes. All text is real and selectable in a single-column flow; the warm colors are fills behind text, not images.",
+      },
+    ],
+    metaTitle: "Pedagogue Resume Template — Free Teacher CV | Cvyon",
+    metaDescription:
+      "Free Pedagogue resume template: a warm, approachable design made for educators, with friendly skill pills and readable type. Ideal for teachers and trainers.",
+  },
+  {
+    id: "Regent",
+    slug: "regent",
+    name: "Regent",
+    tagline: "Centered serif formality with a double-rule masthead.",
+    description:
+      "Regent is built for authority: a centered serif name above a double black rule, section titles set between flanking hairlines, and a centered skills line that reads like a signature. Every section is single-column and calmly spaced, so long careers read as composed rather than crowded — the visual language of board papers and formal correspondence.",
+    bestFor: [
+      "C-suite and senior executives",
+      "Board members and advisors",
+      "Legal professionals",
+      "Academics and researchers",
+      "Anyone whose industry still respects formal stationery",
+    ],
+    designTraits: [
+      "Centered serif name with double black rule",
+      "Section titles bracketed by hairlines",
+      "Skills as a centered comma-joined line",
+      "Italic company names under bold roles",
+      "Fully single-column layout",
+    ],
+    atsNotes:
+      "Excellent for parsing: single-column flow, real text throughout, and standard section headings. The decorative rules are pure CSS and invisible to parsers.",
+    faqs: [
+      {
+        q: "Is Regent too formal for tech jobs?",
+        a: "Regent's formality suits leadership, legal, and academic roles best. For startups or creative roles, pick a template with more modern energy.",
+      },
+      {
+        q: "Can I change the serif font?",
+        a: "The template uses your browser's default serif stack for that classic editorial feel; the theme color controls the job-title accent.",
+      },
+      {
+        q: "Will the centered layout hurt ATS parsing?",
+        a: "No — centering is a visual style applied to real, selectable text in a single column, which parsers handle without issue.",
+      },
+    ],
+    metaTitle: "Regent Resume Template — Free Formal Serif CV | Cvyon",
+    metaDescription:
+      "Free Regent resume template: centered serif formality with a double-rule masthead. Ideal for executives, legal, and academic professionals.",
   },
 ];
 

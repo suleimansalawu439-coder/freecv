@@ -73,6 +73,11 @@ const nextConfig: NextConfig = {
       ['tech-pro', 'techpro'],
       ['typography-first', 'typographyfirst'],
       ['zen-japanese', 'zenjapanese'],
+      ['academic-journal', 'academicjournal'],
+      ['corporate-blue', 'corporateblue'],
+      ['elegant-editorial', 'eleganteditorial'],
+      ['executive-split', 'executivesplit'],
+      ['minimalist-split', 'minimalistsplit'],
     ];
     return legacy.map(([from, to]) => ({
       source: `/templates/${from}`,
