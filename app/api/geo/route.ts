@@ -1,39 +1,24 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rate-limit';
+import { headers } from 'next/headers';
 
-// Strict IP-literal check (IPv4 or IPv6). The value is interpolated into the
-// ip-api.com request path, so anything that isn't an IP literal is rejected
-// outright rather than passed to the upstream service.
-const IPV4_RE = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
-
-function isIpLiteral(ip: string): boolean {
-  if (IPV4_RE.test(ip)) return true;
-  // IPv6: must contain colons and only hex digits, colons, dots (v4-mapped)
-  return ip.includes(':') && /^[0-9a-fA-F:.]+$/.test(ip) && ip.length <= 45;
-}
-
-export async function GET(req: Request) {
-  // Unauthenticated + outbound fetch per request: rate-limit to prevent
-  // quota-exhaustion of the shared ip-api.com allowance (45 req/min free).
-  const rateLimitResponse = await checkRateLimit(req, { limit: 30, windowMs: 60_000 });
-  if (rateLimitResponse) return rateLimitResponse;
-
+export async function GET() {
   try {
-    // Prefer x-real-ip (set by Vercel's edge from the TCP peer); the
-    // x-forwarded-for chain is client-spoofable.
-    const ip = req.headers.get('x-real-ip')?.trim()
-      || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-      || req.headers.get('cf-connecting-ip')?.trim()
+    const headersList = await headers();
+    
+    // Get the client IP from various headers (Vercel, Cloudflare, standard)
+    const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || headersList.get('x-real-ip')
+      || headersList.get('cf-connecting-ip')
       || '';
 
-    if (!ip || ip === '127.0.0.1' || ip === '::1' || !isIpLiteral(ip)) {
+    if (!ip || ip === '127.0.0.1' || ip === '::1') {
       return NextResponse.json({ country: '', city: '', ip: '' });
     }
 
     // Use ip-api.com (free, 45 requests/minute, no key needed)
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 3000);
-
+    
     const res = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city`, {
       signal: controller.signal,
     });
