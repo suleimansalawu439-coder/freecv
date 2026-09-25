@@ -52,9 +52,16 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     const skills = (data.skills || []).map((s) => s.name).filter(Boolean);
     const jobTitle = data.personalInfo.jobTitle || "";
 
+    // Bound the request: without a timeout a stalled upstream would leave the
+    // modal on its loading spinner forever. On timeout we fall through to the
+    // honest empty/error state (with suggestions) instead.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+
     fetch("/api/affiliate/jobs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         skills,
         jobTitle,
@@ -73,7 +80,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
         }
       })
       .catch(() => setErrored(true))
-      .finally(() => setLoading(false));
+      .finally(() => { clearTimeout(timeoutId); setLoading(false); });
   };
 
   useEffect(() => {

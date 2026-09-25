@@ -82,6 +82,9 @@ export async function POST(req: Request) {
         const response = await fetch(PROXY_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Proxy-Secret': PROXY_SECRET },
+          // Bound the upstream call: without a timeout a stalled proxy would
+          // hang this route (and the jobs modal spinner) indefinitely.
+          signal: AbortSignal.timeout(15000),
           body: JSON.stringify({
             affid: process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID || process.env.CAREERJET_AFFILIATE_ID || '',
             keywords,
