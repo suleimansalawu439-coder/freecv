@@ -51,6 +51,12 @@ function getKeyList(): string[] {
     .split(',')
     .map((k) => k.trim())
     .filter(Boolean);
+  // Numbered vars GEMINI_API_KEY_1..GEMINI_API_KEY_12 — set one at a time
+  // via the secure vault flow so keys never travel through chat or files.
+  for (let i = 1; i <= 12; i++) {
+    const v = (process.env[`GEMINI_API_KEY_${i}`] || '').trim();
+    if (v && !list.includes(v)) list.push(v);
+  }
   if (list.length > 0) return list;
   const single = (process.env.GEMINI_API_KEY || '').trim();
   return single ? [single] : [];
