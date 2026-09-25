@@ -1807,6 +1807,416 @@ export const templateSeoEntries: TemplateSeoEntry[] = [
     metaDescription:
       "Free Zen Japanese resume template: quiet, balanced minimalism in warm earthy tones with lowercase headings. A calm, distinctive choice.",
   },
+  {
+    id: "Summit",
+    slug: "summit",
+    name: "Summit",
+    tagline: "A commanding dark header band over a clean, readable body.",
+    description:
+      "Summit opens with a full-width dark header block carrying your name in large white type, your title, and a single contact line — then drops into a bright, airy body where every section starts with a theme-colored left border. The contrast gives your name real presence on the page while keeping the reading experience effortless for recruiters and ATS parsers alike.",
+    bestFor: [
+      "Managers and team leads",
+      "Sales and business development professionals",
+      "Operations and project managers",
+      "Consultants",
+      "Anyone who wants a strong first impression without a dark full-page design",
+    ],
+    designTraits: [
+      "Full-width dark header band with reversed white name type",
+      "Theme-color accent bar under the header",
+      "Left-bordered section headers in the accent color",
+      "Skills as wrapped pill tags",
+      "Single-column body for clean ATS parsing",
+    ],
+    atsNotes:
+      "The header is a solid color fill behind real text, not an image, so your name and contact details parse normally. The single-column body with standard section headings keeps parsing straightforward.",
+    faqs: [
+      {
+        q: "Can I change the dark header color?",
+        a: "The header uses a deep charcoal base with your Cvyon theme color as the accent bar, so picking a navy or forest theme shifts the accent while the header stays commanding.",
+      },
+      {
+        q: "Does the dark header affect ATS parsing?",
+        a: "No — it is a solid fill behind real selectable text, not an image. Parsers read your name and contact line normally.",
+      },
+      {
+        q: "Is Summit good for senior roles?",
+        a: "Yes. The strong header reads as confident and executive, while the clean body keeps long experience histories scannable.",
+      },
+    ],
+    metaTitle: "Summit Resume Template — Free Dark Header CV | Cvyon",
+    metaDescription:
+      "Free Summit resume template: a bold dark header band with your name in white over a clean single-column body. Confident, readable, ATS-friendly.",
+  },
+  {
+    id: "Gauge",
+    slug: "gauge",
+    name: "Gauge",
+    tagline: "A sidebar resume with visual skill proficiency bars.",
+    description:
+      "Gauge pairs a theme-colored sidebar with a crisp white main column. Your contact details, skills — each with a horizontal proficiency bar — and extra sections live in the sidebar, while your summary, experience, and education get the full width they deserve on the right. It is the classic two-column resume done with discipline: dense where it should be, spacious where it counts.",
+    bestFor: [
+      "Software developers and engineers",
+      "Designers with tool-heavy skill sets",
+      "Data analysts",
+      "IT professionals",
+      "Anyone with a long skills inventory to show off",
+    ],
+    designTraits: [
+      "Theme-colored left sidebar with white text",
+      "Horizontal skill proficiency bars",
+      "Circular initial avatar mark",
+      "Wide right column for experience and education",
+      "Custom sections supported in the sidebar",
+    ],
+    atsNotes:
+      "Two-column layouts can challenge older parsers: keep your most critical keywords (job titles, employers) in the main column, and export a PDF to check the reading order. The text itself is fully selectable and real.",
+    faqs: [
+      {
+        q: "How are the skill bar levels determined?",
+        a: "The bars give each skill a visual weight so recruiters can scan your strengths at a glance. Order your skills with the strongest first for the best effect.",
+      },
+      {
+        q: "Will the sidebar confuse applicant tracking systems?",
+        a: "Modern parsers handle two-column resumes well, and all text is real and selectable. If a portal is very old, the single-column templates are the safest fallback.",
+      },
+      {
+        q: "Can I add more sections to the sidebar?",
+        a: "Yes — custom sections you add in the builder appear in the sidebar, keeping the main column focused on experience.",
+      },
+    ],
+    metaTitle: "Gauge Resume Template — Free Sidebar CV with Skill Bars | Cvyon",
+    metaDescription:
+      "Free Gauge resume template: a theme-colored sidebar with skill proficiency bars beside a clean main column. Perfect for developers and designers.",
+  },
+  {
+    id: "Rail",
+    slug: "rail",
+    name: "Rail",
+    tagline: "A thin accent rail with a timeline experience section.",
+    description:
+      "Rail is minimalism with a spine: a slim theme-colored bar runs down the left edge of the page while your experience unfolds as a dot timeline — each role anchored to the rail with a marker, dates, and clean bullets. Your name sits huge at the top with wide letter-spaced section titles. It reads as calm and confident, with just enough structure to guide the eye down your career story.",
+    bestFor: [
+      "Professionals with a clear career progression",
+      "Project managers",
+      "Academics and researchers",
+      "Marketing professionals",
+      "Minimalists who want one distinctive visual idea",
+    ],
+    designTraits: [
+      "Slim vertical accent rail on the left edge",
+      "Experience rendered as a dot timeline",
+      "Oversized name with generous whitespace",
+      "Letter-spaced uppercase section titles",
+      "Single-column layout throughout",
+    ],
+    atsNotes:
+      "Fully single-column with standard headings, so parsing is clean. The timeline dots are pure decoration — dates sit in text next to each role, exactly where parsers expect them.",
+    faqs: [
+      {
+        q: "Does the timeline format hurt ATS parsing?",
+        a: "No. The dots are decorative CSS; every role, company, and date is plain text in a normal single-column flow.",
+      },
+      {
+        q: "Is Rail good for long work histories?",
+        a: "Yes — the timeline structure actually helps long histories stay scannable, since each role is visually separated along the rail.",
+      },
+      {
+        q: "Can I change the rail color?",
+        a: "Yes, the rail follows your Cvyon theme color, so it adapts to any accent you choose.",
+      },
+    ],
+    metaTitle: "Rail Resume Template — Free Timeline CV | Cvyon",
+    metaDescription:
+      "Free Rail resume template: a slim accent rail with your experience as a clean dot timeline. Minimal, elegant, and ATS-friendly.",
+  },
+  {
+    id: "Chevron",
+    slug: "chevron",
+    name: "Chevron",
+    tagline: "Geometric ribbon headers with block skill ratings.",
+    description:
+      "Chevron gives every section a ribbon-style header — a theme-colored chevron marker carrying the section title in white — so the page has a rhythmic, engineered feel from top to bottom. Skills get a five-segment block rating instead of plain text, and the body stays a disciplined single column. It is professional with personality: structured enough for finance, distinctive enough for tech.",
+    bestFor: [
+      "Engineers and technical professionals",
+      "Analysts and finance professionals",
+      "IT and operations staff",
+      "Consultants",
+      "Candidates who want structure with a modern edge",
+    ],
+    designTraits: [
+      "Chevron/ribbon section headers in the accent color",
+      "Five-segment block skill ratings",
+      "Single-column professional body",
+      "Clean sans typography",
+      "Strong repeated geometric motif",
+    ],
+    atsNotes:
+      "Section titles are real text inside the ribbon shapes, so parsers read them normally. The block ratings are decorative; skill names are plain text alongside them.",
+    faqs: [
+      {
+        q: "Do the ribbon headers confuse ATS software?",
+        a: "No — the header text is real and selectable, and the words Experience, Education, and Skills are all present as normal text.",
+      },
+      {
+        q: "What do the skill blocks mean?",
+        a: "They are a visual rating from one to five segments, giving recruiters a quick read on your relative strengths. List your strongest skills first.",
+      },
+      {
+        q: "Is Chevron too flashy for conservative industries?",
+        a: "It reads as engineered rather than flashy — the geometry is disciplined, and the body is a classic single column. It works well in finance and consulting.",
+      },
+    ],
+    metaTitle: "Chevron Resume Template — Free Geometric CV | Cvyon",
+    metaDescription:
+      "Free Chevron resume template: ribbon section headers and block skill ratings in a disciplined single column. Modern structure, professional feel.",
+  },
+  {
+    id: "Glyph",
+    slug: "glyph",
+    name: "Glyph",
+    tagline: "Airy icon-led minimalism with generous whitespace.",
+    description:
+      "Glyph lets small, elegant line icons do the talking: each section opens with a hand-drawn style icon, and your contact details sit in one centered row with tiny glyphs instead of labels. The layout is deliberately airy — abundant whitespace, minimal color, small bar meters for skills. Nothing shouts; everything is easy to find. It is the resume equivalent of a well-designed app screen.",
+    bestFor: [
+      "Designers and creatives",
+      "Product managers",
+      "Marketing professionals",
+      "Tech workers who like clean interfaces",
+      "Anyone whose resume needs to breathe",
+    ],
+    designTraits: [
+      "Line icons for every section heading",
+      "Single centered icon contact row",
+      "Abundant whitespace, minimal color",
+      "Small horizontal bar meters for skills",
+      "Restrained accent color used sparingly",
+    ],
+    atsNotes:
+      "The icons are decorative SVGs; all headings and contact details are real text. Single-column flow with standard section words keeps parsing clean.",
+    faqs: [
+      {
+        q: "Will the icons break ATS parsing?",
+        a: "No — icons are decorative and every heading and contact detail exists as real text. Parsers ignore the artwork and read the words.",
+      },
+      {
+        q: "Is Glyph too minimal for experienced candidates?",
+        a: "The whitespace is deliberate, not empty — multi-role histories fit fine, and the clean structure keeps long resumes scannable.",
+      },
+      {
+        q: "Can I add more color?",
+        a: "The design is intentionally restrained, but your theme color appears in section titles and skill meters — pick a bolder theme for more presence.",
+      },
+    ],
+    metaTitle: "Glyph Resume Template — Free Minimal Icon CV | Cvyon",
+    metaDescription:
+      "Free Glyph resume template: airy icon-led minimalism with line icons, a centered contact row, and skill meters. Clean, modern, ATS-friendly.",
+  },
+  {
+    id: "Triad",
+    slug: "triad",
+    name: "Triad",
+    tagline: "Three calm color zones for instant scannability.",
+    description:
+      "Triad divides the page into three horizontal zones: a white header with your name and contact, a softly tinted band holding your summary and skill pills, and a white main zone for experience and education. The zoning does the organizing work — a recruiter's eye lands on exactly the right band in seconds — without a single heavy border or box. Small uppercase section headers in your theme color tie it together.",
+    bestFor: [
+      "Generalists and multi-disciplinary professionals",
+      "Customer service and operations staff",
+      "Administrators",
+      "Recent graduates with internships to show",
+      "Anyone who wants clear visual organization",
+    ],
+    designTraits: [
+      "Three horizontal zones with subtle tinting",
+      "Tinted summary + skills band",
+      "Skill pills in the middle zone",
+      "Small uppercase theme-colored headers",
+      "Borderless, calm separation",
+    ],
+    atsNotes:
+      "The zones are background tints behind real text in a single-column flow, so parsers read straight through. Standard section headings throughout.",
+    faqs: [
+      {
+        q: "Do the background tints affect printing?",
+        a: "The tint is very light (about 8% of your theme color), so it prints cleanly and never obscures text.",
+      },
+      {
+        q: "Is Triad ATS-safe?",
+        a: "Yes — single-column flow, real text, standard headings. The zoning is purely visual.",
+      },
+      {
+        q: "Can I change the tint color?",
+        a: "The tint derives from your Cvyon theme color, so changing the theme re-tints the band automatically.",
+      },
+    ],
+    metaTitle: "Triad Resume Template — Free Color-Zoned CV | Cvyon",
+    metaDescription:
+      "Free Triad resume template: three subtle color zones organize your header, summary/skills, and experience. Calm, scannable, ATS-friendly.",
+  },
+  {
+    id: "Mono",
+    slug: "mono",
+    name: "Mono",
+    tagline: "A pure black-and-white typographic statement.",
+    description:
+      "Mono uses zero color — distinction comes entirely from type. Your name sets huge in serif, section titles pair serif headlines with a neutral sans body, and thick black rules separate each section. Skills run as a bold slash-separated inline list; dates align hard right. It is the most print-reliable template on Cvyon: no color to misprint, no graphics to pixelate, just typography doing all the work.",
+    bestFor: [
+      "Writers, editors, and journalists",
+      "Lawyers and legal professionals",
+      "Academics",
+      "Executives in traditional industries",
+      "Anyone applying through portals that mangle color",
+    ],
+    designTraits: [
+      "Pure black, white, and gray — no color at all",
+      "Oversized serif name and headings",
+      "Thick black section rules",
+      "Slash-separated inline skills list",
+      "Right-aligned dates",
+    ],
+    atsNotes:
+      "As clean as parsing gets: single column, black text, standard headings, no graphics, no color tricks. An excellent choice for the strictest ATS portals.",
+    faqs: [
+      {
+        q: "Can I add color to Mono?",
+        a: "Mono intentionally ignores the theme color — that is the point. If you want color, any of the other 50+ templates will oblige.",
+      },
+      {
+        q: "Is black-and-white too plain?",
+        a: "Plain is the strategy: the oversized type and heavy rules give it real presence, and it prints perfectly everywhere, every time.",
+      },
+      {
+        q: "Is Mono good for creative roles?",
+        a: "For writing, editing, and editorial design — absolutely. For visual design portfolios, a template with more color may show range better.",
+      },
+    ],
+    metaTitle: "Mono Resume Template — Free Black & White CV | Cvyon",
+    metaDescription:
+      "Free Mono resume template: a pure black-and-white typographic statement with serif headlines and bold rules. Maximum print reliability, zero color risk.",
+  },
+  {
+    id: "Ember",
+    slug: "ember",
+    name: "Ember",
+    tagline: "Warm editorial styling with a terracotta soul.",
+    description:
+      "Ember has its own warm identity: terracotta section headings in serif italic, hairline rules between sections, and your summary set as a pull-quote with a terracotta left border. Skills appear as warm-tinted chips, and your contact details center beneath your name with middot separators. It reads like a magazine profile — soft, human, and memorable — while keeping every section exactly where recruiters expect it.",
+    bestFor: [
+      "Marketing and brand professionals",
+      "Content creators and writers",
+      "Hospitality and customer experience staff",
+      "Nonprofit workers",
+      "Creatives who want warmth without chaos",
+    ],
+    designTraits: [
+      "Fixed terracotta accent with serif italic headings",
+      "Pull-quote style summary",
+      "Hairline rules between sections",
+      "Warm-tinted skill chips",
+      "Centered middot contact row",
+    ],
+    atsNotes:
+      "Single-column layout with standard section words; the serif italic styling does not affect parsing. All text is real and selectable.",
+    faqs: [
+      {
+        q: "Can I change the terracotta color?",
+        a: "Ember keeps its fixed warm identity by design — the terracotta is part of the template's character. Other templates follow your theme color if you want control.",
+      },
+      {
+        q: "Is the pull-quote summary ATS-safe?",
+        a: "Yes — it is a normal paragraph with a decorative left border. Parsers read it as regular text.",
+      },
+      {
+        q: "Is Ember professional enough for corporate roles?",
+        a: "The structure is classic single-column; only the styling is warm. It suits brand, marketing, hospitality, and people-facing roles best.",
+      },
+    ],
+    metaTitle: "Ember Resume Template — Free Warm Editorial CV | Cvyon",
+    metaDescription:
+      "Free Ember resume template: warm terracotta serif headings, pull-quote summary, and skill chips in an editorial single column. Human, memorable, ATS-friendly.",
+  },
+  {
+    id: "Arsenal",
+    slug: "arsenal",
+    name: "Arsenal",
+    tagline: "Skills-first layout built for career changers.",
+    description:
+      "Arsenal leads with what you can do, not where you have been. A Core Competencies grid of skill pills opens the resume, followed by Selected Achievements — every bullet from your experience, flattened into one punchy list — then a compact one-line-per-role Employment History and your education. It is the functional resume done right: built for career changers, generalists, and anyone whose skills outshine their job titles.",
+    bestFor: [
+      "Career changers",
+      "Generalists and multi-skilled professionals",
+      "Freelancers consolidating varied work",
+      "Returners to the workforce",
+      "Technical staff pivoting industries",
+    ],
+    designTraits: [
+      "Core Competencies skill grid first",
+      "Flattened achievements list from all roles",
+      "One-line employment history",
+      "Skills-led rather than chronology-led",
+      "Clean single-column flow",
+    ],
+    atsNotes:
+      "Functional layouts need care with parsers: Arsenal keeps company names and dates as real text in the employment history, and standard headings throughout. Include a chronological work history (it is there) so parsers can build your timeline.",
+    faqs: [
+      {
+        q: "Is a skills-first resume risky for ATS?",
+        a: "Pure functional resumes can be. Arsenal hedges: it leads with skills but still includes a real employment history with companies and dates, which is what parsers need.",
+      },
+      {
+        q: "Who should use Arsenal?",
+        a: "Career changers, freelancers, and generalists — anyone whose strongest story is competency, not a tidy chronological ladder.",
+      },
+      {
+        q: "Where do my job bullets go?",
+        a: "Every bullet from your experience entries is gathered into Selected Achievements automatically, so nothing you wrote is lost.",
+      },
+    ],
+    metaTitle: "Arsenal Resume Template — Free Skills-First CV | Cvyon",
+    metaDescription:
+      "Free Arsenal resume template: a skills-first functional layout with a competencies grid, achievements list, and compact work history. Built for career changers.",
+  },
+  {
+    id: "Density",
+    slug: "density",
+    name: "Density",
+    tagline: "Maximum content on one page, engineered cleanly.",
+    description:
+      "Density is built for candidates with a lot to say: compact 11px type, tight disciplined spacing, a two-column header, skills in a three-column grid, and experience rows that fit role, company, and dates on single lines. The density comes from spacing discipline, not clutter — every section still breathes, and theme-colored headers with bottom borders keep the structure obvious. One page, everything on it, nothing cramped.",
+    bestFor: [
+      "Senior engineers with long skill lists",
+      "Experienced professionals condensing 10+ years",
+      "Technical specialists",
+      "Consultants with many engagements",
+      "Anyone told their resume must be one page",
+    ],
+    designTraits: [
+      "Compact 11px type with tight spacing",
+      "Two-column header (name left, contact right)",
+      "Three-column skills grid",
+      "Single-line role/company/date rows",
+      "Theme-colored headers with bottom borders",
+    ],
+    atsNotes:
+      "Single-column body with standard headings; the compact sizing does not affect parsing since all text remains real and selectable. Keep font sizes readable — Density already optimizes this for you.",
+    faqs: [
+      {
+        q: "Will recruiters find small text hard to read?",
+        a: "Density uses 11px body text — the same size many professional resumes use — with strong headers and spacing so nothing feels cramped.",
+      },
+      {
+        q: "Can Density handle a very long work history?",
+        a: "That is its purpose: single-line role rows and compact bullets fit far more per page than standard templates while staying clean.",
+      },
+      {
+        q: "Is it ATS-friendly?",
+        a: "Yes — single-column flow, real text, standard section headings throughout.",
+      },
+    ],
+    metaTitle: "Density Resume Template — Free Compact One-Page CV | Cvyon",
+    metaDescription:
+      "Free Density resume template: a compact high-density one-pager with tight disciplined spacing. Fit more on one page without looking cramped.",
+  },
 ];
 
 export function getTemplateSeoEntry(slug: string): TemplateSeoEntry | undefined {
