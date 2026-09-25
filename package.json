@@ -26,6 +26,7 @@
     "core-js": "^3.49.0",
     "docx": "^9.7.1",
     "dompurify": "^3.4.13",
+    "html-to-docx": "1.8.0",
     "html2canvas": "^1.4.1",
     "isomorphic-dompurify": "^3.19.0",
     "jose": "^6.2.4",
@@ -45,7 +46,8 @@
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3",
     "zundo": "^2.3.0",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.14",
+    "jszip": "3.10.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

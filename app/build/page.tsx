@@ -25,6 +25,7 @@ import { templates as htmlTemplates } from '@/components/html_templates';
 import NewsletterCapture from '@/components/NewsletterCapture';
 import dynamic from 'next/dynamic';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { captureTemplateHtml } from '@/lib/docx/capture-template-html';
 
 const ImportResume = dynamic(() => import('@/components/builder/ImportResume').then(m => m.ImportResume), { ssr: false });
 const CoverLetterTab = dynamic(() => import('@/components/builder/CoverLetterTab').then(m => m.CoverLetterTab), { ssr: false });
@@ -116,6 +117,7 @@ const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
   return (
     <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar">
       <div
+        data-cvyon-template-stage
         className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c"
         style={{ width: '816px', height: '1056px', transform: `scale(${scale})`, transformOrigin: 'top center', marginBottom: `-${1056 * (1 - scale)}px`, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
       >
@@ -423,7 +425,19 @@ export default function FreeCVApp() {
             .catch(err => console.error('[CRM opt-in] Network error:', err));
         } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
       }
-      const res = await fetch('/api/export/docx', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      // Capture the rendered template (inlined computed styles + table
+      // layout) so the DOCX matches the selected template's design. Falls
+      // back to the server-side generic builder when capture is unavailable.
+      let body: any = data;
+      try {
+        const templateHtml = captureTemplateHtml();
+        if (templateHtml) {
+          body = { data, templateHtml, templateId: data.templateId };
+        }
+      } catch (capErr) {
+        console.error('[DOCX] template capture failed, using generic builder:', capErr);
+      }
+      const res = await fetch('/api/export/docx', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error('Failed to generate DOCX');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
