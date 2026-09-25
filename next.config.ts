@@ -60,6 +60,26 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    // Legacy kebab-case template URLs (pre-rename) -> current slugs.
+    // These pages were indexed before the slug consolidation; keep them 301'd.
+    const legacy = [
+      ['modern-gradient', 'moderngradient'],
+      ['night-shift', 'nightshift'],
+      ['parse-perfect', 'parseperfect'],
+      ['swiss-design', 'swissdesign'],
+      ['swiss-grid', 'swissgrid'],
+      ['swiss-minimal', 'swissminimal'],
+      ['tech-pro', 'techpro'],
+      ['typography-first', 'typographyfirst'],
+      ['zen-japanese', 'zenjapanese'],
+    ];
+    return legacy.map(([from, to]) => ({
+      source: `/templates/${from}`,
+      destination: `/templates/${to}`,
+      permanent: true,
+    }));
+  },
 };
 
 export default withSentryConfig(
