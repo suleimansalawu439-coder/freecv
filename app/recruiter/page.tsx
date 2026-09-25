@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -11,14 +11,26 @@ import {
   Check, EyeOff, Coins,
 } from "lucide-react";
 
-const PACKS = [
-  { name: "Single unlock", credits: 1, price: "₦2,500", per: "₦2,500 / contact", note: "One perfect candidate, one price.", cta: "Start free", hot: false },
-  { name: "10-pack", credits: 10, price: "₦19,900", per: "₦1,990 / contact", note: "For an active hiring sprint.", cta: "Start free", hot: true },
-  { name: "50-pack", credits: 50, price: "₦74,900", per: "₦1,498 / contact", note: "For teams hiring at volume.", cta: "Start free", hot: false },
+// Fallback if the packs API is unreachable — mirrors the admin-set defaults.
+const FALLBACK_PACKS = [
+  { id: "single", name: "Single unlock", credits: 1, price_kobo: 500, currency: "USD" },
+  { id: "pack-10", name: "10-pack", credits: 10, price_kobo: 3900, currency: "USD" },
+  { id: "pack-50", name: "50-pack", credits: 50, price_kobo: 14900, currency: "USD" },
 ];
+const PACK_NOTES = ["One perfect candidate, one price.", "For an active hiring sprint.", "For teams hiring at volume."];
+const CUR_SYM: Record<string, string> = { USD: "$", NGN: "₦", GHS: "₵", KES: "KSh ", ZAR: "R" };
+const fmtNum = (n: number) => new Intl.NumberFormat("en-US").format(n);
 
 export default function RecruiterLanding() {
   const router = useRouter();
+  const [packs, setPacks] = useState(FALLBACK_PACKS);
+
+  useEffect(() => {
+    fetch("/api/recruiter/packs")
+      .then((r) => r.json())
+      .then((j) => { if (Array.isArray(j.packs) && j.packs.length) setPacks(j.packs); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -143,12 +155,16 @@ export default function RecruiterLanding() {
           Searching is free, forever. You only pay when you unlock a candidate&apos;s contact — 1 credit each.
         </p>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {PACKS.map((p) => (
+          {packs.map((p, i) => {
+            const sym = CUR_SYM[p.currency] || `${p.currency} `;
+            const major = Math.round(p.price_kobo / 100);
+            const per = p.credits > 0 ? Math.round(p.price_kobo / p.credits) / 100 : 0;
+            const hot = i === 1;
+            return (
             <div
-              key={p.name}
-              className={`relative flex flex-col border-[3px] border-[#141312] bg-white p-8 ${p.hot ? "hs-v" : "hs"}`}
-            >
-              {p.hot && (
+              key={p.id || p.name}
+              <div className={`relative flex flex-col border-[3px] border-[#141312] bg-white p-8 ${hot ? "hs-v" : "hs"}`}>
+              {hot && (
                 <span className="fm absolute -top-4 left-6 border-[3px] border-[#141312] bg-[#FF4326] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                   most popular
                 </span>
@@ -157,17 +173,18 @@ export default function RecruiterLanding() {
                 <Coins size={14} className="text-[#FF4326]" /> {p.credits} credit{p.credits === 1 ? "" : "s"}
               </div>
               <h3 className="fh mt-2 text-2xl font-extrabold tracking-tight">{p.name}</h3>
-              <div className="fd mt-3 text-5xl tracking-tight">{p.price}</div>
-              <div className="fm mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0E8A4B]">{p.per}</div>
-              <p className="mt-3 text-sm text-[#141312]/65">{p.note}</p>
+              <div className="fd mt-3 text-5xl tracking-tight">{sym}{fmtNum(major)}</div>
+              <div className="fm mt-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0E8A4B]">{sym}{per.toFixed(2)} / contact</div>
+              <p className="mt-3 text-sm text-[#141312]/65">{PACK_NOTES[i] || ""}</p>
               <Link
                 href="/recruiter/signup"
-                className={`mt-6 flex items-center justify-center gap-2 border-[3px] border-[#141312] px-6 py-3.5 fh text-xs font-extrabold uppercase tracking-wider transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${p.hot ? "bg-[#FF4326] text-[#141312] hs" : "bg-[#141312] text-[#E8E7E1] hs"}`}
+                className={`mt-6 flex items-center justify-center gap-2 border-[3px] border-[#141312] px-6 py-3.5 fh text-xs font-extrabold uppercase tracking-wider transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none ${hot ? "bg-[#FF4326] text-[#141312] hs" : "bg-[#141312] text-[#E8E7E1] hs"}`}
               >
-                {p.cta} <ArrowUpRight size={15} />
+                Start free <ArrowUpRight size={15} />
               </Link>
             </div>
-          ))}
+            );
+          })}
         </div>
         <p className="mt-6 text-center fm text-[11px] uppercase tracking-[0.16em] text-[#141312]/50">
           credits never expire · billed securely via Paystack · receipts on every unlock

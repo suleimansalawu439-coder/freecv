@@ -25,8 +25,10 @@ const TIER_LABEL: Record<MatchTier, string> = { excellent: "Excellent", strong: 
 function fmtN(n: number) {
   return new Intl.NumberFormat("en-NG").format(n);
 }
-function fmtNgn(kobo: number) {
-  return `₦${fmtN(Math.round(kobo / 100))}`;
+const CUR_SYM: Record<string, string> = { USD: "$", NGN: "₦", GHS: "₵", KES: "KSh ", ZAR: "R" };
+function fmtPrice(minor: number, currency: string) {
+  const sym = CUR_SYM[currency] ?? `${currency} `;
+  return `${sym}${fmtN(Math.round(minor / 100))}`;
 }
 
 export default function RecruiterDashboard() {
@@ -613,8 +615,8 @@ export default function RecruiterDashboard() {
                     <div key={pack.id} className="flex flex-col border-[3px] border-[#141312] bg-white p-5">
                       <div className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/55">{pack.name}</div>
                       <div className="fd mt-2 text-3xl tracking-tight">{pack.credits} <span className="text-lg text-[#141312]/50">credits</span></div>
-                      <div className="fh mt-1 text-xl font-extrabold">{fmtNgn(pack.priceKobo)}</div>
-                      <div className="fm mt-1 text-[10px] uppercase tracking-[0.14em] text-[#0E8A4B]">{fmtNgn(Math.round(pack.priceKobo / pack.credits))} / unlock</div>
+                      <div className="fh mt-1 text-xl font-extrabold">{fmtPrice(pack.priceKobo, pack.currency)}</div>
+                      <div className="fm mt-1 text-[10px] uppercase tracking-[0.14em] text-[#0E8A4B]">{fmtPrice(Math.round(pack.priceKobo / pack.credits), pack.currency)} / unlock</div>
                       <button
                         onClick={() => handleCheckout(pack.id)}
                         disabled={checkingOut !== null}

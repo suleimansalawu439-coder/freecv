@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   try {
     const { data: pack } = await supabaseAdmin
       .from('credit_packs')
-      .select('id, name, credits, price_kobo')
+      .select('id, name, credits, price_kobo, currency')
       .eq('id', packId)
       .eq('active', true)
       .single();
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         email: email || recruiter.contact_email,
         amount: pack.price_kobo,
-        currency: 'NGN',
+        currency: pack.currency || 'USD',
         callback_url: `${siteUrl}/recruiter/credits?verify=1`,
         metadata: {
           recruiter_id: recruiter.id,

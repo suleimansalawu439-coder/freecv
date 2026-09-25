@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       supabaseAdmin.from('recruiter_credits').select('balance').eq('recruiter_id', recruiter.id).single(),
       supabaseAdmin
         .from('credit_packs')
-        .select('id, name, credits, price_kobo')
+        .select('id, name, credits, price_kobo, currency')
         .eq('active', true)
         .order('credits', { ascending: true }),
     ]);

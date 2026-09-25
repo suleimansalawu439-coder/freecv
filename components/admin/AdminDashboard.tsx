@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, BarChart3, Users, Building2, DollarSign, Target, Wallet,
-  Headphones, FileText, Settings as Cog, LogOut, Menu, X, List, Cpu,
+  Headphones, FileText, Settings as Cog, LogOut, Menu, X, List, Cpu, Tag,
 } from "lucide-react";
 import { Chakra_Petch, Sora, JetBrains_Mono } from "@/lib/fonts";
 import { AdminThemeProvider, useAdminTheme, ThemeToggle } from "./admin/theme";
@@ -13,7 +13,7 @@ import { AdminStyle } from "./admin/ui";
 import {
   OverviewTab, AnalyticsTab, TalentTab, RecruitersTab, RevenueTab,
   ExpensesTab, PipelineTab, SupportTab, BlogTab, SettingsTab,
-  EventLogTab, AiUsageTab,
+  EventLogTab, AiUsageTab, PricingTab,
 } from "./tabs";
 
 const disp = Chakra_Petch({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--fd", display: "swap" });
@@ -28,6 +28,7 @@ const TABS = [
   { id: "talent", label: "Talent Pool", icon: Users, hint: "opt-in candidates" },
   { id: "recruiters", label: "Recruiters", icon: Building2, hint: "accounts & onboarding" },
 
+  { id: "pricing", label: "Pricing", icon: Tag, hint: "unlock prices" },
   { id: "revenue", label: "Revenue", icon: DollarSign, hint: "MRR · ARR · subscriptions" },
   { id: "pipeline", label: "Pipeline", icon: Target, hint: "sales CRM" },
   { id: "expenses", label: "Expenses", icon: Wallet, hint: "spend ledger" },
@@ -125,6 +126,7 @@ function Shell(props: Props) {
       case "revenue": return <RevenueTab />;
       case "pipeline": return <PipelineTab onConvert={() => setTab("recruiters")} />;
       case "expenses": return <ExpensesTab />;
+      case "pricing": return <PricingTab />;
       case "support": return <SupportTab />;
       case "blog": return <BlogTab posts={props.blogPosts || []} />;
       case "settings": return <SettingsTab siteSettings={props.siteSettings || {}} featureFlags={props.featureFlags || []} appSettings={props.appSettings || {}} overview={overview} />;

@@ -1319,3 +1319,90 @@ export function SettingsTab({ siteSettings, featureFlags, appSettings, overview 
     </div>
   );
 }
+/* ============================ PRICING ============================ */
+const CURRENCIES = ["USD", "NGN", "GHS", "KES", "ZAR"];
+const CUR_SYM: Record<string, string> = { USD: "$", NGN: "₦", GHS: "₵", KES: "KSh ", ZAR: "R" };
+
+export function PricingTab() {
+  const { t } = useAdminTheme();
+  const [packs, setPacks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [drafts, setDrafts] = useState<Record<string, any>>({});
+  const [saving, setSaving] = useState<string | null>(null);
+
+  const load = () => {
+    setLoading(true);
+    api("/api/admin/pricing").then((j) => {
+      const list = j.packs || [];
+      setPacks(list);
+      const d: Record<string, any> = {};
+      list.forEach((p: any) => {
+        d[p.id] = { name: p.name, credits: p.credits, price_major: (p.price_kobo / 100).toFixed(2), currency: p.currency || "USD", active: p.active };
+      });
+      setDrafts(d);
+      setLoading(false);
+    });
+  };
+  useEffect(() => { load(); }, []);
+
+  const set = (id: string, k: string, v: any) =>
+    setDrafts((d) => ({ ...d, [id]: { ...d[id], [k]: v } }));
+
+  const save = async (id: string) => {
+    const d = drafts[id];
+    if (!d) return;
+    setSaving(id);
+    const r = await api("/api/admin/pricing", {
+      method: "PUT",
+      body: JSON.stringify({ id, name: d.name, credits: Number(d.credits), price_major: Number(d.price_major), currency: d.currency, active: d.active }),
+    });
+    setSaving(null);
+    if (!r.ok) return toast.error(r.error || "Save failed");
+    toast.success("Price updated");
+    load();
+  };
+
+  const sym = (c: string) => CUR_SYM[c] || (c + " ");
+
+  return (
+    <div className="space-y-5">
+      <Reveal><Card className="p-5">
+        <SectionLabel color={t.gold}>unlock pricing</SectionLabel>
+        <p className="fb mt-1 text-sm" style={{ color: t.muted }}>
+          What recruiters pay per contact unlock. Prices go live immediately — the checkout reads them straight from the database.
+          Non-USD currencies are charged through Paystack in that currency; USD payouts need international approval on your Paystack dashboard.
+        </p>
+      </Card></Reveal>
+
+      <Reveal delay={60}><Card className="p-5">
+        {loading ? <Spinner /> : packs.length === 0 ? <EmptyState title="No credit packs" /> : (
+          <Table head={["Pack", "Credits", "Price", "Currency", "Per unlock", "Active", ""]}>
+            {packs.map((p) => {
+              const d = drafts[p.id] || {};
+              const per = d.credits > 0 ? (Number(d.price_major) / Number(d.credits)) : 0;
+              return (
+                <Row key={p.id}>
+                  <Cell><Input value={d.name || ""} onChange={(e: any) => set(p.id, "name", e.target.value)} className="w-36" /></Cell>
+                  <Cell><Input type="number" min={1} value={d.credits ?? ""} onChange={(e: any) => set(p.id, "credits", e.target.value)} className="w-20" /></Cell>
+                  <Cell><Input type="number" min={0} step="0.01" value={d.price_major ?? ""} onChange={(e: any) => set(p.id, "price_major", e.target.value)} className="w-28" /></Cell>
+                  <Cell>
+                    <Select value={d.currency || "USD"} onChange={(e: any) => set(p.id, "currency", e.target.value)} className="w-28">
+                      {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </Select>
+                  </Cell>
+                  <Cell><span className="fh text-sm font-bold">{sym(d.currency)}{per.toFixed(2)}</span></Cell>
+                  <Cell><Switch on={!!d.active} onChange={(v: boolean) => set(p.id, "active", v)} /></Cell>
+                  <Cell>
+                    <Btn disabled={saving === p.id} onClick={() => save(p.id)}>
+                      {saving === p.id ? "Saving…" : "Save"}
+                    </Btn>
+                  </Cell>
+                </Row>
+              );
+            })}
+          </Table>
+        )}
+      </Card></Reveal>
+    </div>
+  );
+}

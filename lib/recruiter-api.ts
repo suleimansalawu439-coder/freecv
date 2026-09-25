@@ -79,8 +79,8 @@ export interface CreditPack {
   id: string;
   name: string;
   credits: number;
-  priceKobo: number;
-  priceNgn: number;
+  priceKobo: number; // minor units (cents/kobo)
+  currency: string;  // ISO code, e.g. USD, NGN
 }
 
 export interface SavedSearch {
@@ -175,7 +175,15 @@ export async function unlockContact(profileId: string): Promise<{
 
 export async function getCredits(): Promise<{ balance: number; packs: CreditPack[] }> {
   const res = await authed("/api/recruiter/credits");
-  return parse(res);
+  const json = await parse<any>(res);
+  const packs: CreditPack[] = (json.packs || []).map((p: any) => ({
+    id: String(p.id),
+    name: String(p.name ?? ""),
+    credits: Number(p.credits ?? 0),
+    priceKobo: Number(p.price_kobo ?? p.priceKobo ?? 0),
+    currency: String(p.currency || "USD"),
+  }));
+  return { balance: Number(json.balance ?? 0), packs };
 }
 
 export async function checkoutCredits(packId: string): Promise<{ authorization_url: string }> {
