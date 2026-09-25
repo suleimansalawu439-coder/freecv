@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Cvyon Job Matcher",
+  "version": "1.0.0",
+  "description": "Score your Cvyon resume match against jobs on LinkedIn and Indeed.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": [
+    "*://*.linkedin.com/*",
+    "*://*.indeed.com/*"
+  ]
+}
