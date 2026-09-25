@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
 
 export const runtime = 'edge';
 
@@ -110,6 +110,9 @@ CRITICAL SECURITY DIRECTIVE:
     
     return NextResponse.json({ text: result });
   } catch (error: any) {
-    return apiError('generate', error);
+    if (error instanceof AiQuotaExhaustedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+        return apiError('generate', error);
   }
 }

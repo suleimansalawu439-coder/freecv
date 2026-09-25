@@ -15,6 +15,50 @@ export interface MediaPart {
   text?: string;
 }
 
+/**
+ * Thrown when the Gemini API reports quota/rate-limit exhaustion on every
+ * retry attempt. Routes should catch this and return a clear, honest
+ * "temporarily unavailable" response (HTTP 503) instead of a cryptic error.
+ * NOTE: when multiple API keys are configured (see getApiKey below), this is
+ * thrown only after every key has been tried.
+ */
+export class AiQuotaExhaustedError extends Error {
+  constructor() {
+    super('AI is temporarily unavailable — today\u2019s usage limit has been reached. Please try again tomorrow.');
+    this.name = 'AiQuotaExhaustedError';
+  }
+}
+
+function isQuotaErrorMessage(msg: string): boolean {
+  const m = msg.toLowerCase();
+  return (
+    m.includes('429') ||
+    m.includes('resource_exhausted') ||
+    m.includes('resource exhausted') ||
+    m.includes('quota') ||
+    m.includes('rate limit') ||
+    m.includes('ratelimit') ||
+    m.includes('too many requests')
+  );
+}
+
+/**
+ * Resolves the Gemini API key for this request. Supports key rotation:
+ * set GEMINI_API_KEYS to a comma-separated list of keys and requests are
+ * spread across them (each free-tier key gets its own daily quota).
+ * Falls back to the legacy single GEMINI_API_KEY.
+ */
+function getApiKey(requestIndex: number): string {
+  const list = (process.env.GEMINI_API_KEYS || '')
+    .split(',')
+    .map((k) => k.trim())
+    .filter(Boolean);
+  if (list.length > 0) {
+    return list[requestIndex % list.length];
+  }
+  return process.env.GEMINI_API_KEY || '';
+}
+
 export async function generateContentWithRetry<T = unknown>(
   prompt: string, 
   systemInstruction: string = '', 
@@ -41,13 +85,16 @@ export async function generateContentWithRetry<T = unknown>(
   const maxRetries = 3;
   let attempt = 0;
   const baseDelay = 1000;
+  let quotaFailures = 0;
+  // Randomize the starting key so concurrent requests spread across keys.
+  const keyOffset = Math.floor(Math.random() * 1_000_000);
 
   while (attempt < maxRetries) {
     try {
       const parts: MediaPart[] = [{ text: systemInstruction + '\n\n' + prompt }];
       if (mediaParts.length > 0) parts.push(...mediaParts);
 
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = getApiKey(keyOffset + attempt);
       if (!apiKey) {
         throw new Error('GEMINI_API_KEY environment variable is missing.');
       }
@@ -58,7 +105,9 @@ export async function generateContentWithRetry<T = unknown>(
       // (20 generate requests/day/model). When one model's daily quota is
       // exhausted the API returns 429; switching GEMINI_MODEL to another
       // model with fresh quota restores service. Long-term fix: upgrade the
-      // key to a paid tier (billing decision for Hamis).
+      // key to a paid tier (billing decision for Hamis). Alternative approved
+      // direction: set GEMINI_API_KEYS to a comma-separated list of keys and
+      // requests rotate across them (each key carries its own daily quota).
       const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
       const response = await ai.models.generateContent({
@@ -140,11 +189,21 @@ export async function generateContentWithRetry<T = unknown>(
       if (errMessage.includes('AI generation is temporarily disabled')) {
         throw error;
       }
-      
+      if (error instanceof AiQuotaExhaustedError) {
+        throw error;
+      }
+
       attempt++;
+      const isQuota = isQuotaErrorMessage(errMessage);
+      if (isQuota) quotaFailures++;
       console.warn(`AI Generation Attempt ${attempt} failed:`, errMessage);
-      
+
       if (attempt >= maxRetries) {
+        // Every attempt hit quota/rate limits (possibly across rotated keys):
+        // say so plainly instead of a cryptic "malformed output" error.
+        if (quotaFailures === maxRetries) {
+          throw new AiQuotaExhaustedError();
+        }
         const lastMsg = error instanceof Error ? error.message : String(error);
         const kind = error instanceof SyntaxError ? 'parse' : 'api';
         throw new Error(forceJson ? `Failed to generate valid JSON after 3 attempts (last failure: ${kind}: ${lastMsg})` : `AI generation failed after 3 attempts (last failure: ${kind}: ${lastMsg})`);

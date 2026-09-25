@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
 import { Redis } from '@upstash/redis';
-import { generateContentWithRetry } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || '',
@@ -98,12 +98,16 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
         logger.warn('ats-score', "Supabase cache write failed", e);
       }
     } catch (parseError) {
+      if (parseError instanceof AiQuotaExhaustedError) throw parseError;
       logger.error('ats-score', 'Failed to parse JSON from AI response after retries:', parseError);
-      return NextResponse.json({ error: 'AI returned malformed output. Please try again.' }, { status: 500 });
+      return NextResponse.json({ error: 'AI returned an unexpected response. Please try again.' }, { status: 500 });
     }
 
     return NextResponse.json(result);
   } catch (error: any) {
+    if (error instanceof AiQuotaExhaustedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
     return apiError('ats-score', error);
   }
 }

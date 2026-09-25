@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
 import mammoth from 'mammoth';
 
 export const runtime = 'nodejs';
@@ -138,11 +138,15 @@ export async function POST(req: Request) {
       
       return NextResponse.json(result);
     } catch (parseError) {
+      if (parseError instanceof AiQuotaExhaustedError) throw parseError;
       logger.error('standalone-ats-score', 'Failed to parse JSON from AI response:', parseError);
-      return NextResponse.json({ error: 'AI returned malformed output. Please try again.' }, { status: 500 });
+      return NextResponse.json({ error: 'AI returned an unexpected response. Please try again.' }, { status: 500 });
     }
 
   } catch (error: any) {
-    return apiError('standalone-ats-score', error);
+    if (error instanceof AiQuotaExhaustedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+        return apiError('standalone-ats-score', error);
   }
 }

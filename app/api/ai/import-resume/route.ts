@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -215,6 +215,9 @@ JSON Schema to match:
     const parsedData = await generateContentWithRetry(fallbackPrompt, systemInstruction, 8192, true, mediaParts, 'import_resume_pdf');
     return NextResponse.json(parsedData);
   } catch (error: any) {
-    return apiError('import-resume', error);
+    if (error instanceof AiQuotaExhaustedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+        return apiError('import-resume', error);
   }
 }
