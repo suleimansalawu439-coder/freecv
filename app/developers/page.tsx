@@ -79,22 +79,22 @@ print(response.json())`;
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
               src="/logo-light-no-background.png"
               alt="Cvyon"
               width={200}
               height={60}
               priority
-              className="h-9 sm:h-10 md:h-11 w-auto object-contain transition-all"
+              className="h-8 sm:h-10 md:h-11 w-auto object-contain transition-all"
             />
-            <span className="text-gray-800 text-sm font-bold bg-gray-100 px-2 py-0.5 rounded">API</span>
+            <span className="text-gray-800 text-xs sm:text-sm font-bold bg-gray-100 px-2 py-0.5 rounded">API</span>
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
-            <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
-            <Link href="/recruiter" className="hover:text-blue-600 transition-colors">Recruiter Portal</Link>
-            <Link href="/support" className="hover:text-blue-600 transition-colors">Support</Link>
+          <nav className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium text-gray-600">
+            <Link href="/" className="hover:text-blue-600 transition-colors whitespace-nowrap">Home</Link>
+            <Link href="/recruiter" className="hover:text-blue-600 transition-colors whitespace-nowrap hidden min-[400px]:inline">Recruiter Portal</Link>
+            <Link href="/support" className="hover:text-blue-600 transition-colors whitespace-nowrap hidden sm:inline">Support</Link>
           </nav>
         </div>
       </header>
@@ -114,10 +114,10 @@ print(response.json())`;
         </aside>
 
         {/* Content */}
-        <div className="flex-1 py-12 md:pl-12 px-4 max-w-4xl">
-          <div className="mb-16">
-            <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-4">Cvyon B2B API</h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
+        <div className="flex-1 min-w-0 py-12 md:pl-12 px-4 max-w-4xl">
+          <div className="mb-12 sm:mb-16">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 mb-4">Cvyon B2B API</h1>
+            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
               Integrate Cvyon's highly-structured talent pool directly into your ATS, CRM, or custom internal tools. Our REST API provides programmatic access to candidates who have opted in to be contacted by recruiters.
             </p>
           </div>
@@ -167,8 +167,8 @@ print(response.json())`;
             </div>
 
             <h3 className="font-bold text-lg mb-3">Query Parameters</h3>
-            <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
-              <table className="w-full text-left text-sm">
+            <div className="border border-gray-200 rounded-xl overflow-x-auto mb-6">
+              <table className="w-full min-w-[560px] text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Parameter</th>
