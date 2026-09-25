@@ -163,7 +163,7 @@ export default function RecruiterLanding() {
             return (
             <div
               key={p.id || p.name}
-              <div className={`relative flex flex-col border-[3px] border-[#141312] bg-white p-8 ${hot ? "hs-v" : "hs"}`}>
+              className={`relative flex flex-col border-[3px] border-[#141312] bg-white p-8 ${hot ? "hs-v" : "hs"}`}>
               {hot && (
                 <span className="fm absolute -top-4 left-6 border-[3px] border-[#141312] bg-[#FF4326] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
                   most popular
