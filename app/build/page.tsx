@@ -458,7 +458,7 @@ export default function FreeCVApp() {
     if (skillInput.trim()) { addSkill(skillInput.trim()); setSkillInput(''); }
   };
 
-  const triggerPrint = () => {
+  const triggerPrint = (onAfterPrint?: () => void) => {
     const originalTitle = document.title;
     const safeName = data.personalInfo.fullName.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'My';
     const safeRole = data.personalInfo.jobTitle.replace(/[\r\n]+/g, ' ').replace(/[^\w\s-]/g, '').trim() || 'Resume';
@@ -467,7 +467,9 @@ export default function FreeCVApp() {
     if (panel) panel.scrollTop = 0;
     window.scrollTo(0, 0);
     document.body.classList.add('printing');
-    setTimeout(() => { window.print(); document.body.classList.remove('printing'); document.title = originalTitle; }, 150);
+    // window.print() blocks until the native print dialog is dismissed, so the
+    // jobs upsell opens after — never racing/covered by the native dialog.
+    setTimeout(() => { window.print(); document.body.classList.remove('printing'); document.title = originalTitle; onAfterPrint?.(); }, 150);
   };
 
   const handleDownload = async () => {
@@ -479,8 +481,7 @@ export default function FreeCVApp() {
           .catch(err => console.error('[CRM opt-in] Network error:', err));
       } catch (err) { console.error('[CRM opt-in] Sync error:', err); }
     }
-    triggerPrint();
-    setIsJobsModalOpen(true);
+    triggerPrint(() => setIsJobsModalOpen(true));
   };
 
   if (!isHydrated) return null;

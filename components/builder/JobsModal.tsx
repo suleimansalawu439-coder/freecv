@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, MapPin, Briefcase, ArrowUpRight, Loader2, Globe2, Sparkles } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -118,7 +119,10 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
   if (!isOpen) return null;
 
-  return (
+  // Portaled to document.body so ancestor backdrop-filters/transforms can
+  // never trap the fixed overlay (same pattern as the ATS grader modal).
+  // Dismissal: Close button, Escape key, and backdrop click all call onClose.
+  return createPortal(
     <div
       className="fixed inset-0 z-[300] flex items-end justify-center bg-black/65 backdrop-blur-sm print:hidden sm:items-center"
       onClick={onClose}
@@ -269,6 +273,7 @@ export function JobsModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
