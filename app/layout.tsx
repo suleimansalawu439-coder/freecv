@@ -39,6 +39,9 @@ export const metadata: Metadata = {
     description: "A free premium resume builder with an ATS grader, unlimited downloads, and no sign-up required.",
     images: ["/og-image.jpg"],
   },
+  verification: {
+    google: "Yg_Y3Iu-WAx7l6TkcVEehUCuSbEAVS7DkFBLGkWg78A",
+  },
 };
 
 // Next 16+: themeColor belongs to the viewport export, not metadata.
