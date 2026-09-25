@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { GoogleGenAI } from '@google/genai';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -15,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
@@ -32,7 +30,7 @@ export async function POST(req: NextRequest) {
       Your job is to extract the person's professional details and format them into a strict JSON object that matches our application's state.
 
       Return ONLY a valid JSON object with the following structure (do not include markdown block formatting, just raw JSON).
-      
+
       {
         "personalInfo": {
           "fullName": "Extracted Name",
@@ -49,7 +47,7 @@ export async function POST(req: NextRequest) {
             "company": "Company Name",
             "role": "Job Title",
             "startDate": "e.g., Jan 2020 or 2020",
-            "endDate": "e.g., Present or Dec 2022",
+            "endDate": "e.g. Present or Dec 2022",
             "description": "Extract the bullet points or description for this role. Separate each point with a newline character (\\n)."
           }
         ],
@@ -68,34 +66,26 @@ export async function POST(req: NextRequest) {
           }
         ]
       }
+
+      The resume is attached as a PDF document. Read it and extract the details.
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: [
-        {
-          inlineData: {
-            data: base64Data,
-            mimeType: 'application/pdf'
-          }
-        },
-        prompt
-      ],
-    });
-
-    let rawJson = response.text || "{}";
-    
-    // Strip markdown code block formatting if Gemini includes it
-    if (rawJson.startsWith('\`\`\`json')) {
-      rawJson = rawJson.replace(/^\`\`\`json\n/, '').replace(/\n\`\`\`$/, '');
-    } else if (rawJson.startsWith('\`\`\`')) {
-      rawJson = rawJson.replace(/^\`\`\`\n/, '').replace(/\n\`\`\`$/, '');
-    }
-
-    const parsedData = JSON.parse(rawJson);
+    // Routed through the shared Gemini key/model pool (rotation, failover,
+    // JSON sanitization) instead of a single hardcoded key + model.
+    const parsedData = await generateContentWithRetry(
+      prompt,
+      'You are an expert resume parser. Return ONLY raw, valid, parsable JSON.',
+      8192,
+      true,
+      [{ inlineData: { data: base64Data, mimeType: 'application/pdf' } }],
+      'parse_linkedin'
+    );
     return NextResponse.json(parsedData);
 
   } catch (error: any) {
+    if (error instanceof AiQuotaExhaustedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
     return apiError('parse-linkedin', error);
   }
 }

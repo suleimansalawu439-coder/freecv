@@ -25,6 +25,8 @@ export async function GET() {
     CAREERJET_PROXY_URL: process.env.CAREERJET_PROXY_URL || '(default: proxy.ojnfoundation.org)',
     CAREERJET_API_KEY: !!(process.env.CAREERJET_API_KEY || process.env.CAREERJET_AFFID),
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
+    GEMINI_API_KEYS_COUNT: (process.env.GEMINI_API_KEYS || '').split(',').map((k) => k.trim()).filter(Boolean).length || (process.env.GEMINI_API_KEY ? 1 : 0),
+    GEMINI_MODELS: process.env.GEMINI_MODELS || process.env.GEMINI_MODEL || 'gemini-3.8-flash,gemini-3.7-flash (default)',
     JWT_SECRET: !!process.env.JWT_SECRET,
     EMAIL_SERVICE_CONFIGURED: !!(process.env.BREVO_API_KEY || process.env.RESEND_API_KEY),
     PAYSTACK_CONFIGURED: !!process.env.PAYSTACK_SECRET_KEY,

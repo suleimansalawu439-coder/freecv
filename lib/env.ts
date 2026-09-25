@@ -9,6 +9,8 @@ export interface EnvConfig {
   SUPABASE_SERVICE_ROLE_KEY?: string;
   JWT_SECRET?: string;
   GEMINI_API_KEY?: string;
+  GEMINI_API_KEYS?: string;
+  GEMINI_MODELS?: string;
   UPSTASH_REDIS_REST_URL?: string;
   UPSTASH_REDIS_REST_TOKEN?: string;
   PAYSTACK_SECRET_KEY?: string;
@@ -22,6 +24,8 @@ export function getEnv(): EnvConfig {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     JWT_SECRET: process.env.JWT_SECRET,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_API_KEYS: process.env.GEMINI_API_KEYS,
+    GEMINI_MODELS: process.env.GEMINI_MODELS,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     PAYSTACK_SECRET_KEY: process.env.PAYSTACK_SECRET_KEY,

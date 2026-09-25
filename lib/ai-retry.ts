@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { supabaseAdmin } from '@/lib/supabase';
+import { Redis } from '@upstash/redis';
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -17,10 +18,10 @@ export interface MediaPart {
 
 /**
  * Thrown when the Gemini API reports quota/rate-limit exhaustion on every
- * retry attempt. Routes should catch this and return a clear, honest
- * "temporarily unavailable" response (HTTP 503) instead of a cryptic error.
- * NOTE: when multiple API keys are configured (see getApiKey below), this is
- * thrown only after every key has been tried.
+ * available key+model combo. Routes should catch this and return a clear,
+ * honest "temporarily unavailable" response (HTTP 503) instead of a cryptic
+ * error. With the key/model pool configured, this is thrown only after every
+ * combo has been tried or Redis shows every combo already at its daily cap.
  */
 export class AiQuotaExhaustedError extends Error {
   constructor() {
@@ -29,40 +30,274 @@ export class AiQuotaExhaustedError extends Error {
   }
 }
 
-function isQuotaErrorMessage(msg: string): boolean {
-  const m = msg.toLowerCase();
-  return (
-    m.includes('429') ||
-    m.includes('resource_exhausted') ||
-    m.includes('resource exhausted') ||
-    m.includes('quota') ||
-    m.includes('rate limit') ||
-    m.includes('ratelimit') ||
-    m.includes('too many requests')
-  );
-}
+// ---------------------------------------------------------------------------
+// Gemini key/model pool
+//
+// Free tier: ~20 generate requests/day per key PER MODEL. Configure:
+//   GEMINI_API_KEYS  = comma-separated list of keys (each has its own quota)
+//   GEMINI_MODELS    = comma-separated list of models, e.g.
+//                      "gemini-3.8-flash,gemini-3.7-flash" (each model has its
+//                      own daily budget on every key)
+// Legacy single-key setup still works: GEMINI_API_KEY + GEMINI_MODEL.
+// Per-key daily usage is tracked in Upstash Redis (shared across serverless
+// instances); combos already at cap are skipped before any API call is made.
+// Everything fails open: if Redis is down, the pool still rotates blindly.
+// ---------------------------------------------------------------------------
 
-/**
- * Resolves the Gemini API key for this request. Supports key rotation:
- * set GEMINI_API_KEYS to a comma-separated list of keys and requests are
- * spread across them (each free-tier key gets its own daily quota).
- * Falls back to the legacy single GEMINI_API_KEY.
- */
-function getApiKey(requestIndex: number): string {
+const DAILY_CAP = Math.max(1, parseInt(process.env.GEMINI_DAILY_CAP || '20', 10) || 20);
+
+function getKeyList(): string[] {
   const list = (process.env.GEMINI_API_KEYS || '')
     .split(',')
     .map((k) => k.trim())
     .filter(Boolean);
-  if (list.length > 0) {
-    return list[requestIndex % list.length];
-  }
-  return process.env.GEMINI_API_KEY || '';
+  if (list.length > 0) return list;
+  const single = (process.env.GEMINI_API_KEY || '').trim();
+  return single ? [single] : [];
 }
 
+function getModelList(): string[] {
+  const list = (process.env.GEMINI_MODELS || '')
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean);
+  if (list.length > 0) return list;
+  const legacy = (process.env.GEMINI_MODEL || '').trim();
+  // Hamis's chosen rotation pair; each carries its own 20/day free budget.
+  return legacy ? [legacy] : ['gemini-3.8-flash', 'gemini-3.7-flash'];
+}
+
+function getPoolRedis(): Redis | null {
+  try {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      return Redis.fromEnv();
+    }
+  } catch {
+    // fail open — pool still rotates, just without cross-instance tracking
+  }
+  return null;
+}
+
+// Pacific-time calendar date: Gemini free-tier quota resets at midnight PT.
+function pacificDate(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Los_Angeles',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+function secondsToNextPacificMidnight(): number {
+  const nowMs = Date.now();
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const parts = Object.fromEntries(
+    dtf.formatToParts(new Date(nowMs)).map((p) => [p.type, p.value])
+  );
+  const ptWallAsUtc =
+    Date.UTC(
+      Number(parts.year),
+      Number(parts.month) - 1,
+      Number(parts.day),
+      Number(parts.hour) % 24,
+      Number(parts.minute),
+      Number(parts.second)
+    ) - nowMs; // PT offset in ms (negative)
+  const nowPtAsUtc = nowMs + ptWallAsUtc;
+  const nextMidnight = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day) + 1,
+    0, 0, 0
+  );
+  return Math.max(60, Math.ceil((nextMidnight - nowPtAsUtc) / 1000));
+}
+
+export interface GeminiCombo {
+  keyIndex: number;
+  apiKey: string;
+  model: string;
+}
+
+function usageKey(combo: GeminiCombo): string {
+  // keyIndex (not key material) + model + PT date. Never stores secrets.
+  return `cvyon:gemini-usage:${combo.keyIndex}:${combo.model}:${pacificDate()}`;
+}
+
+function allCombos(): GeminiCombo[] {
+  const keys = getKeyList();
+  const models = getModelList();
+  const combos: GeminiCombo[] = [];
+  keys.forEach((apiKey, keyIndex) => {
+    models.forEach((model) => combos.push({ keyIndex, apiKey, model }));
+  });
+  return combos;
+}
+
+/** Combos that Redis does not already show at their daily cap. Fails open. */
+async function getAvailableCombos(): Promise<GeminiCombo[]> {
+  const combos = allCombos();
+  if (combos.length === 0) return [];
+  const redis = getPoolRedis();
+  if (!redis) return combos;
+  try {
+    const counts = await redis.mget(...combos.map(usageKey));
+    const arr = counts as unknown as (string | number | null)[];
+    return combos.filter((_, i) => {
+      const n = Number(arr[i]);
+      return !Number.isFinite(n) || n < DAILY_CAP;
+    });
+  } catch {
+    return combos;
+  }
+}
+
+/**
+ * Record one use of a combo. `exhausted=true` marks it at cap immediately
+ * (called when the API tells us this combo's daily quota is spent).
+ */
+async function recordComboUse(combo: GeminiCombo, exhausted: boolean): Promise<void> {
+  const redis = getPoolRedis();
+  if (!redis) return;
+  try {
+    const key = usageKey(combo);
+    if (exhausted) {
+      await redis.set(key, String(DAILY_CAP), { ex: secondsToNextPacificMidnight() });
+    } else {
+      const n = await redis.incr(key);
+      if (n === 1) await redis.expire(key, secondsToNextPacificMidnight());
+    }
+  } catch {
+    // usage tracking is best-effort; never break generation
+  }
+}
+
+/**
+ * Pick one usable key+model combo (for callers that manage their own
+ * single-shot Gemini call, e.g. background enrichment). Returns null when
+ * no keys are configured or every combo is at its daily cap.
+ */
+export async function pickGeminiCombo(): Promise<GeminiCombo | null> {
+  const combos = await getAvailableCombos();
+  if (combos.length === 0) return null;
+  return combos[Math.floor(Math.random() * combos.length)];
+}
+
+// ---------------------------------------------------------------------------
+// Error classification
+// ---------------------------------------------------------------------------
+
+type GeminiFailure = 'quota' | 'ratelimit' | 'other';
+
+/**
+ * 'quota'      = daily budget spent for this key+model (fail over NOW;
+ *                waiting cannot help). Signals: per-day quota language.
+ * 'ratelimit'  = per-minute throttling (back off, optionally try next key).
+ * 'other'      = API/parse errors (limited retries, same as before).
+ */
+function classifyGeminiError(err: unknown): GeminiFailure {
+  const e = err as any;
+  const status = e?.status ?? e?.code;
+  const msg = String(e?.message ?? err ?? '').toLowerCase();
+  const looks429 =
+    status === 429 ||
+    msg.includes('429') ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('resource exhausted') ||
+    msg.includes('too many requests');
+  if (!looks429) return 'other';
+  if (
+    msg.includes('per_day') ||
+    msg.includes('per day') ||
+    msg.includes('daily') ||
+    msg.includes('check your plan') ||
+    msg.includes('billing')
+  ) {
+    return 'quota';
+  }
+  return 'ratelimit';
+}
+
+/** Extract model text with a diagnostic when the model returns nothing. */
+function extractResponseText(response: any): string {
+  let text = '';
+  try {
+    text = response.text || '';
+  } catch {
+    const candidates: any[] = response?.candidates || [];
+    const finishReasons =
+      candidates.map((c) => c?.finishReason).filter(Boolean).join(',') || 'none';
+    const blockReason = response?.promptFeedback?.blockReason || 'none';
+    throw new Error(
+      `Gemini returned no text (finishReasons: ${finishReasons}; blockReason: ${blockReason})`
+    );
+  }
+  if (!text) {
+    const candidates: any[] = response?.candidates || [];
+    const finishReasons =
+      candidates.map((c) => c?.finishReason).filter(Boolean).join(',') || 'none';
+    throw new Error(`Gemini returned empty text (finishReasons: ${finishReasons})`);
+  }
+  return text;
+}
+
+/**
+ * Clean model output into parseable JSON. Besides markdown fences and
+ * trailing commas, this escapes ALL raw control characters (U+0000–U+001F)
+ * inside string values. The previous version only handled \n \r \t; PDFs
+ * frequently contain form feeds and other control chars that echo into
+ * model output and make JSON.parse throw — the likely cause of the
+ * import-resume HTTP 500 on long resumes (2026-09-25).
+ */
+function sanitizeJsonText(text: string): string {
+  let t = text.replace(/```json\n?|\n?```/gi, '').trim();
+  const firstBrace = t.indexOf('{');
+  const lastBrace = t.lastIndexOf('}');
+  const firstBracket = t.indexOf('[');
+  const lastBracket = t.lastIndexOf(']');
+
+  if (firstBrace !== -1 && lastBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    t = t.substring(firstBrace, lastBrace + 1);
+  } else if (firstBracket !== -1 && lastBracket !== -1) {
+    t = t.substring(firstBracket, lastBracket + 1);
+  }
+
+  t = t.replace(/"(?:[^"\\]|\\.)*"/g, (str) =>
+    str.replace(/[\u0000-\u001F]/g, (ch) => {
+      switch (ch) {
+        case '\n': return '\\n';
+        case '\r': return '\\r';
+        case '\t': return '\\t';
+        case '\b': return '\\b';
+        case '\f': return '\\f';
+        default:
+          return '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0');
+      }
+    })
+  );
+
+  // Remove trailing commas
+  t = t.replace(/,\s*([}\]])/g, '$1');
+  return t;
+}
+
+// ---------------------------------------------------------------------------
+// Main entry point
+// ---------------------------------------------------------------------------
+
 export async function generateContentWithRetry<T = unknown>(
-  prompt: string, 
-  systemInstruction: string = '', 
-  maxTokens: number = 2000, 
+  prompt: string,
+  systemInstruction: string = '',
+  maxTokens: number = 2000,
   forceJson: boolean = true,
   mediaParts: MediaPart[] = [],
   endpointName: string = 'unknown'
@@ -74,7 +309,7 @@ export async function generateContentWithRetry<T = unknown>(
       .select('is_enabled')
       .eq('key', 'ai_circuit_breaker')
       .single();
-      
+
     if (flag && flag.is_enabled === false) {
       throw new Error('AI generation is temporarily disabled due to budget limits.');
     }
@@ -82,43 +317,46 @@ export async function generateContentWithRetry<T = unknown>(
     // If table doesn't exist or fetch fails, proceed silently
   }
 
-  const maxRetries = 3;
-  let attempt = 0;
-  const baseDelay = 1000;
-  let quotaFailures = 0;
-  // Randomize the starting key so concurrent requests spread across keys.
-  const keyOffset = Math.floor(Math.random() * 1_000_000);
+  // 2. Resolve the pool. Combos already at their daily cap are skipped
+  //    before any API call, so a fully-spent pool fails fast with 503.
+  let combos = await getAvailableCombos();
+  if (combos.length === 0) {
+    if (allCombos().length === 0) {
+      throw new Error(
+        'GEMINI_API_KEY environment variable is missing (or GEMINI_API_KEYS is empty).'
+      );
+    }
+    throw new AiQuotaExhaustedError();
+  }
 
-  while (attempt < maxRetries) {
+  // Randomize the starting combo so concurrent requests spread across keys.
+  let ci = Math.floor(Math.random() * combos.length);
+  const maxAttempts = Math.min(Math.max(combos.length + 2, 4), 16);
+  let attempts = 0;
+  let rateLimitStreak = 0;
+  let otherFailures = 0;
+
+  while (attempts < maxAttempts && combos.length > 0) {
+    const combo = combos[ci % combos.length];
+    attempts++;
     try {
       const parts: MediaPart[] = [{ text: systemInstruction + '\n\n' + prompt }];
       if (mediaParts.length > 0) parts.push(...mediaParts);
 
-      const apiKey = getApiKey(keyOffset + attempt);
-      if (!apiKey) {
-        throw new Error('GEMINI_API_KEY environment variable is missing.');
-      }
-      const ai = new GoogleGenAI({ apiKey });
-
-      // Model is env-configurable (GEMINI_MODEL); defaults to gemini-3.6-flash.
-      // NOTE 2026-09-25: the GEMINI_API_KEY is on the Gemini free tier
-      // (20 generate requests/day/model). When one model's daily quota is
-      // exhausted the API returns 429; switching GEMINI_MODEL to another
-      // model with fresh quota restores service. Long-term fix: upgrade the
-      // key to a paid tier (billing decision for Hamis). Alternative approved
-      // direction: set GEMINI_API_KEYS to a comma-separated list of keys and
-      // requests rotate across them (each key carries its own daily quota).
-      const model = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+      const ai = new GoogleGenAI({ apiKey: combo.apiKey });
 
       const response = await ai.models.generateContent({
-        model,
+        model: combo.model,
         contents: [{ role: 'user', parts: parts as any }], // GenAI SDK internal type mismatch
-        config: { 
-          temperature: 0.1 + (attempt * 0.1),
+        config: {
+          temperature: 0.1 + Math.min(otherFailures, 2) * 0.1,
           maxOutputTokens: maxTokens,
           responseMimeType: forceJson ? 'application/json' : 'text/plain'
         }
       });
+
+      await recordComboUse(combo, false);
+      rateLimitStreak = 0;
 
       // Log Usage
       try {
@@ -128,7 +366,7 @@ export async function generateContentWithRetry<T = unknown>(
           const outputTokens = usage.candidatesTokenCount || 0;
           // Approximate cost: $0.075 per 1M input, $0.30 per 1M output for 1.5 flash
           const costEstimate = (inputTokens / 1000000) * 0.075 + (outputTokens / 1000000) * 0.30;
-          
+
           await supabaseAdmin.from('ai_usage_logs').insert({
             id: crypto.randomUUID(),
             session_id: 'anonymous', // we can extract from headers later if needed
@@ -143,43 +381,16 @@ export async function generateContentWithRetry<T = unknown>(
         console.warn('Failed to log AI usage', logError);
       }
 
-      let text = response.text || '';
-      
-      if (forceJson) {
-        text = text.replace(/```json\n?|\n?```/gi, '').trim();
-        const firstBrace = text.indexOf('{');
-        const lastBrace = text.lastIndexOf('}');
-        const firstBracket = text.indexOf('[');
-        const lastBracket = text.lastIndexOf(']');
-        
-        if (firstBrace !== -1 && lastBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-          text = text.substring(firstBrace, lastBrace + 1);
-        } else if (firstBracket !== -1 && lastBracket !== -1) {
-          text = text.substring(firstBracket, lastBracket + 1);
-        }
-        
-        // Escape raw control characters inside JSON string values. Raw
-        // newlines/tabs/returns inside strings are invalid JSON and a common
-        // model mistake. NOTE: the previous version of this sanitizer was a
-        // complete no-op (its regexes matched literal backslash sequences
-        // instead of real control characters due to double-escaping), so
-        // malformed model output could never be repaired.
-        text = text.replace(/"(?:[^"\\]|\\.)*"/g, (str) =>
-          str
-            .replace(/\n/g, '\\n')
-            .replace(/\r/g, '\\r')
-            .replace(/\t/g, '\\t')
-        );
-               
-        // Remove trailing commas
-        text = text.replace(/,\s*([}\]])/g, '$1');
+      const text = extractResponseText(response);
 
+      if (forceJson) {
+        const clean = sanitizeJsonText(text);
         try {
-          return JSON.parse(text) as T;
+          return JSON.parse(clean) as T;
         } catch (parseError) {
           // PII-safe diagnostic for server logs (position info only, no content).
           const msg = parseError instanceof Error ? parseError.message : String(parseError);
-          throw new SyntaxError(`JSON parse failed: ${msg} (response length ${text.length})`);
+          throw new SyntaxError(`JSON parse failed: ${msg} (response length ${clean.length})`);
         }
       }
 
@@ -193,29 +404,53 @@ export async function generateContentWithRetry<T = unknown>(
         throw error;
       }
 
-      attempt++;
-      const isQuota = isQuotaErrorMessage(errMessage);
-      if (isQuota) quotaFailures++;
-      console.warn(`AI Generation Attempt ${attempt} failed:`, errMessage);
+      const kind = classifyGeminiError(error);
 
-      if (attempt >= maxRetries) {
-        // Every attempt hit quota/rate limits (possibly across rotated keys):
-        // say so plainly instead of a cryptic "malformed output" error.
-        if (quotaFailures === maxRetries) {
+      if (kind === 'quota') {
+        // Daily budget for this key+model is spent — waiting cannot help.
+        // Mark it and move to the next combo immediately.
+        console.warn(
+          `[gemini-pool] key#${combo.keyIndex}/${combo.model} daily quota exhausted; failing over (${combos.length - 1} combos left)`
+        );
+        await recordComboUse(combo, true);
+        combos = combos.filter((_, i) => i !== ci % combos.length);
+        rateLimitStreak = 0;
+        if (combos.length === 0) {
           throw new AiQuotaExhaustedError();
         }
-        const lastMsg = error instanceof Error ? error.message : String(error);
-        const kind = error instanceof SyntaxError ? 'parse' : 'api';
-        throw new Error(forceJson ? `Failed to generate valid JSON after 3 attempts (last failure: ${kind}: ${lastMsg})` : `AI generation failed after 3 attempts (last failure: ${kind}: ${lastMsg})`);
+        ci = ci % combos.length;
+        await delay(300);
+        continue;
       }
-      
-      await delay(baseDelay * Math.pow(2, attempt - 1));
-      
+
+      if (kind === 'ratelimit') {
+        // Per-minute throttling: back off; after a couple of hits on the
+        // same combo, spread the load to the next key instead of waiting.
+        rateLimitStreak++;
+        console.warn(`[gemini-pool] rate limit on key#${combo.keyIndex}/${combo.model} (streak ${rateLimitStreak}); backing off`);
+        await delay(Math.min(1000 * Math.pow(2, rateLimitStreak), 8000));
+        if (rateLimitStreak >= 2) {
+          ci++;
+          rateLimitStreak = 0;
+        }
+        continue;
+      }
+
+      otherFailures++;
+      console.warn(`AI Generation Attempt ${attempts} failed:`, errMessage);
+
+      if (otherFailures >= 3) {
+        const lastKind = error instanceof SyntaxError ? 'parse' : 'api';
+        throw new Error(forceJson ? `Failed to generate valid JSON after 3 attempts (last failure: ${lastKind}: ${errMessage})` : `AI generation failed after 3 attempts (last failure: ${lastKind}: ${errMessage})`);
+      }
+
+      await delay(1000 * Math.pow(2, otherFailures - 1));
+
       if (error instanceof SyntaxError && forceJson) {
         prompt = `CRITICAL SYSTEM ERROR PREVIOUSLY: YOU MUST RETURN ONLY RAW, VALID, PARSABLE JSON. NO MARKDOWN. NO BACKTICKS. NO CONVERSATION. \n\n` + prompt;
       }
     }
   }
-  
-  throw new Error('Unexpected end of generation loop');
+
+  throw new AiQuotaExhaustedError();
 }

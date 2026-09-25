@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
 import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { createHash } from 'crypto';
+import { Redis } from '@upstash/redis';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -11,6 +13,22 @@ export const maxDuration = 60;
 // probably scanned/image-based, so we fall back to Gemini's native PDF input.
 const MIN_TEXT_CHARS = 100;
 const MAX_TEXT_CHARS = 30000;
+
+// Parsed results are cached by SHA-256 of the uploaded bytes for 30 days.
+// Re-importing the same file (retries, capture pipelines, re-uploads) costs
+// zero Gemini quota.
+const IMPORT_CACHE_TTL_SECONDS = 30 * 24 * 3600;
+
+function getImportCache(): Redis | null {
+  try {
+    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      return Redis.fromEnv();
+    }
+  } catch {
+    // fail open — caching is an optimization, never a requirement
+  }
+  return null;
+}
 
 /**
  * pdfjs-dist references DOMMatrix at module load (rendering path), which
@@ -95,6 +113,31 @@ export async function POST(req: Request) {
     if (buffer.subarray(0, 5).toString('ascii') !== '%PDF-') {
       return NextResponse.json({ error: 'Please upload a valid PDF file' }, { status: 400 });
     }
+
+    // Content-hash cache: identical bytes => identical parse. Skip Gemini.
+    const fingerprint = createHash('sha256').update(buffer).digest('hex');
+    const cacheKey = `cvyon:import-cache:${fingerprint}`;
+    const cache = getImportCache();
+    if (cache) {
+      try {
+        const hit = await cache.get<string>(cacheKey);
+        if (hit) {
+          logger.info('import-resume', 'cache HIT — returning stored parse, no Gemini call');
+          const parsed = typeof hit === 'string' ? JSON.parse(hit) : hit;
+          return NextResponse.json(parsed, { headers: { 'X-Cache': 'HIT' } });
+        }
+      } catch (cacheReadError) {
+        logger.warn('import-resume', 'cache read failed (non-fatal):', cacheReadError);
+      }
+    }
+    const storeInCache = async (parsedData: unknown) => {
+      if (!cache) return;
+      try {
+        await cache.set(cacheKey, JSON.stringify(parsedData), { ex: IMPORT_CACHE_TTL_SECONDS });
+      } catch (cacheWriteError) {
+        logger.warn('import-resume', 'cache write failed (non-fatal):', cacheWriteError);
+      }
+    };
 
     const systemInstruction = `You are an expert ATS (Applicant Tracking System) parser. Your job is to read the attached PDF and structure it EXACTLY according to the JSON schema.`;
 
@@ -198,7 +241,8 @@ JSON Schema to match:
     if (resumeText.length >= MIN_TEXT_CHARS) {
       const prompt = `${schemaBlock}\n\nRESUME TEXT:\n${resumeText.substring(0, MAX_TEXT_CHARS)}`;
       const parsedData = await generateContentWithRetry(prompt, systemInstruction, 8192, true, [], 'import_resume');
-      return NextResponse.json(parsedData);
+      await storeInCache(parsedData);
+      return NextResponse.json(parsedData, { headers: { 'X-Cache': 'MISS' } });
     }
 
     // Fallback for scanned/image PDFs with no selectable text: send the raw
@@ -213,7 +257,8 @@ JSON Schema to match:
     }];
     const fallbackPrompt = `${schemaBlock}\n\nThe resume is attached as a PDF document. Read it and extract the details.`;
     const parsedData = await generateContentWithRetry(fallbackPrompt, systemInstruction, 8192, true, mediaParts, 'import_resume_pdf');
-    return NextResponse.json(parsedData);
+    await storeInCache(parsedData);
+    return NextResponse.json(parsedData, { headers: { 'X-Cache': 'MISS' } });
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
