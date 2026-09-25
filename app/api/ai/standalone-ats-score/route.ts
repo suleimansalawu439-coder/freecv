@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
 import mammoth from 'mammoth';
 
 export const runtime = 'nodejs';
@@ -146,6 +146,9 @@ export async function POST(req: Request) {
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+    if (error instanceof AiOverloadedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
     }
         return apiError('standalone-ats-score', error);
   }

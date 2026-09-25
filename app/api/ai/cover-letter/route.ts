@@ -1,6 +1,6 @@
 import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
-import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
 import { trackEvent } from '@/lib/analytics';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -45,6 +45,9 @@ Do NOT include generic placeholders like [Company Name] if it's in the text.`;
     logger.error('cover-letter', 'Cover Letter AI Error:', error);
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+    if (error instanceof AiOverloadedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
     }
     return NextResponse.json(
       { error: 'Failed to generate cover letter. Please try again.' },

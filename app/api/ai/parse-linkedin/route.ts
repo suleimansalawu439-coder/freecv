@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError } from '@/lib/ai-retry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+    if (error instanceof AiOverloadedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
     }
     return apiError('parse-linkedin', error);
   }

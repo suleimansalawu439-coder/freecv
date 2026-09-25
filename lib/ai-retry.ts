@@ -30,6 +30,22 @@ export class AiQuotaExhaustedError extends Error {
   }
 }
 
+/**
+ * Thrown when the Gemini API reports the model itself is overloaded
+ * (HTTP 503 UNAVAILABLE / 500 / 502 / 504) on every available key+model
+ * combo after backoff retries. Routes should catch this and return an
+ * honest "try again in a bit" response (HTTP 503) — it is NOT a quota
+ * problem and it is NOT the user's fault. (2026-09-25: the Adaeze
+ * import-resume 500s were this — "high demand" 503s misclassified as
+ * generic API errors, retried 3x on the same key, then 500.)
+ */
+export class AiOverloadedError extends Error {
+  constructor() {
+    super('The AI model is temporarily overloaded. Please try again in a minute or two.');
+    this.name = 'AiOverloadedError';
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Gemini key/model pool
 //
@@ -202,18 +218,36 @@ export async function pickGeminiCombo(): Promise<GeminiCombo | null> {
 // Error classification
 // ---------------------------------------------------------------------------
 
-type GeminiFailure = 'quota' | 'ratelimit' | 'other';
+type GeminiFailure = 'quota' | 'ratelimit' | 'overloaded' | 'other';
 
 /**
  * 'quota'      = daily budget spent for this key+model (fail over NOW;
  *                waiting cannot help). Signals: per-day quota language.
  * 'ratelimit'  = per-minute throttling (back off, optionally try next key).
+ * 'overloaded' = the model itself is saturated or erroring (HTTP 500/502/
+ *                503/504, "high demand", "overloaded", "unavailable").
+ *                Back off and spread across keys like ratelimit — the
+ *                capacity crunch is usually temporary.
  * 'other'      = API/parse errors (limited retries, same as before).
  */
 function classifyGeminiError(err: unknown): GeminiFailure {
   const e = err as any;
   const status = e?.status ?? e?.code;
   const msg = String(e?.message ?? err ?? '').toLowerCase();
+  const looks5xxTransient =
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504 ||
+    msg.includes('"code":500') ||
+    msg.includes('"code":502') ||
+    msg.includes('"code":503') ||
+    msg.includes('"code":504') ||
+    msg.includes('overloaded') ||
+    msg.includes('high demand') ||
+    msg.includes('temporarily unavailable') ||
+    msg.includes('unavailable');
+  if (looks5xxTransient) return 'overloaded';
   const looks429 =
     status === 429 ||
     msg.includes('429') ||
@@ -340,6 +374,8 @@ export async function generateContentWithRetry<T = unknown>(
   const maxAttempts = Math.min(Math.max(combos.length + 2, 4), 16);
   let attempts = 0;
   let rateLimitStreak = 0;
+  let overloadFailures = 0;
+  let sawOverload = false;
   let otherFailures = 0;
 
   while (attempts < maxAttempts && combos.length > 0) {
@@ -429,6 +465,23 @@ export async function generateContentWithRetry<T = unknown>(
         continue;
       }
 
+      if (kind === 'overloaded') {
+        // The model itself is saturated or erroring (HTTP 503 etc.).
+        // Hard cap: 3 overload failures total, then report honestly.
+        // This MUST stay well under the route's maxDuration (60s):
+        // back off briefly and rotate to the next key each time.
+        sawOverload = true;
+        overloadFailures++;
+        rateLimitStreak = 0;
+        console.warn(`[gemini-pool] model overloaded on key#${combo.keyIndex}/${combo.model} (failure ${overloadFailures}/3)`);
+        if (overloadFailures >= 3) {
+          throw new AiOverloadedError();
+        }
+        await delay(Math.min(2000 * Math.pow(2, overloadFailures - 1), 8000));
+        ci++; // spread the next attempt to another key
+        continue;
+      }
+
       if (kind === 'ratelimit') {
         // Per-minute throttling: back off; after a couple of hits on the
         // same combo, spread the load to the next key instead of waiting.
@@ -458,5 +511,7 @@ export async function generateContentWithRetry<T = unknown>(
     }
   }
 
-  throw new AiQuotaExhaustedError();
+  // Attempts exhausted: report WHY. Model overload gets its own honest
+  // error (retry soon); true quota exhaustion keeps the daily-limit message.
+  throw sawOverload ? new AiOverloadedError() : new AiQuotaExhaustedError();
 }
