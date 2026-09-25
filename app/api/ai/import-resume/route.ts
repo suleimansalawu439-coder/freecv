@@ -88,6 +88,14 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Magic-byte validation: the `file.type` check above only inspects the
+    // attacker-controlled multipart Content-Type. Refuse anything that isn't
+    // actually a PDF before it reaches the parser or the AI fallback, so
+    // arbitrary bytes can't be laundered into paid model calls.
+    if (buffer.subarray(0, 5).toString('ascii') !== '%PDF-') {
+      return NextResponse.json({ error: 'Please upload a valid PDF file' }, { status: 400 });
+    }
+
     const systemInstruction = `You are an expert ATS (Applicant Tracking System) parser. Your job is to read the attached PDF and structure it EXACTLY according to the JSON schema.`;
 
     const schemaBlock = `
