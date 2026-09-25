@@ -67,7 +67,7 @@ function Mini({ k, color, scale = 0.235 }: { k: string; color: string; scale?: n
   );
 }
 
-const TICKER = ["NO PAYWALL", "NO WATERMARK", "NO SIGN‑UP TO DOWNLOAD", "RECRUITERS FUND IT — NOT YOU", "18 TEMPLATES", "AI ATS GRADER /100", "PDF + DOCX"];
+const TICKER = ["NO PAYWALL", "NO WATERMARK", "NO SIGN‑UP TO DOWNLOAD", "RECRUITERS FUND IT — NOT YOU", "180 TEMPLATES", "AI ATS GRADER /100", "PDF + DOCX"];
 
 import { AnalyticsTracker } from "./AnalyticsTracker";
 import { FaqJsonLd } from "./FaqJsonLd";
@@ -152,7 +152,7 @@ export default function LandingRiso() {
               <a href="#grader" className="flex items-center justify-center gap-2 border-[3px] border-[#141312] bg-white px-7 py-4 fh text-sm font-extrabold uppercase tracking-wider hs transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">See the grader</a>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 fm text-[10px] font-bold uppercase tracking-[0.16em]">
-              {["18 templates", "PDF + DOCX", "ATS score /100", "AI rewrite"].map((c) => (<span key={c} className="border-2 border-[#141312] bg-white px-3 py-1.5">{c}</span>))}
+              {["180 templates", "PDF + DOCX", "ATS score /100", "AI rewrite"].map((c) => (<span key={c} className="border-2 border-[#141312] bg-white px-3 py-1.5">{c}</span>))}
             </div>
           </div>
 
@@ -264,7 +264,7 @@ export default function LandingRiso() {
         {/* HONEST PROOF */}
         <section className="border-b-[3px] border-[#141312] py-16 lg:py-20">
           <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-            {[["0", "paywalls", "#FF4326"], ["0", "features locked", "#2233FF"], ["18", "free templates", "#141312"], ["100%", "free AI", "#141312"]].map(([v, l, c], i) => (
+            {[["0", "paywalls", "#FF4326"], ["0", "features locked", "#2233FF"], ["180", "free templates", "#141312"], ["100%", "free AI", "#141312"]].map(([v, l, c], i) => (
               <Reveal key={l} delay={i * 70}>
                 <div className="border-[3px] border-[#141312] bg-white p-6 hs"><div className="fd text-5xl leading-none" style={{ color: c as string }}>{v}</div><div className="fm mt-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#141312]/60">{l}</div></div>
               </Reveal>

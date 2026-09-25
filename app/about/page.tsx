@@ -74,7 +74,7 @@ export default function AboutPage() {
           <div className="riso-card p-8 mt-12 mb-12">
             <h3 className="fh text-xl font-extrabold uppercase tracking-wider mb-6">What You Get</h3>
             <ul className="space-y-4">
-              <li className="flex items-center gap-3"><CheckCircle2 className="text-[#2233FF] shrink-0" /> 18 ATS-Optimized Templates (Grid, Swiss, Corporate)</li>
+              <li className="flex items-center gap-3"><CheckCircle2 className="text-[#2233FF] shrink-0" /> 180 ATS-Optimized Templates (Grid, Swiss, Corporate)</li>
               <li className="flex items-center gap-3"><CheckCircle2 className="text-[#2233FF] shrink-0" /> AI ATS Grader & Keyword Matcher</li>
               <li className="flex items-center gap-3"><CheckCircle2 className="text-[#2233FF] shrink-0" /> One-Click LinkedIn Import</li>
               <li className="flex items-center gap-3"><CheckCircle2 className="text-[#2233FF] shrink-0" /> PDF and DOCX Export</li>
