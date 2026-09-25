@@ -232,7 +232,7 @@ export default function LandingRiso() {
         {/* PLATES / TEMPLATES — live miniatures */}
         <section id="plates" className="scroll-mt-24 border-b-[3px] border-[#141312] py-16 lg:py-24">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div><div className="fm mb-3 text-[11px] font-bold uppercase tracking-[0.25em] text-[#FF4326]">the specimens</div><h2 className="fd text-4xl leading-[0.95] tracking-tight sm:text-6xl">Eighteen plates.<br />Pick yours.</h2></div>
+            <div><div className="fm mb-3 text-[11px] font-bold uppercase tracking-[0.25em] text-[#FF4326]">the specimens</div><h2 className="fd text-4xl leading-[0.95] tracking-tight sm:text-6xl">180 plates.<br />Pick yours.</h2></div>
             <div className="fm flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#141312]/60"><MoveRight size={15} /> scroll the bench</div>
           </div>
           <div className="mt-10 flex gap-5 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
