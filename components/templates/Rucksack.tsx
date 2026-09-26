@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -163,22 +164,34 @@ export default function Rucksack({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={styles.name}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
           {contacts.length > 0 ? <Text style={styles.contactRow}>{contacts.join(' · ')}</Text> : null}
         </View>
+            </>
+          ),
+          },
+        )}
 
         <View style={styles.body}>
           <View style={styles.colLeft}>
+            {orderSections(data, {
+              personal: (
+                <>
             {data.summary ? (
               <View style={styles.section}>
                 <DenseHead title="Summary" />
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             ) : null}
+                </>
+              ),
 
-            {data.experience && data.experience.length > 0 && (
+              experience: data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="Experience" />
                 {data.experience.map((exp) => (
@@ -208,9 +221,9 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showProjects && data.projects && data.projects.length > 0 && (
+              projects: data.showProjects && data.projects && data.projects.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="Projects" />
                 {data.projects.map((p) => (
@@ -223,12 +236,11 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
-
-            {data.customSections &&
-              data.customSections.length > 0 &&
-              data.customSections.map((section) =>
-                section.items && section.items.length > 0 ? (
+            ),
+              },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                   <View key={section.id} style={styles.section}>
                     <DenseHead title={section.title} />
                     {section.items.map((item) => (
@@ -242,12 +254,13 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                       </View>
                     ))}
                   </View>
-                ) : null
-              )}
+                ))
+            )}
           </View>
 
           <View style={styles.colRight}>
-            {data.skills && data.skills.length > 0 && (
+            {orderSections(data, {
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="Skills" />
                 {data.skills.map((s, i) => {
@@ -262,9 +275,9 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   );
                 })}
               </View>
-            )}
+            ),
 
-            {data.education && data.education.length > 0 && (
+              education: data.education && data.education.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="Education" />
                 {data.education.map((edu) => (
@@ -275,9 +288,9 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="Certifications" />
                 {data.certifications.map((c) => (
@@ -289,9 +302,9 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
                 <DenseHead title="References" />
                 {data.references.map((r) => (
@@ -304,6 +317,8 @@ export default function Rucksack({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
+            ),
+              },
             )}
           </View>
         </View>

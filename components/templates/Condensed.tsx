@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -122,6 +123,9 @@ export default function Condensed({ data }: TemplateProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={styles.name}>{info.fullName}</Text>
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
@@ -137,9 +141,11 @@ export default function Condensed({ data }: TemplateProps) {
             <Text style={styles.bodyText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Experience — two-line entries */}
-        {data.experience && data.experience.length > 0 ? (
+          // Experience — two-line entries
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('Experience')}
             {data.experience.map((exp) => (
@@ -159,10 +165,10 @@ export default function Condensed({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {/* Education */}
-        {data.education && data.education.length > 0 ? (
+          // Education
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('Education')}
             {data.education.map((edu) => (
@@ -177,18 +183,18 @@ export default function Condensed({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {/* Skills — one comma-separated line */}
-        {data.skills && data.skills.length > 0 ? (
+          // Skills — one comma-separated line
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('Skills')}
             <Text style={styles.bodyText}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
-        ) : null}
+          ) : null,
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('Projects')}
             {data.projects.map((proj) => (
@@ -207,10 +213,10 @@ export default function Condensed({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          // Certifications
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('Certifications')}
             {data.certifications.map((cert) => (
@@ -223,10 +229,10 @@ export default function Condensed({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          // References
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             {renderSectionLabel('References')}
             {data.references.map((ref) => (
@@ -246,14 +252,12 @@ export default function Condensed({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
-
-        {/* Custom sections */}
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
+          ) : null,
+        },
+          // Custom sections
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                   <View key={section.id} style={styles.section}>
                     {renderSectionLabel(section.title)}
                     {section.items.map((item) => (
@@ -271,9 +275,8 @@ export default function Condensed({ data }: TemplateProps) {
                       </View>
                     ))}
                   </View>
-                )
-            )
-          : null}
+            ))
+        )}
       </Page>
     </Document>
   );

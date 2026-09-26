@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -169,6 +170,9 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerBlock}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           <View style={[styles.underline, { backgroundColor: themeColor }]} />
@@ -182,8 +186,10 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
             <Text style={styles.summary}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Experience</Text>
             {data.experience.map((exp) => (
@@ -205,9 +211,9 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
             {data.education.map((edu) => (
@@ -220,16 +226,16 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Skills</Text>
             <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join('   ·   ')}</Text>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Projects</Text>
             {data.projects.map((proj) => (
@@ -242,9 +248,9 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -257,9 +263,9 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>References</Text>
             <View style={styles.refGrid}>
@@ -275,13 +281,11 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <Text style={styles.sectionTitle}>{section.title}</Text>
                   {section.items.map((item) => (
@@ -295,8 +299,8 @@ export default function Jumbotron({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

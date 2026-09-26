@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const num = (i: number) => String(i + 1).padStart(2, '0');
@@ -134,23 +135,50 @@ export default function Docket({ data }: { data: ResumeData }) {
     </Text>
   );
 
+  // Section numbers follow the rendered display order, so they stay consecutive
+  // when the user reorders or hides sections. The identity header itself is
+  // unnumbered; only the Profile (summary) section takes a number.
+  const sectionNums: Record<string, number> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return !!data.experience && data.experience.length > 0;
+        case 'education': return !!data.education && data.education.length > 0;
+        case 'skills': return !!data.skills && data.skills.length > 0;
+        case 'projects': return data.showProjects && !!data.projects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && !!data.certifications && data.certifications.length > 0;
+        case 'references': return data.showReferences && !!data.references && data.references.length > 0;
+        default: return false;
+      }
+    });
+    const map: Record<string, number> = {};
+    rendered.forEach((id, n) => { map[id] = n; });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.name}>{pi.fullName}</Text>
-        {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
-        {contacts.length > 0 ? <Text style={styles.contactRow}>{contacts.join(' · ')}</Text> : null}
+        {orderSections(data, {
+          personal: (
+            <>
+              <Text style={styles.name}>{pi.fullName}</Text>
+              {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
+              {contacts.length > 0 ? <Text style={styles.contactRow}>{contacts.join(' · ')}</Text> : null}
 
-        {data.summary ? (
-          <View style={styles.section}>
-            <DocketHead index={0} title="Profile" />
-            <Text style={styles.profileText}>{data.summary}</Text>
-          </View>
-        ) : null}
+              {data.summary ? (
+                <View style={styles.section}>
+                  <DocketHead index={sectionNums.personal} title="Profile" />
+                  <Text style={styles.profileText}>{data.summary}</Text>
+                </View>
+              ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
-          <View style={styles.section}>
-            <DocketHead index={1} title="Experience" />
+          experience: data.experience && data.experience.length > 0 && (
+            <View style={styles.section}>
+              <DocketHead index={sectionNums.experience} title="Experience" />
             {data.experience.map((exp, i) => (
               <View key={exp.id} style={styles.row}>
                 <Text style={[styles.entryNum, { color: themeColor }]}>{num(i)}</Text>
@@ -179,11 +207,11 @@ export default function Docket({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
-            <DocketHead index={2} title="Education" />
+            <DocketHead index={sectionNums.education} title="Education" />
             {data.education.map((edu, i) => (
               <View key={edu.id} style={styles.row}>
                 <Text style={[styles.entryNum, { color: themeColor }]}>{num(i)}</Text>
@@ -195,18 +223,18 @@ export default function Docket({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
-            <DocketHead index={3} title="Skills" />
+            <DocketHead index={sectionNums.skills} title="Skills" />
             <Text style={styles.lineText}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
-            <DocketHead index={4} title="Projects" />
+            <DocketHead index={sectionNums.projects} title="Projects" />
             {data.projects.map((p, i) => (
               <View key={p.id} style={styles.row}>
                 <Text style={[styles.entryNum, { color: themeColor }]}>{num(i)}</Text>
@@ -220,11 +248,11 @@ export default function Docket({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
-            <DocketHead index={5} title="Certifications" />
+            <DocketHead index={sectionNums.certifications} title="Certifications" />
             {data.certifications.map((c, i) => (
               <View key={c.id} style={styles.row}>
                 <Text style={[styles.entryNum, { color: themeColor }]}>{num(i)}</Text>
@@ -238,11 +266,11 @@ export default function Docket({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
-            <DocketHead index={6} title="References" />
+            <DocketHead index={sectionNums.references} title="References" />
             {data.references.map((r) => (
               <View key={r.id} style={styles.refItem}>
                 <Text style={styles.roleTitle}>{r.name}</Text>
@@ -253,14 +281,14 @@ export default function Docket({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section, si) =>
-            section.items && section.items.length > 0 ? (
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section, si) => (
               <View key={section.id} style={styles.section}>
-                <DocketHead index={7 + si} title={section.title} />
+                <DocketHead index={customBase + si} title={section.title} />
                 {section.items.map((item, i) => (
                   <View key={item.id} style={styles.row}>
                     <Text style={[styles.entryNum, { color: themeColor }]}>{num(i)}</Text>
@@ -275,8 +303,8 @@ export default function Docket({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

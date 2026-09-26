@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Founder({ data }: { data: ResumeData }) {
   const contactItems = [
@@ -12,6 +13,8 @@ export default function Founder({ data }: { data: ResumeData }) {
   return (
     <div className="font-sans p-16 bg-white text-[#141414] min-h-[1056px] w-full max-w-[816px] mx-auto">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-12">
         <div className="flex items-start justify-between gap-8">
           <div>
@@ -37,17 +40,18 @@ export default function Founder({ data }: { data: ResumeData }) {
         )}
         <div className="mt-8 h-1 w-full bg-[var(--theme-color)]" />
       </header>
+        ),
+      })}
 
-      {/* Thesis */}
-      {data.summary && (
+      {orderSections(data, {
+        personal: data.summary && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-4">Thesis</h2>
           <p className="text-xl leading-relaxed font-medium border-l-4 border-[var(--theme-color)] pl-6">{data.summary}</p>
         </section>
-      )}
+        ),
 
-      {/* Ventures */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">Ventures</h2>
           <div className="space-y-6">
@@ -69,10 +73,9 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">Experience</h2>
           <div className="space-y-8">
@@ -94,10 +97,9 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">Skills</h2>
           <div className="flex flex-wrap gap-2">
@@ -111,10 +113,9 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">Education</h2>
           <div className="space-y-4">
@@ -127,10 +128,9 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">Certifications</h2>
           <div className="space-y-3">
@@ -145,10 +145,9 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">References</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -165,11 +164,11 @@ export default function Founder({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-12">
             <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-6">{section.title}</h2>
             <div className="space-y-4">
@@ -187,8 +186,8 @@ export default function Founder({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+          ))
+      )}
     </div>
   );
 }

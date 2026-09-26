@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MainTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -28,15 +29,23 @@ export default function Headland({ data }: { data: ResumeData }) {
       {/* Sidebar: theme name block + white body */}
       <aside className="w-[35%] shrink-0 flex flex-col">
         <div className="px-8 py-10" style={{ backgroundColor: 'var(--theme-color)' }}>
+          {orderSections(data, {
+            personal: (
+          <>
           <h1 className="text-[28px] font-black text-white leading-tight mb-2">{info.fullName}</h1>
           {info.jobTitle && (
             <p className="text-[13px] font-semibold text-white/85 uppercase tracking-[0.12em]">
               {info.jobTitle}
             </p>
           )}
+            </>
+            ),
+          })}
         </div>
 
         <div className="px-8 py-9 flex-1">
+          {orderSections(data, {
+            personal: (
           <div className="mb-8">
             <SidebarTitle>Contact</SidebarTitle>
             <div className="space-y-2 text-[13px] text-gray-700">
@@ -46,8 +55,9 @@ export default function Headland({ data }: { data: ResumeData }) {
               {info.website && <div className="break-words">{info.website}</div>}
             </div>
           </div>
+            ),
 
-          {data.skills.length > 0 && (
+            skills: data.skills.length > 0 && (
             <div className="mb-8">
               <SidebarTitle>Skills</SidebarTitle>
               {data.skills.map((s, i) => (
@@ -65,9 +75,9 @@ export default function Headland({ data }: { data: ResumeData }) {
                 </div>
               ))}
             </div>
-          )}
+            ),
 
-          {data.education.length > 0 && (
+            education: data.education.length > 0 && (
             <div className="mb-8">
               <SidebarTitle>Education</SidebarTitle>
               <div className="space-y-4">
@@ -82,9 +92,9 @@ export default function Headland({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <div className="mb-8">
               <SidebarTitle>Certifications</SidebarTitle>
               <div className="space-y-3">
@@ -96,13 +106,15 @@ export default function Headland({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
+          })}
         </div>
       </aside>
 
       {/* Main with quote-style summary */}
       <main className="w-[65%] px-11 py-10">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section className="mb-9">
             <div
               className="border-l-4 pl-6 py-1"
@@ -111,9 +123,9 @@ export default function Headland({ data }: { data: ResumeData }) {
               <p className="text-[15px] italic leading-relaxed text-gray-600">“{data.summary}”</p>
             </div>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-9">
             <MainTitle>Experience</MainTitle>
             <div className="space-y-7">
@@ -147,9 +159,9 @@ export default function Headland({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-9">
             <MainTitle>Projects</MainTitle>
             <div className="space-y-5">
@@ -166,9 +178,9 @@ export default function Headland({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section className="mb-9">
             <MainTitle>References</MainTitle>
             <div className="grid grid-cols-2 gap-6">
@@ -184,12 +196,11 @@ export default function Headland({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <section key={section.id} className="mb-9">
                 <MainTitle>{section.title}</MainTitle>
                 <div className="space-y-5">
@@ -215,7 +226,7 @@ export default function Headland({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
+            ))
         )}
       </main>
     </div>

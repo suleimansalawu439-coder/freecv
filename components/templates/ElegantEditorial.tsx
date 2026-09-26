@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -193,6 +194,8 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
         <View style={styles.header}>
           {data.personalInfo.profilePicture && (
             // eslint-disable-next-line jsx-a11y/alt-text
@@ -209,9 +212,14 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
           <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
           <Text style={[styles.jobTitle, { color: c }]}>{data.personalInfo.jobTitle}</Text>
         </View>
+          ),
+        },
+        )}
 
         <View style={styles.mainGrid}>
           <View style={[styles.leftColumn, { borderColor: `${c}33` }]}>
+            {orderSections(data, {
+              personal: (
             <View style={styles.sectionBlock}>
               <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
                 <Text style={[styles.sectionTitleText, { color: c }]}>Contact</Text>
@@ -229,8 +237,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                 <Text style={styles.contactText}>{data.personalInfo.website}</Text>
               ) : null}
             </View>
+              ),
 
-            {data.skills && data.skills.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.sectionBlock}>
                 <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
                   <Text style={[styles.sectionTitleText, { color: c }]}>Skills</Text>
@@ -242,9 +251,9 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.education && data.education.length > 0 && (
+              education: data.education && data.education.length > 0 && (
               <View style={styles.sectionBlock}>
                 <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
                   <Text style={[styles.sectionTitleText, { color: c }]}>Education</Text>
@@ -257,13 +266,11 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
-
-            {data.customSections &&
-              data.customSections.length > 0 &&
-              data.customSections.map(
-                (section) =>
-                  section.items.length > 0 && (
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items.length > 0)
+                .map((section) => (
                     <View key={section.id} style={styles.sectionBlock}>
                       <View style={[styles.sectionTitleContainer, { borderColor: `${c}4D` }]}>
                         <Text style={[styles.sectionTitleText, { color: c }]}>{section.title}</Text>
@@ -283,18 +290,23 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                         </View>
                       ))}
                     </View>
-                  )
-              )}
+                ))
+            )}
           </View>
 
           <View style={styles.rightColumn}>
+            {orderSections(data, {
+              personal: (
+                <>
             {data.summary && (
               <View style={[styles.summaryContainer, { borderColor: c }]}>
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             )}
+                </>
+              ),
 
-            {data.experience && data.experience.length > 0 && (
+              experience: data.experience && data.experience.length > 0 && (
               <View>
                 <Text style={styles.expMainTitle}>Professional Experience</Text>
                 {data.experience.map((exp) => (
@@ -318,6 +330,8 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
+              ),
+            },
             )}
           </View>
         </View>

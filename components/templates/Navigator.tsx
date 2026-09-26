@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -192,6 +193,9 @@ export default function Navigator({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.routeBar}>
           <View style={[styles.routeDot, { borderColor: themeColor }]} />
           <View style={styles.routeLine} />
@@ -211,8 +215,10 @@ export default function Navigator({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Career Route" themeColor={themeColor} />
             <View style={styles.timelineWrap}>
@@ -246,9 +252,9 @@ export default function Navigator({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Capabilities" themeColor={themeColor} />
             <Text style={styles.skillsText}>
@@ -260,9 +266,9 @@ export default function Navigator({ data }: { data: ResumeData }) {
               ))}
             </Text>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Education" themeColor={themeColor} />
             {data.education.map((edu) => (
@@ -280,9 +286,9 @@ export default function Navigator({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Expeditions" themeColor={themeColor} />
             {data.projects.map((proj) => (
@@ -295,9 +301,9 @@ export default function Navigator({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Checkpoints" themeColor={themeColor} />
             {data.certifications.map((cert) => (
@@ -310,11 +316,27 @@ export default function Navigator({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <View style={styles.section}>
+            <SectionHead title="References" themeColor={themeColor} />
+            {data.references.map((ref) => (
+              <View key={ref.id} style={{ marginBottom: 6 }}>
+                <Text style={styles.degreeText}>{ref.name}</Text>
+                <Text style={styles.schoolText}>
+                  {ref.title}
+                  {ref.company ? `, ${ref.company}` : ''}
+                </Text>
+                {ref.contact ? <Text style={styles.stopDates}>{ref.contact}</Text> : null}
+              </View>
+            ))}
+          </View>
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <SectionHead title={section.title} themeColor={themeColor} />
                 {section.items.map((item) => (
@@ -334,23 +356,7 @@ export default function Navigator({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead title="References" themeColor={themeColor} />
-            {data.references.map((ref) => (
-              <View key={ref.id} style={{ marginBottom: 6 }}>
-                <Text style={styles.degreeText}>{ref.name}</Text>
-                <Text style={styles.schoolText}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.stopDates}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
+            ))
         )}
       </Page>
     </Document>

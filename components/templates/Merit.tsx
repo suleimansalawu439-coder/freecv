@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -156,129 +157,132 @@ export default function Merit({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
-        {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
-        {contactItems.length > 0 ? (
-          <Text style={styles.contactLine}>{contactItems.join('  ·  ')}</Text>
-        ) : null}
-
-        {data.summary ? (
-          <View style={styles.section}>
-            <SectionHeader title="Summary" />
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        ) : null}
-
-        {data.experience && data.experience.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="Achievements & Experience" />
-            {data.experience.map((exp) => (
-              <View key={exp.id} style={styles.experienceItem}>
-                <View style={styles.itemHeaderRow}>
-                  <Text style={styles.roleTitle}>
-                    {exp.role} <Text style={styles.roleCompany}>at {exp.company}</Text>
-                  </Text>
-                  <Text style={styles.dateText}>{exp.startDate} – {exp.endDate}</Text>
+        {orderSections(data, {
+          personal: (
+            <>
+              {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
+              {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
+              {contactItems.length > 0 ? (
+                <Text style={styles.contactLine}>{contactItems.join('  ·  ')}</Text>
+              ) : null}
+              {data.summary ? (
+                <View style={styles.section}>
+                  <SectionHeader title="Summary" />
+                  <Text style={styles.summaryText}>{data.summary}</Text>
                 </View>
-                {exp.description
-                  ? exp.description.split(/\n|\r?\n/).filter((l) => l.trim()).map((line, i) => (
-                      <MeritBullet key={i} line={line} />
-                    ))
-                  : null}
-              </View>
-            ))}
-          </View>
-        ) : null}
+              ) : null}
+            </>
+          ),
 
-        {data.education && data.education.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="Education" />
-            {data.education.map((edu) => (
-              <View key={edu.id} style={styles.eduRow}>
-                <Text style={styles.eduText}>
-                  <Text style={styles.eduBold}>{edu.degree}</Text>, {edu.school}
-                </Text>
-                <Text style={styles.dateText}>{edu.graduationYear}</Text>
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        {data.skills && data.skills.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="Skills" />
-            <Text style={styles.smallText}>{data.skills.map((s) => s.name).join(' · ')}</Text>
-          </View>
-        ) : null}
-
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="Projects" />
-            {data.projects.map((proj) => (
-              <View key={proj.id} style={styles.experienceItem}>
-                <Text style={[styles.smallText, { fontWeight: 'bold', marginBottom: 3 }]}>
-                  {proj.name}{proj.link ? ` — ${proj.link}` : ''}
-                </Text>
-                {proj.description ? (
-                  <MeritBullet line={proj.description} />
-                ) : null}
-              </View>
-            ))}
-          </View>
-        ) : null}
-
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="Certifications" />
-            {data.certifications.map((cert) => (
-              <Text key={cert.id} style={[styles.smallText, { marginBottom: 3 }]}>
-                <Text style={styles.leadVerb}>Earned</Text> {cert.name} — {cert.issuer}
-                {cert.date ? ` (${cert.date})` : ''}
-              </Text>
-            ))}
-          </View>
-        ) : null}
-
-        {data.showReferences && data.references && data.references.length > 0 ? (
-          <View style={styles.section}>
-            <SectionHeader title="References" />
-            <View style={styles.refGrid}>
-              {data.references.map((ref) => (
-                <View key={ref.id} style={styles.refCard}>
-                  <Text style={styles.refName}>{ref.name}</Text>
-                  <Text style={styles.refDetail}>
-                    {ref.title}{ref.company ? `, ${ref.company}` : ''}
-                  </Text>
-                  {ref.contact ? <Text style={styles.refDetail}>{ref.contact}</Text> : null}
+          experience: data.experience && data.experience.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="Achievements & Experience" />
+              {data.experience.map((exp) => (
+                <View key={exp.id} style={styles.experienceItem}>
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={styles.roleTitle}>
+                      {exp.role} <Text style={styles.roleCompany}>at {exp.company}</Text>
+                    </Text>
+                    <Text style={styles.dateText}>{exp.startDate} – {exp.endDate}</Text>
+                  </View>
+                  {exp.description
+                    ? exp.description.split(/\n|\r?\n/).filter((l) => l.trim()).map((line, i) => (
+                        <MeritBullet key={i} line={line} />
+                      ))
+                    : null}
                 </View>
               ))}
             </View>
-          </View>
-        ) : null}
+          ) : null,
 
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
-                <View key={section.id} style={styles.section}>
-                  <SectionHeader title={section.title} />
-                  {section.items.map((item) => (
-                    <View key={item.id} style={styles.experienceItem}>
-                      <View style={styles.itemHeaderRow}>
-                        <Text style={styles.roleTitle}>{item.title}</Text>
-                        {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                      </View>
-                      {item.subtitle ? (
-                        <Text style={[styles.smallText, { color: '#4B5563', marginBottom: 3 }]}>
-                          {item.subtitle}
-                        </Text>
-                      ) : null}
-                      {item.description ? <MeritBullet line={item.description} /> : null}
-                    </View>
-                  ))}
+          education: data.education && data.education.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="Education" />
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.eduRow}>
+                  <Text style={styles.eduText}>
+                    <Text style={styles.eduBold}>{edu.degree}</Text>, {edu.school}
+                  </Text>
+                  <Text style={styles.dateText}>{edu.graduationYear}</Text>
                 </View>
-              ) : null
-            )
-          : null}
+              ))}
+            </View>
+          ) : null,
+
+          skills: data.skills && data.skills.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="Skills" />
+              <Text style={styles.smallText}>{data.skills.map((s) => s.name).join(' · ')}</Text>
+            </View>
+          ) : null,
+
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="Projects" />
+              {data.projects.map((proj) => (
+                <View key={proj.id} style={styles.experienceItem}>
+                  <Text style={[styles.smallText, { fontWeight: 'bold', marginBottom: 3 }]}>
+                    {proj.name}{proj.link ? ` — ${proj.link}` : ''}
+                  </Text>
+                  {proj.description ? (
+                    <MeritBullet line={proj.description} />
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          ) : null,
+
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="Certifications" />
+              {data.certifications.map((cert) => (
+                <Text key={cert.id} style={[styles.smallText, { marginBottom: 3 }]}>
+                  <Text style={styles.leadVerb}>Earned</Text> {cert.name} — {cert.issuer}
+                  {cert.date ? ` (${cert.date})` : ''}
+                </Text>
+              ))}
+            </View>
+          ) : null,
+
+          references: data.showReferences && data.references && data.references.length > 0 ? (
+            <View style={styles.section}>
+              <SectionHeader title="References" />
+              <View style={styles.refGrid}>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={styles.refCard}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refDetail}>
+                      {ref.title}{ref.company ? `, ${ref.company}` : ''}
+                    </Text>
+                    {ref.contact ? <Text style={styles.refDetail}>{ref.contact}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <SectionHeader title={section.title} />
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.experienceItem}>
+                    <View style={styles.itemHeaderRow}>
+                      <Text style={styles.roleTitle}>{item.title}</Text>
+                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                    </View>
+                    {item.subtitle ? (
+                      <Text style={[styles.smallText, { color: '#4B5563', marginBottom: 3 }]}>
+                        {item.subtitle}
+                      </Text>
+                    ) : null}
+                    {item.description ? <MeritBullet line={item.description} /> : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

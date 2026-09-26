@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Throttle({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -15,6 +16,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-600 mx-auto px-8 py-7">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Micro header */}
       <div className="flex justify-between items-baseline gap-4">
         <h1 className="text-lg font-bold text-slate-800 whitespace-nowrap">{pi.fullName}</h1>
@@ -22,6 +26,7 @@ export default function Throttle({ data }: { data: ResumeData }) {
           <p className="text-xs text-slate-500 text-right">{contacts.join(' · ')}</p>
         )}
       </div>
+
       <div className="border-b border-slate-300 mt-2 mb-5" />
 
       {data.summary && (
@@ -30,8 +35,10 @@ export default function Throttle({ data }: { data: ResumeData }) {
           <p className="text-[13px] leading-snug text-slate-600">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-5">
           <MicroHead title="Skills" />
           <div className="grid grid-cols-4 gap-1.5">
@@ -42,9 +49,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-5">
           <MicroHead title="Experience" />
           <div className="grid grid-cols-2 gap-3">
@@ -67,9 +74,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-5">
           <MicroHead title="Education" />
           <div className="grid grid-cols-2 gap-3">
@@ -82,9 +89,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-5">
           <MicroHead title="Projects" />
           <div className="grid grid-cols-2 gap-3">
@@ -97,9 +104,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-5">
           <MicroHead title="Certifications" />
           <div className="grid grid-cols-3 gap-3">
@@ -113,9 +120,9 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-5">
           <MicroHead title="References" />
           <div className="grid grid-cols-2 gap-3">
@@ -130,10 +137,11 @@ export default function Throttle({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.length > 0 && data.customSections.map(section =>
-        section.items && section.items.length > 0 ? (
+        ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-5">
             <MicroHead title={section.title} />
             <div className="grid grid-cols-2 gap-3">
@@ -148,7 +156,7 @@ export default function Throttle({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

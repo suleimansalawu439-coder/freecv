@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const CLUSTER_LABELS = ['Technical', 'Leadership', 'Domain'];
 
@@ -24,6 +25,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans bg-white text-[#1a1a1a] min-h-[1056px] w-full max-w-[816px] mx-auto px-12 py-10">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="mb-8 pb-6 border-b border-gray-200">
         <h1 className="text-4xl font-bold tracking-tight">{info.fullName}</h1>
@@ -42,9 +46,10 @@ export default function Pivot({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Core Competencies — skills-first */}
-      {clusters.length > 0 && (
+        skills: clusters.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="Core Competencies" />
           <div className="grid grid-cols-3 gap-6">
@@ -64,10 +69,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Work History — one line each, no descriptions */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="Work History" />
           <div className="space-y-2">
@@ -86,10 +90,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="Education" />
           <div className="space-y-2">
@@ -108,10 +111,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="Projects" />
           <div className="space-y-2">
@@ -128,10 +130,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="Certifications" />
           <div className="space-y-2">
@@ -148,10 +149,9 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionTitle title="References" />
           <div className="space-y-2">
@@ -171,14 +171,12 @@ export default function Pivot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id} className="mb-8">
                 <SectionTitle title={section.title} />
                 <div className="space-y-2">
@@ -198,8 +196,8 @@ export default function Pivot({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

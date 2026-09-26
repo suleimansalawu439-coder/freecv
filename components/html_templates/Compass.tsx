@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Compass({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
@@ -8,7 +9,9 @@ export default function Compass({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 flex mx-auto font-sans">
       {/* Left sidebar — navy */}
       <aside className="w-[28%] shrink-0 bg-blue-950 text-white px-7 py-10">
-        <div className="mb-8">
+        {orderSections(data, {
+          personal: (
+            <div className="mb-8">
           <h2 className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-4">
             Contact
           </h2>
@@ -18,9 +21,10 @@ export default function Compass({ data }: { data: ResumeData }) {
             {info.location && <p>{info.location}</p>}
             {info.website && <p>{info.website}</p>}
           </div>
-        </div>
+            </div>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-4">
               Skills
@@ -43,9 +47,11 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
-
-        {data.customSections.map((section) => (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
           <div key={section.id} className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-blue-300 mb-4">
               {section.title}
@@ -60,12 +66,16 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        ))}
+          ))
+        )}
       </aside>
 
       {/* Main column — minimal headers, colored company names */}
       <main className="flex-1 px-10 py-10 min-w-0">
-        <header className="mb-8">
+        {orderSections(data, {
+          personal: (
+            <>
+              <header className="mb-8">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-1">
             {info.fullName}
           </h1>
@@ -80,8 +90,10 @@ export default function Compass({ data }: { data: ResumeData }) {
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">
               Experience
@@ -117,9 +129,9 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
               Education
@@ -136,9 +148,9 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
               Projects
@@ -155,9 +167,9 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
               Certifications
@@ -174,9 +186,9 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
               References
@@ -194,7 +206,8 @@ export default function Compass({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
+        })}
       </main>
     </div>
   );

@@ -1,11 +1,15 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Diplomat({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#1e3a5f';
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-[#FDFDFC] shadow-xl print:shadow-none p-[0.85in] flex flex-col font-serif mx-auto lg:mx-0 shrink-0 text-[#1C1C1C]">
-      {/* Centered Header with Photo */}
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Centered Header with Photo */}
       <header className="text-center mb-8 pb-8 border-b" style={{ borderColor: `${c}30` }}>
         {data.personalInfo.profilePicture && (
           <img
@@ -38,9 +42,10 @@ export default function Diplomat({ data }: { data: ResumeData }) {
           <p className="text-[11.5px] leading-[1.8] text-[#555] italic">{data.summary}</p>
         </div>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] text-center mb-6" style={{ color: c }}>
             Professional Experience
@@ -70,10 +75,9 @@ export default function Diplomat({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] text-center mb-6" style={{ color: c }}>
             Notable Projects
@@ -91,14 +95,15 @@ export default function Diplomat({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
+      })}
 
       {/* Bottom Grid: Education, Skills, Certifications, References */}
       <div className="mt-auto pt-8 border-t" style={{ borderColor: `${c}30` }}>
         <div className="grid grid-cols-3 gap-8">
-          {/* Education */}
-          {data.education.length > 0 && (
-            <div>
+          {orderSections(data, {
+            education: data.education.length > 0 && (
+              <div>
               <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>Education</h2>
               <div className="space-y-3">
                 {data.education.map(edu => (
@@ -109,12 +114,11 @@ export default function Diplomat({ data }: { data: ResumeData }) {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+              </div>
+            ),
 
-          {/* Skills */}
-          {data.skills.length > 0 && (
-            <div>
+            skills: data.skills.length > 0 && (
+              <div>
               <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>Skills</h2>
               <div className="flex flex-wrap gap-x-2 gap-y-1.5">
                 {data.skills.map(s => (
@@ -123,13 +127,15 @@ export default function Diplomat({ data }: { data: ResumeData }) {
                   </span>
                 ))}
               </div>
-            </div>
-          )}
+              </div>
+            ),
+          })}
 
           {/* Certifications or References */}
           <div>
-            {data.showCertifications && data.certifications.length > 0 && (
-              <div className="mb-4">
+            {orderSections(data, {
+              certifications: data.showCertifications && data.certifications.length > 0 && (
+                <div className="mb-4">
                 <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>Certifications</h2>
                 <div className="space-y-2">
                   {data.certifications.map(cert => (
@@ -139,10 +145,11 @@ export default function Diplomat({ data }: { data: ResumeData }) {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-            {data.showReferences && data.references.length > 0 && (
-              <div>
+                </div>
+              ),
+
+              references: data.showReferences && data.references.length > 0 && (
+                <div>
                 <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4" style={{ color: c }}>References</h2>
                 <div className="space-y-2">
                   {data.references.map(ref => (
@@ -154,29 +161,30 @@ export default function Diplomat({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mb-6">
-                <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4">{section.title}</h2>
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item.id} className="mb-2">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <p className="text-sm font-bold">{item.title}</p>
-                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
+                  <div key={section.id} className="mb-6">
+                    <h2 className="text-[10px] font-sans font-bold uppercase tracking-[0.3em] mb-4">{section.title}</h2>
+                    <div className="space-y-3">
+                      {section.items.map(item => (
+                        <div key={item.id} className="mb-2">
+                          <div className="flex justify-between items-baseline">
+                            <div>
+                              <p className="text-sm font-bold">{item.title}</p>
+                              {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
+                            </div>
+                            {item.date && <p className="text-sm font-bold">{item.date}</p>}
+                          </div>
+                          {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
                         </div>
-                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
-                      </div>
-                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )
-          ))}
-
+                  </div>
+                ))
+            )}
           </div>
         </div>
       </div>

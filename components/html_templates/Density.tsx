@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -15,7 +16,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function Density({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none mx-auto lg:mx-0 shrink-0 font-sans text-gray-900 text-[11px] leading-snug px-[0.65in] py-[0.55in] flex flex-col">
-      {/* Two-column header */}
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Two-column header */}
       <header className="flex justify-between items-start gap-6 mb-3">
         <div>
           <h1 className="text-[26px] font-extrabold tracking-tight leading-none mb-1">
@@ -41,8 +45,10 @@ export default function Density({ data }: { data: ResumeData }) {
           <p className="text-gray-800">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-3">
           <SectionTitle>Skills</SectionTitle>
           <div className="grid grid-cols-3 gap-x-6 gap-y-1">
@@ -57,9 +63,9 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-3">
           <SectionTitle>Experience</SectionTitle>
           <div className="space-y-3">
@@ -94,9 +100,9 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-3">
           <SectionTitle>Education</SectionTitle>
           <div className="space-y-1">
@@ -113,9 +119,9 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-3">
           <SectionTitle>Projects</SectionTitle>
           <div className="space-y-2">
@@ -132,9 +138,9 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-3">
           <SectionTitle>Certifications</SectionTitle>
           <div className="space-y-1">
@@ -153,9 +159,9 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-3">
           <SectionTitle>References</SectionTitle>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
@@ -171,13 +177,11 @@ export default function Density({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
+      ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id} className="mb-3">
                 <SectionTitle>{section.title}</SectionTitle>
                 <div className="space-y-2">
@@ -206,8 +210,8 @@ export default function Density({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+            ))
+      )}
     </div>
   );
 }

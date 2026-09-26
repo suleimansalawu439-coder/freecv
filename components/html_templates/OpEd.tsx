@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function OpEd({ data }: { data: ResumeData }) {
   const { personalInfo } = data;
@@ -16,6 +17,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-12 font-serif text-gray-700 leading-relaxed">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Masthead */}
       <header className="mb-2">
         {personalInfo.jobTitle && (
@@ -44,9 +48,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section>
           <SectionHeader>Experience</SectionHeader>
           <div className="space-y-7">
@@ -71,10 +76,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section>
           <SectionHeader>Education</SectionHeader>
           <div className="space-y-4">
@@ -93,10 +97,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills — inline, semicolon separated */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section>
           <SectionHeader>Skills</SectionHeader>
           <p className="text-[14px] leading-loose text-gray-700">
@@ -108,10 +111,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </p>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section>
           <SectionHeader>Projects</SectionHeader>
           <div className="space-y-4">
@@ -128,10 +130,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader>Certifications</SectionHeader>
           <div className="space-y-3">
@@ -150,10 +151,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section>
           <SectionHeader>References</SectionHeader>
           <div className="grid grid-cols-2 gap-6">
@@ -169,14 +169,12 @@ export default function OpEd({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id}>
                 <SectionHeader>{section.title}</SectionHeader>
                 <div className="space-y-5">
@@ -198,8 +196,8 @@ export default function OpEd({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

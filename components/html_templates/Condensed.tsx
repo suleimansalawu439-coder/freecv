@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionLabel({ title }: { title: string }) {
   return (
@@ -26,7 +27,10 @@ export default function Condensed({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans bg-white text-[#1a1a1a] min-h-[1056px] w-full max-w-[816px] mx-auto px-12 py-10 leading-snug">
-      {/* Header */}
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header */}
       <header className="mb-5">
         <h1 className="text-3xl font-bold leading-tight">{info.fullName}</h1>
         {info.jobTitle && <p className="text-sm font-medium text-gray-500 mt-0.5">{info.jobTitle}</p>}
@@ -42,9 +46,10 @@ export default function Condensed({ data }: { data: ResumeData }) {
           <p className="text-xs leading-relaxed text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience — two-line entries */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="Experience" />
           <div className="space-y-2.5">
@@ -66,10 +71,9 @@ export default function Condensed({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="Education" />
           <div className="space-y-1.5">
@@ -86,20 +90,18 @@ export default function Condensed({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* Skills — one comma-separated line */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="Skills" />
           <p className="text-xs text-gray-700 leading-relaxed">
             {data.skills.map((s) => s.name).join(', ')}
           </p>
         </section>
-      )}
+      ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="Projects" />
           <div className="space-y-1.5">
@@ -118,10 +120,9 @@ export default function Condensed({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="Certifications" />
           <div className="space-y-1">
@@ -138,10 +139,9 @@ export default function Condensed({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-5">
           <SectionLabel title="References" />
           <div className="space-y-1">
@@ -161,14 +161,11 @@ export default function Condensed({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
+      ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id} className="mb-5">
                 <SectionLabel title={section.title} />
                 <div className="space-y-1.5">
@@ -188,8 +185,8 @@ export default function Condensed({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+            ))
+      )}
     </div>
   );
 }

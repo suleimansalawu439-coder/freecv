@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function RunIn({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -16,6 +17,9 @@ export default function Bare({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 px-16 py-14 mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-10">
         {info.fullName && (
           <h1 className="text-3xl font-bold tracking-tight text-black">{info.fullName}</h1>
@@ -30,8 +34,10 @@ export default function Bare({ data }: { data: ResumeData }) {
           <span className="text-gray-800">{data.summary}</span>
         </RunIn>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <RunIn label="Experience">
           {data.experience.map((exp, idx) => (
             <span key={exp.id} className="text-gray-800">
@@ -52,9 +58,9 @@ export default function Bare({ data }: { data: ResumeData }) {
             </span>
           ))}
         </RunIn>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <RunIn label="Education">
           {data.education.map((edu, idx) => (
             <span key={edu.id} className="text-gray-800">
@@ -66,15 +72,15 @@ export default function Bare({ data }: { data: ResumeData }) {
             </span>
           ))}
         </RunIn>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <RunIn label="Skills">
           <span className="text-gray-800">{data.skills.map((s) => s.name).join('; ')}</span>
         </RunIn>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <RunIn label="Projects">
           {data.projects.map((proj, idx) => (
             <span key={proj.id} className="text-gray-800">
@@ -85,9 +91,9 @@ export default function Bare({ data }: { data: ResumeData }) {
             </span>
           ))}
         </RunIn>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <RunIn label="Certifications">
           {data.certifications.map((cert, idx) => (
             <span key={cert.id} className="text-gray-800">
@@ -98,25 +104,9 @@ export default function Bare({ data }: { data: ResumeData }) {
             </span>
           ))}
         </RunIn>
-      )}
+        ),
 
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
-          <RunIn key={section.id} label={section.title}>
-            {section.items.map((item, idx) => (
-              <span key={item.id} className="text-gray-800">
-                {idx > 0 && <span className="text-gray-400">{'  —  '}</span>}
-                {item.title && <span className="font-bold text-black">{item.title}</span>}
-                {item.subtitle && <span>, {item.subtitle}</span>}
-                {item.date && <span className="text-gray-500"> ({item.date})</span>}
-                {item.description && <span>: {item.description}</span>}
-              </span>
-            ))}
-          </RunIn>
-        ) : null
-      )}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <RunIn label="References">
           {data.references.map((ref, idx) => (
             <span key={ref.id} className="text-gray-800">
@@ -129,6 +119,23 @@ export default function Bare({ data }: { data: ResumeData }) {
             </span>
           ))}
         </RunIn>
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
+          <RunIn key={section.id} label={section.title}>
+            {section.items.map((item, idx) => (
+              <span key={item.id} className="text-gray-800">
+                {idx > 0 && <span className="text-gray-400">{'  —  '}</span>}
+                {item.title && <span className="font-bold text-black">{item.title}</span>}
+                {item.subtitle && <span>, {item.subtitle}</span>}
+                {item.date && <span className="text-gray-500"> ({item.date})</span>}
+                {item.description && <span>: {item.description}</span>}
+              </span>
+            ))}
+          </RunIn>
+        ))
       )}
     </div>
   );

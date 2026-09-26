@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const DARK = '#0F172A';
@@ -172,6 +173,8 @@ export default function Frontline({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
         <View style={[styles.header, { backgroundColor: themeColor }]}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
@@ -179,18 +182,21 @@ export default function Frontline({ data }: { data: ResumeData }) {
             <Text style={styles.contactLine}>{contactItems.join('   |   ')}</Text>
           ) : null}
         </View>
+          ),
+        })}
 
         <View style={styles.body}>
-          {data.summary ? (
+          {orderSections(data, {
+            personal: data.summary ? (
             <View style={styles.section}>
               <SectionHead title="Mission Statement" themeColor={themeColor} />
               <Text style={[styles.summaryText, { borderLeftColor: themeColor }]}>
                 {data.summary}
               </Text>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Service Record" themeColor={themeColor} />
               {data.experience.map((exp) => (
@@ -216,9 +222,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Key Strengths" themeColor={themeColor} />
               <View style={styles.skillGrid}>
@@ -230,9 +236,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Training & Education" themeColor={themeColor} />
               {data.education.map((edu) => (
@@ -247,9 +253,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Certifications" themeColor={themeColor} />
               {data.certifications.map((cert) => (
@@ -262,9 +268,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Operations & Projects" themeColor={themeColor} />
               {data.projects.map((proj) => (
@@ -277,11 +283,27 @@ export default function Frontline({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.customSections &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 && (
+            <View style={styles.section}>
+              <SectionHead title="References" themeColor={themeColor} />
+              {data.references.map((ref) => (
+                <View key={ref.id} style={{ marginBottom: 6 }}>
+                  <Text style={styles.degreeText}>{ref.name}</Text>
+                  <Text style={styles.schoolText}>
+                    {ref.title}
+                    {ref.company ? `, ${ref.company}` : ''}
+                  </Text>
+                  {ref.contact ? <Text style={styles.schoolText}>{ref.contact}</Text> : null}
+                </View>
+              ))}
+            </View>
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <SectionHead title={section.title} themeColor={themeColor} />
                   {section.items.map((item) => (
@@ -301,23 +323,7 @@ export default function Frontline({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
-            <View style={styles.section}>
-              <SectionHead title="References" themeColor={themeColor} />
-              {data.references.map((ref) => (
-                <View key={ref.id} style={{ marginBottom: 6 }}>
-                  <Text style={styles.degreeText}>{ref.name}</Text>
-                  <Text style={styles.schoolText}>
-                    {ref.title}
-                    {ref.company ? `, ${ref.company}` : ''}
-                  </Text>
-                  {ref.contact ? <Text style={styles.schoolText}>{ref.contact}</Text> : null}
-                </View>
-              ))}
-            </View>
+              ))
           )}
         </View>
       </Page>

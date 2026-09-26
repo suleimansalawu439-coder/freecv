@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function StackHeader({ title }: { title: string }) {
   return (
@@ -17,27 +18,32 @@ export default function Stack({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-gray-50 font-sans text-gray-900 mx-auto px-12 py-10">
-      {/* Header card */}
-      <header className={`${cardCls} mb-6`} style={{ borderTopWidth: 4, borderTopColor: 'var(--theme-color)' }}>
-        <h1 className="text-4xl font-black tracking-tight mb-1">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-base font-bold mb-3" style={{ color: 'var(--theme-color)' }}>
-            {info.jobTitle}
-          </p>
-        )}
-        {contactItems.length > 0 && (
-          <p className="text-xs text-gray-600">{contactItems.join('  •  ')}</p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header card */}
+            <header className={`${cardCls} mb-6`} style={{ borderTopWidth: 4, borderTopColor: 'var(--theme-color)' }}>
+              <h1 className="text-4xl font-black tracking-tight mb-1">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-base font-bold mb-3" style={{ color: 'var(--theme-color)' }}>
+                  {info.jobTitle}
+                </p>
+              )}
+              {contactItems.length > 0 && (
+                <p className="text-xs text-gray-600">{contactItems.join('  •  ')}</p>
+              )}
+            </header>
 
-      {data.summary && (
-        <section className={`${cardCls} mb-6`}>
-          <StackHeader title="Profile" />
-          <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
-        </section>
-      )}
+            {data.summary && (
+              <section className={`${cardCls} mb-6`}>
+                <StackHeader title="Profile" />
+                <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-6">
           <div className="px-1 mb-3">
             <StackHeader title="Experience" />
@@ -66,9 +72,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className={`${cardCls} mb-6`}>
           <StackHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -83,9 +89,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className={`${cardCls} mb-6`}>
           <StackHeader title="Education" />
           <div className="space-y-4">
@@ -102,9 +108,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-6">
           <div className="px-1 mb-3">
             <StackHeader title="Projects" />
@@ -121,9 +127,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className={`${cardCls} mb-6`}>
           <StackHeader title="Certifications" />
           <div className="space-y-2">
@@ -135,9 +141,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className={`${cardCls} mb-6`}>
           <StackHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -150,9 +156,11 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.map((section) => (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
         <section key={section.id} className="mb-6">
           <div className="px-1 mb-3">
             <StackHeader title={section.title} />
@@ -170,7 +178,9 @@ export default function Stack({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      ))}
+          ))
+      )}
+
     </div>
   );
 }

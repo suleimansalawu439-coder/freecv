@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -192,6 +193,9 @@ export default function Portrait({ data }: TemplateProps) {
       <Page size="A4" style={styles.page}>
         {/* Left rail */}
         <View style={styles.rail}>
+          {orderSections(data, {
+            personal: (
+              <>
           {p.profilePicture ? <Image src={p.profilePicture} style={styles.photo} /> : null}
 
           <View>
@@ -201,8 +205,11 @@ export default function Portrait({ data }: TemplateProps) {
             {p.location ? <Text style={styles.contactItem}>{p.location}</Text> : null}
             {p.website ? <Text style={styles.contactItem}>{p.website}</Text> : null}
           </View>
+              </>
+            ),
 
-          {data.skills && data.skills.length > 0 && (
+            // Skills
+            skills: data.skills && data.skills.length > 0 && (
             <View>
               {sectionTitle('Skills')}
               {data.skills.map((skill) => (
@@ -211,9 +218,10 @@ export default function Portrait({ data }: TemplateProps) {
                 </Text>
               ))}
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            // Education
+            education: data.education && data.education.length > 0 && (
             <View>
               {sectionTitle('Education')}
               {data.education.map((edu) => (
@@ -225,10 +233,14 @@ export default function Portrait({ data }: TemplateProps) {
               ))}
             </View>
           )}
+          )}
         </View>
 
         {/* Main column */}
         <View style={styles.main}>
+          {orderSections(data, {
+            personal: (
+              <>
           <View>
             <Text style={styles.name}>{p.fullName}</Text>
             <Text style={[styles.jobTitle, { color: themeColor }]}>{p.jobTitle}</Text>
@@ -240,8 +252,11 @@ export default function Portrait({ data }: TemplateProps) {
               <Text style={styles.bodyText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 && (
+            // Experience
+            experience: data.experience && data.experience.length > 0 && (
             <View>
               {sectionTitle('Experience')}
               {data.experience.map((exp) => (
@@ -259,9 +274,10 @@ export default function Portrait({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            // Projects
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View>
               {sectionTitle('Projects')}
               {data.projects.map((proj) => (
@@ -272,9 +288,10 @@ export default function Portrait({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            // Certifications
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View>
               {sectionTitle('Certifications')}
               {data.certifications.map((cert) => (
@@ -285,9 +302,10 @@ export default function Portrait({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showReferences && data.references && data.references.length > 0 && (
+            // References
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View>
               {sectionTitle('References')}
               <View style={styles.refGrid}>
@@ -304,34 +322,32 @@ export default function Portrait({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          )}
-
-          {data.customSections &&
-            data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
-                  <View key={section.id}>
-                    {sectionTitle(section.title)}
-                    {section.items.map((item) => (
-                      <View key={item.id} style={styles.customSectionItem}>
-                        <View style={styles.customHeader}>
-                          <View>
-                            <Text style={styles.customTitle}>{item.title}</Text>
-                            {item.subtitle ? (
-                              <Text style={styles.customSubtitle}>{item.subtitle}</Text>
-                            ) : null}
-                          </View>
-                          {item.date ? <Text style={styles.customDate}>{item.date}</Text> : null}
+          ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+                <View key={section.id}>
+                  {sectionTitle(section.title)}
+                  {section.items.map((item) => (
+                    <View key={item.id} style={styles.customSectionItem}>
+                      <View style={styles.customHeader}>
+                        <View>
+                          <Text style={styles.customTitle}>{item.title}</Text>
+                          {item.subtitle ? (
+                            <Text style={styles.customSubtitle}>{item.subtitle}</Text>
+                          ) : null}
                         </View>
-                        {item.description ? (
-                          <Text style={styles.customDesc}>{item.description}</Text>
-                        ) : null}
+                        {item.date ? <Text style={styles.customDate}>{item.date}</Text> : null}
                       </View>
-                    ))}
-                  </View>
-                )
-            )}
+                      {item.description ? (
+                        <Text style={styles.customDesc}>{item.description}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ))
+          )}
         </View>
       </Page>
     </Document>

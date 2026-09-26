@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -14,7 +15,10 @@ export default function Consul({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-[0.85in] font-sans text-[#111111]">
-      {/* Header — huge name + one-baseline title/contact row */}
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header — huge name + one-baseline title/contact row */}
       <header className="mb-10">
         {data.personalInfo.fullName && (
           <h1 className="text-5xl font-black tracking-tight text-[#111111] leading-none">
@@ -42,9 +46,10 @@ export default function Consul({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-800">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience — role left, company right; dates row 2 */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           {data.experience.map((exp) => (
@@ -75,10 +80,9 @@ export default function Consul({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+      ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           {data.education.map((edu) => (
@@ -95,10 +99,9 @@ export default function Consul({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+      ),
 
-      {/* Skills — 3 column grid */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <div className="grid grid-cols-3 gap-x-6 gap-y-2">
@@ -107,10 +110,9 @@ export default function Consul({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           {data.projects.map((proj) => (
@@ -121,10 +123,9 @@ export default function Consul({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+      ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           {data.certifications.map((cert) => (
@@ -137,10 +138,9 @@ export default function Consul({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+      ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           {data.references.map((ref) => (
@@ -153,11 +153,11 @@ export default function Consul({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+      ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-8">
             <SectionHeader title={section.title} />
             {section.items.map((item) => (
@@ -171,7 +171,7 @@ export default function Consul({ data }: { data: ResumeData }) {
               </div>
             ))}
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

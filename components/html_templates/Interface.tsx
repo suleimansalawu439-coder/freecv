@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function DotRating({ level }: { level: number }) {
   return (
@@ -35,6 +36,9 @@ export default function Interface({ data }: { data: ResumeData }) {
         className="w-[30%] shrink-0 px-8 py-10"
         style={{ backgroundColor: 'color-mix(in srgb, var(--theme-color) 8%, white)' }}
       >
+        {orderSections(data, {
+          personal: (
+          <>
         {initials && (
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mb-8"
@@ -50,8 +54,10 @@ export default function Interface({ data }: { data: ResumeData }) {
           {info.location && <p>{info.location}</p>}
           {info.website && <p>{info.website}</p>}
         </div>
+          </>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-10">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-4">
               Skills
@@ -65,9 +71,9 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <div className="mb-10">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-4">
               Education
@@ -82,9 +88,9 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-4">
               References
@@ -101,11 +107,15 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
+        })}
       </aside>
 
       {/* Main column */}
       <main className="flex-1 px-10 py-10 min-w-0">
+        {orderSections(data, {
+          personal: (
+        <>
         <header className="mb-8">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-1">
             {info.fullName}
@@ -126,8 +136,10 @@ export default function Interface({ data }: { data: ResumeData }) {
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+          </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-2">
               Experience
@@ -164,9 +176,9 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-2">
               Projects
@@ -184,9 +196,9 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-2">
               Certifications
@@ -204,9 +216,11 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map((section) => (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
           <section key={section.id} className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-2">
               {section.title}
@@ -227,7 +241,8 @@ export default function Interface({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ))}
+            ))
+        )}
       </main>
     </div>
   );

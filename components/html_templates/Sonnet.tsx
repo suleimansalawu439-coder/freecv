@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -16,28 +17,33 @@ export default function Sonnet({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 mx-auto px-[1.1in] py-[1in]">
       {/* Header — centered, verse-like */}
-      <header className="text-center mb-14">
-        <h1 className="text-4xl font-bold mb-3 tracking-wide">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-base italic text-gray-600 mb-4">{info.jobTitle}</p>
-        )}
-        {contactItems.length > 0 && (
-          <p className="text-xs text-gray-500 leading-relaxed">
-            {contactItems.join('\u2003·\u2003')}
-          </p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            <header className="text-center mb-14">
+              <h1 className="text-4xl font-bold mb-3 tracking-wide">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-base italic text-gray-600 mb-4">{info.jobTitle}</p>
+              )}
+              {contactItems.length > 0 && (
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  {contactItems.join('\u2003·\u2003')}
+                </p>
+              )}
+            </header>
 
-      {data.summary && (
-        <section className="mb-14">
-          <SectionHeader title="Profile" />
-          <p className="text-[15px] leading-[2] text-center italic text-gray-800 max-w-[5.2in] mx-auto">
-            {data.summary}
-          </p>
-        </section>
-      )}
+            {data.summary && (
+              <section className="mb-14">
+                <SectionHeader title="Profile" />
+                <p className="text-[15px] leading-[2] text-center italic text-gray-800 max-w-[5.2in] mx-auto">
+                  {data.summary}
+                </p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="Experience" />
           <div className="space-y-10">
@@ -59,9 +65,9 @@ export default function Sonnet({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="Education" />
           <div className="space-y-6 text-center">
@@ -74,18 +80,18 @@ export default function Sonnet({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="Skills" />
           <p className="text-[15px] leading-[2.2] text-center text-gray-800">
             {data.skills.map((s) => s.name).join('\u2003·\u2003')}
           </p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="Projects" />
           <div className="space-y-8 text-center">
@@ -97,9 +103,9 @@ export default function Sonnet({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="Certifications" />
           <div className="space-y-4 text-center">
@@ -111,9 +117,9 @@ export default function Sonnet({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-14">
           <SectionHeader title="References" />
           <div className="space-y-6 text-center">
@@ -126,10 +132,11 @@ export default function Sonnet({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.map((section) =>
-        section.items.length > 0 ? (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-14">
             <SectionHeader title={section.title} />
             <div className="space-y-8 text-center">
@@ -145,8 +152,9 @@ export default function Sonnet({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+          ))
       )}
+
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -228,6 +229,9 @@ export default function Showcase({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View>
@@ -241,8 +245,17 @@ export default function Showcase({ data }: TemplateProps) {
 
         <View style={[styles.accentBar, { backgroundColor: themeColor }]} />
 
-        {/* Projects FIRST */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        {data.summary ? (
+          <View style={styles.section}>
+            {offsetLabel('Profile')}
+            <Text style={styles.bodyText}>{data.summary}</Text>
+          </View>
+        ) : null}
+            </>
+          ),
+
+        // Projects FIRST
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('Selected Work')}
             {data.projects.map((proj) => (
@@ -257,16 +270,9 @@ export default function Showcase({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.summary ? (
-          <View style={styles.section}>
-            {offsetLabel('Profile')}
-            <Text style={styles.bodyText}>{data.summary}</Text>
-          </View>
-        ) : null}
-
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('Experience')}
             {data.experience.map((exp) => (
@@ -283,9 +289,9 @@ export default function Showcase({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('Skills')}
             <View style={styles.skillTags}>
@@ -299,9 +305,9 @@ export default function Showcase({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('Education')}
             {data.education.map((edu) => (
@@ -312,9 +318,9 @@ export default function Showcase({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('Certifications')}
             {data.certifications.map((cert) => (
@@ -325,9 +331,9 @@ export default function Showcase({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             {offsetLabel('References')}
             <View style={styles.refGrid}>
@@ -344,13 +350,11 @@ export default function Showcase({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   {offsetLabel(section.title)}
                   {section.items.map((item) => (
@@ -370,8 +374,8 @@ export default function Showcase({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 
 export default function ExecutiveSplit({ data }: { data: ResumeData }) {
@@ -7,6 +8,8 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none flex flex-col font-serif mx-auto lg:mx-0 shrink-0 text-black">
       
       {/* Header spanning full width */}
+      {orderSections(data, {
+        personal: (
       <div className="p-[0.75in] pb-8 border-b-[6px] border-black text-center bg-gray-50">
         <h1 className="text-5xl font-black uppercase tracking-widest mb-3">{data.personalInfo.fullName}</h1>
         <p className="text-lg font-bold uppercase tracking-[0.3em] text-gray-600 mb-6">{data.personalInfo.jobTitle}</p>
@@ -17,18 +20,21 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
           {data.personalInfo.website && <span className="flex items-center gap-2"><Globe size={12} /> {data.personalInfo.website}</span>}
         </div>
       </div>
+        ),
+      })}
 
       <div className="flex flex-1">
         {/* Left Column */}
         <div className="w-[65%] p-[0.75in] pt-8 pr-8 flex flex-col">
-          {data.summary && (
+          {orderSections(data, {
+            personal: data.summary && (
             <div className="mb-10">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Executive Profile</h2>
               <p className="text-sm leading-relaxed text-justify">{data.summary}</p>
             </div>
-          )}
+            ),
 
-          {data.experience.length > 0 && (
+            experience: data.experience.length > 0 && (
             <div className="mb-10">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-6 font-sans border-b-2 border-black pb-1 inline-block">Professional Experience</h2>
               <div className="space-y-8">
@@ -48,9 +54,9 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
 
-          {data.showProjects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects.length > 0 && (
             <div className="mb-4">
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-6 font-sans border-b-2 border-black pb-1 inline-block">Strategic Initiatives</h2>
               <div className="space-y-5">
@@ -62,13 +68,14 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
+          })}
         </div>
 
         {/* Right Column */}
         <div className="w-[35%] bg-gray-50 p-[0.75in] pt-8 pl-8 border-l border-gray-200 flex flex-col gap-10">
-          
-          {data.education.length > 0 && (
+          {orderSections(data, {
+            education: data.education.length > 0 && (
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Education</h2>
               <div className="space-y-5">
@@ -81,9 +88,9 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Credentials</h2>
               <div className="space-y-4">
@@ -96,9 +103,9 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
 
-{data.showReferences && data.references.length > 0 && (
+            references: data.showReferences && data.references.length > 0 && (
             <div>
               <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">References</h2>
               <div className="space-y-4">
@@ -111,9 +118,22 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+            ),
+
+            skills: data.skills.length > 0 && (
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Skills</h2>
+              <div className="flex flex-col gap-2">
+                {data.skills.map(s => (
+                  <span key={s.id} className="text-sm font-bold uppercase tracking-wider">{s.name}</span>
+                ))}
+              </div>
+            </div>
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <div key={section.id} className="mb-6">
                 <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">{section.title}</h2>
                 <div className="space-y-3">
@@ -131,19 +151,7 @@ export default function ExecutiveSplit({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
-
-
-          {data.skills.length > 0 && (
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] mb-4 font-sans border-b-2 border-black pb-1 inline-block">Skills</h2>
-              <div className="flex flex-col gap-2">
-                {data.skills.map(s => (
-                  <span key={s.id} className="text-sm font-bold uppercase tracking-wider">{s.name}</span>
-                ))}
-              </div>
-            </div>
+              ))
           )}
         </div>
       </div>

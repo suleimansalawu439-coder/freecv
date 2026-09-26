@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const GOLD = '#a8842c';
 const CHARCOAL = '#2f3437';
@@ -23,6 +24,8 @@ export default function Gilt({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif mx-auto px-[0.9in] py-[0.8in]" style={{ color: CHARCOAL }}>
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="text-center mb-8">
         <div className="flex items-center justify-center gap-4 mb-4">
           <div className="h-px w-16" style={{ backgroundColor: GOLD }} />
@@ -39,17 +42,18 @@ export default function Gilt({ data }: { data: ResumeData }) {
           <p className="text-xs text-gray-600">{contactItems.join('  ·  ')}</p>
         )}
       </header>
+        ),
+      })}
 
-      {/* Summary */}
-      {data.summary && (
+      {orderSections(data, {
+        personal: data.summary && (
         <section className="mb-7">
           <SectionHeader title="Profile" />
           <p className="text-sm leading-relaxed text-center italic px-6">{data.summary}</p>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Experience" />
           <div className="space-y-5">
@@ -76,10 +80,9 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -96,10 +99,9 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2 justify-center">
@@ -114,10 +116,9 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -132,10 +133,9 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -147,10 +147,9 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -163,11 +162,11 @@ export default function Gilt({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections.map((section) =>
-        section.items.length > 0 ? (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-7">
             <SectionHeader title={section.title} />
             <div className="space-y-4">
@@ -185,7 +184,7 @@ export default function Gilt({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

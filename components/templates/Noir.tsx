@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -131,6 +132,9 @@ export default function Noir({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Editorial header */}
         <View style={styles.header}>
           <Text style={styles.name}>{info.fullName}</Text>
@@ -148,9 +152,11 @@ export default function Noir({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 ? (
+        // Experience
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('Experience')}
             {data.experience.map((exp) => (
@@ -168,10 +174,10 @@ export default function Noir({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Education */}
-        {data.education && data.education.length > 0 ? (
+        // Education
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('Education')}
             {data.education.map((edu) => (
@@ -184,18 +190,18 @@ export default function Noir({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Skills */}
-        {data.skills && data.skills.length > 0 ? (
+        // Skills
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('Skills')}
             <Text style={styles.skillsLine}>{data.skills.map((s) => s.name).join('  ·  ')}</Text>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+        // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('Projects')}
             {data.projects.map((proj) => (
@@ -212,10 +218,10 @@ export default function Noir({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+        // Certifications
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('Certifications')}
             {data.certifications.map((cert) => (
@@ -231,10 +237,10 @@ export default function Noir({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 ? (
+        // References
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             {sectionLabel('References')}
             {data.references.map((ref) => (
@@ -253,14 +259,11 @@ export default function Noir({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
-
-        {/* Custom sections */}
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
+        ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                   <View key={section.id} style={styles.section}>
                     {sectionLabel(section.title)}
                     {section.items.map((item) => (
@@ -290,9 +293,8 @@ export default function Noir({ data }: TemplateProps) {
                       </View>
                     ))}
                   </View>
-                )
-            )
-          : null}
+            ))
+        )}
       </Page>
     </Document>
   );

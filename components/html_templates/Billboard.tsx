@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MainTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -15,6 +16,8 @@ export default function Billboard({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       {/* Full-bleed theme header block */}
+      {orderSections(data, {
+        personal: (
       <header
         className="px-12 pt-14 pb-12 text-white"
         style={{ backgroundColor: 'var(--theme-color)' }}
@@ -29,16 +32,19 @@ export default function Billboard({ data }: { data: ResumeData }) {
           {[info.email, info.phone, info.location, info.website].filter(Boolean).join('  ·  ')}
         </p>
       </header>
+        ),
+      })}
 
       <main className="px-12 py-10">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section className="mb-9">
             <MainTitle>Profile</MainTitle>
             <p className="text-[14px] leading-relaxed text-gray-600">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section className="mb-9">
             <MainTitle>Skills</MainTitle>
             <div className="flex flex-wrap gap-2">
@@ -52,9 +58,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-9">
             <MainTitle>Experience</MainTitle>
             <div className="relative pl-6">
@@ -95,9 +101,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
               </div>
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-9">
             <MainTitle>Education</MainTitle>
             <div className="space-y-3">
@@ -116,9 +122,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-9">
             <MainTitle>Projects</MainTitle>
             <div className="space-y-5">
@@ -135,9 +141,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-9">
             <MainTitle>Certifications</MainTitle>
             <div className="space-y-3">
@@ -152,9 +158,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section className="mb-9">
             <MainTitle>References</MainTitle>
             <div className="grid grid-cols-2 gap-6">
@@ -170,12 +176,11 @@ export default function Billboard({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id} className="mb-9">
                 <MainTitle>{section.title}</MainTitle>
                 <div className="space-y-5">
@@ -201,8 +206,9 @@ export default function Billboard({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
+          ))
         )}
+
       </main>
     </div>
   );

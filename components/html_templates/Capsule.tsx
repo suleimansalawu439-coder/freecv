@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Capsule({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -17,6 +18,8 @@ export default function Capsule({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       {/* Full-width header */}
+      {orderSections(data, {
+        personal: (
       <header className="px-8 pt-8 pb-5 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">{pi.fullName}</h1>
         {pi.jobTitle && (
@@ -28,12 +31,15 @@ export default function Capsule({ data }: { data: ResumeData }) {
           <p className="text-xs text-gray-500 mt-1.5">{contacts.join(' · ')}</p>
         )}
       </header>
+        ),
+      })}
 
       {/* Even 50/50 body */}
       <div className="flex gap-7 px-8 pb-8">
         {/* LEFT column */}
         <div className="w-1/2 space-y-5">
-          {data.experience.length > 0 && (
+          {orderSections(data, {
+            experience: data.experience.length > 0 && (
             <section>
               <SectionHead title="Experience" />
               <div className="space-y-4">
@@ -59,9 +65,9 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showProjects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects.length > 0 && (
             <section>
               <SectionHead title="Projects" />
               <div className="space-y-3">
@@ -74,10 +80,11 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
-
-          {data.customSections.length > 0 && data.customSections.map(section =>
-            section.items && section.items.length > 0 ? (
+            ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <section key={section.id}>
                 <SectionHead title={section.title} />
                 <div className="space-y-3">
@@ -93,20 +100,21 @@ export default function Capsule({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            ) : null
+            ))
           )}
         </div>
 
         {/* RIGHT column */}
         <div className="w-1/2 space-y-5">
-          {data.summary && (
+          {orderSections(data, {
+            personal: data.summary && (
             <section>
               <SectionHead title="Summary" />
               <p className="text-[13px] leading-relaxed text-gray-700">{data.summary}</p>
             </section>
-          )}
+            ),
 
-          {data.skills.length > 0 && (
+            skills: data.skills.length > 0 && (
             <section>
               <SectionHead title="Skills" />
               <div className="grid grid-cols-2 gap-x-3 gap-y-1">
@@ -117,9 +125,9 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.education.length > 0 && (
+            education: data.education.length > 0 && (
             <section>
               <SectionHead title="Education" />
               <div className="space-y-3">
@@ -132,9 +140,9 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <section>
               <SectionHead title="Certifications" />
               <div className="space-y-2">
@@ -148,9 +156,9 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showReferences && data.references.length > 0 && (
+            references: data.showReferences && data.references.length > 0 && (
             <section>
               <SectionHead title="References" />
               <div className="space-y-2.5">
@@ -165,7 +173,8 @@ export default function Capsule({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
+          })}
         </div>
       </div>
     </div>

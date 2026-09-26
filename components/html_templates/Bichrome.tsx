@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DARK = '#111827';
 
@@ -10,6 +11,9 @@ export default function Bichrome({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-900 mx-auto flex">
       {/* Dark sidebar with theme highlights */}
       <aside className="w-[32%] shrink-0 text-white px-8 py-10 flex flex-col" style={{ backgroundColor: DARK }}>
+        {orderSections(data, {
+          personal: (
+            <>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black text-white mb-6"
           style={{ backgroundColor: 'var(--theme-color)' }}
@@ -23,8 +27,10 @@ export default function Bichrome({ data }: { data: ResumeData }) {
           {info.location && <p className="text-slate-300">{info.location}</p>}
           {info.website && <p className="break-all text-slate-300">{info.website}</p>}
         </div>
+            </>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-8">
             <h2
               className="text-xs font-black uppercase tracking-widest mb-4 pb-2 border-b"
@@ -44,9 +50,9 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <div className="mb-8">
             <h2
               className="text-xs font-black uppercase tracking-widest mb-4 pb-2 border-b"
@@ -66,9 +72,9 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <div className="mb-8">
             <h2
               className="text-xs font-black uppercase tracking-widest mb-4 pb-2 border-b"
@@ -88,9 +94,11 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
-
-        {data.customSections.map((section) => (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <div key={section.id} className="mb-8">
             <h2
               className="text-xs font-black uppercase tracking-widest mb-4 pb-2 border-b"
@@ -108,11 +116,16 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        ))}
+          ))
+        )}
+
       </aside>
 
       {/* Clean main column */}
       <main className="flex-1 px-10 py-10">
+        {orderSections(data, {
+          personal: (
+            <>
         <header className="mb-2">
           <h1 className="text-4xl font-black tracking-tight">{info.fullName}</h1>
           {info.jobTitle && (
@@ -131,8 +144,10 @@ export default function Bichrome({ data }: { data: ResumeData }) {
             <p className="text-sm leading-relaxed text-slate-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mt-8">
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
               Experience
@@ -163,9 +178,9 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mt-8">
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
               Projects
@@ -182,9 +197,9 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section className="mt-8">
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">
               References
@@ -202,7 +217,8 @@ export default function Bichrome({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
+        })}
       </main>
     </div>
   );

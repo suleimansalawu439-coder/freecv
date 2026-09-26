@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { getOrderedSectionIds, orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -263,20 +264,39 @@ export default function Zigzag({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
   const contactItems = [info.email, info.phone, info.location, info.website].filter(Boolean);
 
-  // Alternate: even = left, odd = right
-  let zagIndex = 0;
-  const zag = () => {
-    const right = zagIndex % 2 === 1;
-    zagIndex += 1;
-    return right;
-  };
-  const rightSummary = data.summary ? zag() : false;
-  const rightExp = data.experience && data.experience.length > 0 ? zag() : false;
-  const rightSkills = data.skills && data.skills.length > 0 ? zag() : false;
-  const rightEdu = data.education && data.education.length > 0 ? zag() : false;
-  const rightProj = data.showProjects && data.projects.length > 0 ? zag() : false;
-  const rightCert = data.showCertifications && data.certifications.length > 0 ? zag() : false;
-  const rightRef = data.showReferences && data.references.length > 0 ? zag() : false;
+  // Alternate alignment: even = left, odd = right. The alignment follows the
+  // rendered order (the user's section order, minus hidden or empty sections),
+  // so the zigzag pattern stays intact when sections are reordered or hidden.
+  // The centered identity header never alternates; only the Profile summary
+  // takes the 'personal' slot, mirroring the original counter behavior.
+  const zagRight: Record<string, boolean> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal':
+          return !!data.summary;
+        case 'experience':
+          return !!data.experience && data.experience.length > 0;
+        case 'skills':
+          return !!data.skills && data.skills.length > 0;
+        case 'education':
+          return !!data.education && data.education.length > 0;
+        case 'projects':
+          return data.showProjects && !!data.projects && data.projects.length > 0;
+        case 'certifications':
+          return data.showCertifications && !!data.certifications && data.certifications.length > 0;
+        case 'references':
+          return data.showReferences && !!data.references && data.references.length > 0;
+        default:
+          return false;
+      }
+    });
+    const map: Record<string, boolean> = {};
+    rendered.forEach((id, n) => {
+      map[id] = n % 2 === 1;
+    });
+    return map;
+  })();
+  const customBase = Object.keys(zagRight).length;
 
   const SectionHeader = ({ title, right }: { title: string; right: boolean }) => (
     <View style={right ? styles.sectionHeaderRowRight : styles.sectionHeaderRow}>
@@ -289,7 +309,12 @@ export default function Zigzag({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.container}>
-          <View style={styles.header}>
+          {orderSections(
+            data,
+            {
+              personal: (
+                <>
+                  <View style={styles.header}>
             {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
             {info.jobTitle ? (
               <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
@@ -306,27 +331,29 @@ export default function Zigzag({ data }: { data: ResumeData }) {
 
           {data.summary ? (
             <View style={styles.section}>
-              <SectionHeader title="Profile" right={rightSummary} />
-              <Text style={rightSummary ? styles.summaryTextRight : styles.summaryText}>{data.summary}</Text>
+              <SectionHeader title="Profile" right={zagRight.personal} />
+              <Text style={zagRight.personal ? styles.summaryTextRight : styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+                </>
+              ),
 
-          {data.experience && data.experience.length > 0 ? (
+              experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="Experience" right={rightExp} />
+              <SectionHeader title="Experience" right={zagRight.experience} />
               {data.experience.map((exp) => (
                 <View key={exp.id} style={styles.expItem}>
-                  <View style={rightExp ? styles.itemHeaderRowRight : styles.itemHeaderRow}>
+                  <View style={zagRight.experience ? styles.itemHeaderRowRight : styles.itemHeaderRow}>
                     <Text style={styles.roleTitle}>{exp.role}</Text>
                     <Text style={styles.dateText}>{exp.startDate} – {exp.endDate}</Text>
                   </View>
-                  <Text style={[rightExp ? styles.companyNameRight : styles.companyName, { color: themeColor }]}>
+                  <Text style={[zagRight.experience ? styles.companyNameRight : styles.companyName, { color: themeColor }]}>
                     {exp.company}
                   </Text>
                   {exp.description ? (
                     <View>
                       {exp.description.split(/\n|\r?\n/).filter((l) => l.trim()).map((line, i) => (
-                        <Text key={i} style={rightExp ? styles.bulletTextRight : styles.bulletText}>
+                        <Text key={i} style={zagRight.experience ? styles.bulletTextRight : styles.bulletText}>
                           {line}
                         </Text>
                       ))}
@@ -335,29 +362,29 @@ export default function Zigzag({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.skills && data.skills.length > 0 ? (
+              skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="Skills" right={rightSkills} />
-              <View style={rightSkills ? styles.skillsRowRight : styles.skillsRow}>
+              <SectionHeader title="Skills" right={zagRight.skills} />
+              <View style={zagRight.skills ? styles.skillsRowRight : styles.skillsRow}>
                 {data.skills.map((skill) => (
                   <View
                     key={skill.id}
-                    style={[rightSkills ? styles.skillChipRight : styles.skillChip, { backgroundColor: themeColor }]}
+                    style={[zagRight.skills ? styles.skillChipRight : styles.skillChip, { backgroundColor: themeColor }]}
                   >
                     <Text style={styles.skillText}>{skill.name}</Text>
                   </View>
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.education && data.education.length > 0 ? (
+              education: data.education && data.education.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="Education" right={rightEdu} />
+              <SectionHeader title="Education" right={zagRight.education} />
               {data.education.map((edu) => (
-                <View key={edu.id} style={rightEdu ? styles.eduRowRight : styles.eduRow}>
+                <View key={edu.id} style={zagRight.education ? styles.eduRowRight : styles.eduRow}>
                   <View>
                     <Text style={styles.eduDegree}>{edu.degree}</Text>
                     <Text style={styles.eduSchool}>{edu.school}</Text>
@@ -366,36 +393,36 @@ export default function Zigzag({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects.length > 0 ? (
+              projects: data.showProjects && data.projects.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="Projects" right={rightProj} />
+              <SectionHeader title="Projects" right={zagRight.projects} />
               {data.projects.map((proj) => (
                 <View key={proj.id}>
                   <Text style={styles.projectName}>
                     {proj.name}{proj.link ? <Text style={styles.certDetail}> ({proj.link})</Text> : null}
                   </Text>
-                  <Text style={rightProj ? styles.projectDescRight : styles.projectDesc}>{proj.description}</Text>
+                  <Text style={zagRight.projects ? styles.projectDescRight : styles.projectDesc}>{proj.description}</Text>
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications.length > 0 ? (
+              certifications: data.showCertifications && data.certifications.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="Certifications" right={rightCert} />
+              <SectionHeader title="Certifications" right={zagRight.certifications} />
               {data.certifications.map((cert) => (
                 <Text key={cert.id} style={styles.certText}>
                   {cert.name} <Text style={styles.certDetail}>— {cert.issuer} · {cert.date}</Text>
                 </Text>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showReferences && data.references.length > 0 ? (
+              references: data.showReferences && data.references.length > 0 ? (
             <View style={styles.section}>
-              <SectionHeader title="References" right={rightRef} />
+              <SectionHeader title="References" right={zagRight.references} />
               <View style={styles.refRow}>
                 {data.references.map((ref) => (
                   <View key={ref.id} style={styles.refCard}>
@@ -408,26 +435,29 @@ export default function Zigzag({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
-
-          {data.customSections.map((section, si) => {
-            const right = (zagIndex + si) % 2 === 1;
-            return (
-              <View key={section.id} style={styles.section}>
-                <SectionHeader title={section.title} right={right} />
-                {section.items.map((item) => (
-                  <View key={item.id}>
-                    <View style={right ? styles.itemHeaderRowRight : styles.itemHeaderRow}>
-                      <Text style={styles.customTitle}>{item.title}</Text>
-                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                    </View>
-                    {item.subtitle ? <Text style={styles.customSubtitle}>{item.subtitle}</Text> : null}
-                    {item.description ? <Text style={styles.customDesc}>{item.description}</Text> : null}
+          ) : null,
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section, si) => {
+                const right = (customBase + si) % 2 === 1;
+                return (
+                  <View key={section.id} style={styles.section}>
+                    <SectionHeader title={section.title} right={right} />
+                    {section.items.map((item) => (
+                      <View key={item.id}>
+                        <View style={right ? styles.itemHeaderRowRight : styles.itemHeaderRow}>
+                          <Text style={styles.customTitle}>{item.title}</Text>
+                          {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                        </View>
+                        {item.subtitle ? <Text style={styles.customSubtitle}>{item.subtitle}</Text> : null}
+                        {item.description ? <Text style={styles.customDesc}>{item.description}</Text> : null}
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            );
-          })}
+                );
+              })
+          )}
         </View>
       </Page>
     </Document>

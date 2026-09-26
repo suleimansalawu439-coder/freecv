@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const NAVY = '#16294d';
 const NAVY_LINE = '#2c4370';
@@ -28,6 +29,9 @@ export default function Navy({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-slate-800 mx-auto px-14 py-12">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Classic navy masthead */}
       <header
         className="text-white px-10 py-9 mb-2 rounded"
@@ -56,8 +60,10 @@ export default function Navy({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Professional Experience" />
           <div className="space-y-6">
@@ -89,9 +95,9 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -110,9 +116,9 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Core Competencies" />
           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
@@ -124,9 +130,9 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -143,9 +149,9 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -164,9 +170,32 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
+        references: data.showReferences && data.references.length > 0 && (
+        <section>
+          <SectionHeader title="References" />
+          <div className="grid grid-cols-2 gap-4">
+            {data.references.map((ref) => (
+              <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: NAVY }}>
+                <p className="text-sm font-bold" style={{ color: NAVY }}>
+                  {ref.name}
+                </p>
+                <p className="text-xs text-slate-600">
+                  {ref.title}
+                  {ref.company && `, ${ref.company}`}
+                </p>
+                {ref.contact && <p className="text-xs text-slate-500 mt-1">{ref.contact}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ),
+
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
         <section key={section.id}>
           <SectionHeader title={section.title} />
           <div className="space-y-3">
@@ -188,26 +217,7 @@ export default function Navy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
-        <section>
-          <SectionHeader title="References" />
-          <div className="grid grid-cols-2 gap-4">
-            {data.references.map((ref) => (
-              <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: NAVY }}>
-                <p className="text-sm font-bold" style={{ color: NAVY }}>
-                  {ref.name}
-                </p>
-                <p className="text-xs text-slate-600">
-                  {ref.title}
-                  {ref.company && `, ${ref.company}`}
-                </p>
-                {ref.contact && <p className="text-xs text-slate-500 mt-1">{ref.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
+        ))
       )}
 
       <footer className="mt-10 flex items-center gap-3">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -161,21 +162,33 @@ export default function Spread({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
           {contact.length > 0 ? <Text style={styles.contact}>{contact.join('   ·   ')}</Text> : null}
         </View>
+            </>
+          ),
+          },
+        )}
 
         <View style={styles.body}>
+          {orderSections(data, {
+            personal: (
+              <>
           {data.summary ? (
             <Text style={styles.summaryPara}>
               <Text style={[styles.dropCap, { color: themeColor }]}>{summaryFirst}  </Text>
               {summaryRest}
             </Text>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View>
               <Text style={styles.featureHead}>Experience</Text>
               {data.experience.map((exp) => (
@@ -200,9 +213,9 @@ export default function Spread({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View>
               <Text style={styles.featureHead}>Skills</Text>
               <View style={styles.chipRow}>
@@ -213,9 +226,9 @@ export default function Spread({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View>
               <Text style={styles.featureHead}>Education</Text>
               {data.education.map((edu) => (
@@ -228,9 +241,9 @@ export default function Spread({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View>
               <Text style={styles.featureHead}>Selected Work</Text>
               {data.projects.map((proj) => (
@@ -243,9 +256,9 @@ export default function Spread({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View>
               <Text style={styles.featureHead}>Certifications</Text>
               {data.certifications.map((cert) => (
@@ -256,32 +269,9 @@ export default function Spread({ data }: { data: ResumeData }) {
                 </Text>
               ))}
             </View>
-          )}
+          ),
 
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
-                <View key={section.id}>
-                  <Text style={styles.featureHead}>{section.title}</Text>
-                  {section.items.map((item) => (
-                    <View key={item.id} style={{ marginBottom: 12 }}>
-                      {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
-                      {item.subtitle || item.date ? (
-                        <Text style={styles.dateText}>
-                          {item.subtitle}
-                          {item.subtitle && item.date ? '   ·   ' : ''}
-                          {item.date}
-                        </Text>
-                      ) : null}
-                      {item.description ? <Text style={[styles.bulletText, { marginTop: 4 }]}>{item.description}</Text> : null}
-                    </View>
-                  ))}
-                </View>
-              ) : null
-            )}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View>
               <Text style={styles.featureHead}>References</Text>
               <View style={styles.refGrid}>
@@ -300,6 +290,28 @@ export default function Spread({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+                <View key={section.id}>
+                  <Text style={styles.featureHead}>{section.title}</Text>
+                  {section.items.map((item) => (
+                    <View key={item.id} style={{ marginBottom: 12 }}>
+                      {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
+                      {item.subtitle || item.date ? (
+                        <Text style={styles.dateText}>
+                          {item.subtitle}
+                          {item.subtitle && item.date ? '   ·   ' : ''}
+                          {item.date}
+                        </Text>
+                      ) : null}
+                      {item.description ? <Text style={[styles.bulletText, { marginTop: 4 }]}>{item.description}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              ))
           )}
         </View>
       </Page>

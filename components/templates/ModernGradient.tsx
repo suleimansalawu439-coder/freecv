@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -239,6 +240,9 @@ export default function ModernGradient({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={[styles.header, { backgroundColor: c }]}>
           <View style={styles.avatarContainer}>
@@ -263,9 +267,11 @@ export default function ModernGradient({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Experience Section (Full Width) */}
-        {data.experience && data.experience.length > 0 && (
+        // Experience Section (Full Width)
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.experienceSection}>
             <View style={styles.sectionHeader}>
               <View style={[styles.sectionIcon, { backgroundColor: c }]}>
@@ -297,13 +303,15 @@ export default function ModernGradient({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
+        })}
 
         {/* Two-Column Grid: Left (Skills) & Right (Education, Custom, Contact) */}
         <View style={styles.twoColumnLayout}>
           {/* Left Column */}
           <View style={styles.column}>
-            {data.skills && data.skills.length > 0 && (
+            {orderSections(data, {
+              skills: data.skills && data.skills.length > 0 && (
               <View style={{ marginBottom: 16 }}>
                 <View style={styles.sectionHeader}>
                   <View style={[styles.sectionIcon, { backgroundColor: c }]}>
@@ -328,13 +336,15 @@ export default function ModernGradient({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
+            })}
           </View>
 
           {/* Right Column */}
           <View style={styles.column}>
-            {/* Education */}
-            {data.education && data.education.length > 0 && (
+            // Education
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 && (
               <View style={{ marginBottom: 16 }}>
                 <View style={styles.sectionHeader}>
                   <View style={[styles.sectionIcon, { backgroundColor: c }]}>
@@ -350,43 +360,11 @@ export default function ModernGradient({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {/* Custom Sections */}
-            {data.customSections &&
-              data.customSections.map(
-                (section) =>
-                  section.items &&
-                  section.items.length > 0 && (
-                    <View key={section.id} style={{ marginBottom: 16 }}>
-                      <View style={styles.sectionHeader}>
-                        <View style={[styles.sectionIcon, { backgroundColor: c }]}>
-                          <Text style={styles.sectionIconText}>✨</Text>
-                        </View>
-                        <Text style={styles.sectionTitle}>{section.title}</Text>
-                      </View>
-                      {section.items.map((item) => (
-                        <View key={item.id} style={styles.card}>
-                          <View style={styles.itemHeader}>
-                            <Text style={styles.itemTitle}>{item.title}</Text>
-                            {item.date && (
-                              <Text style={[styles.eduDate, { color: c }]}>{item.date}</Text>
-                            )}
-                          </View>
-                          {item.subtitle && (
-                            <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
-                          )}
-                          {item.description && (
-                            <Text style={styles.itemDescription}>{item.description}</Text>
-                          )}
-                        </View>
-                      ))}
-                    </View>
-                  )
-              )}
-
-            {/* Contact */}
-            <View>
+            // Contact
+              personal: (
+              <View>
               <View style={styles.sectionHeader}>
                 <View style={[styles.sectionIcon, { backgroundColor: c }]}>
                   <Text style={styles.sectionIconText}>📬</Text>
@@ -419,7 +397,39 @@ export default function ModernGradient({ data }: TemplateProps) {
                   </Text>
                 )}
               </View>
-            </View>
+              </View>
+            ),
+            },
+              // Custom Sections
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
+                  <View key={section.id} style={{ marginBottom: 16 }}>
+                    <View style={styles.sectionHeader}>
+                      <View style={[styles.sectionIcon, { backgroundColor: c }]}>
+                        <Text style={styles.sectionIconText}>✨</Text>
+                      </View>
+                      <Text style={styles.sectionTitle}>{section.title}</Text>
+                    </View>
+                    {section.items.map((item) => (
+                      <View key={item.id} style={styles.card}>
+                        <View style={styles.itemHeader}>
+                          <Text style={styles.itemTitle}>{item.title}</Text>
+                          {item.date && (
+                            <Text style={[styles.eduDate, { color: c }]}>{item.date}</Text>
+                          )}
+                        </View>
+                        {item.subtitle && (
+                          <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                        )}
+                        {item.description && (
+                          <Text style={styles.itemDescription}>{item.description}</Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                ))
+            )}
           </View>
         </View>
       </Page>

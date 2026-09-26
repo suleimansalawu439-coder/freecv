@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -223,6 +224,9 @@ export default function Interface({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={[styles.sidebar, { backgroundColor: hexToRgba(themeColor, 0.08) }]}>
+          {orderSections(data, {
+            personal: (
+              <>
           {initials ? (
             <View style={[styles.avatar, { backgroundColor: themeColor }]}>
               <Text style={styles.avatarText}>{initials}</Text>
@@ -235,8 +239,10 @@ export default function Interface({ data }: { data: ResumeData }) {
             {info.location ? <Text style={styles.contactItem}>{info.location}</Text> : null}
             {info.website ? <Text style={styles.contactItem}>{info.website}</Text> : null}
           </View>
+              </>
+            ),
 
-          {data.skills && data.skills.length > 0 ? (
+            skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarTitle}>Skills</Text>
               {data.skills.map((skill, i) => (
@@ -246,9 +252,9 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.education && data.education.length > 0 ? (
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarTitle}>Education</Text>
               {data.education.map((edu) => (
@@ -261,9 +267,9 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showReferences && data.references && data.references.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 ? (
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarTitle}>References</Text>
               {data.references.map((ref) => (
@@ -276,11 +282,16 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
+          })}
         </View>
 
         <View style={styles.main}>
+          {orderSections(data, {
+            personal: (
+              <>
           <Text style={styles.name}>{info.fullName}</Text>
+
           {info.jobTitle ? (
             <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
           ) : null}
@@ -292,8 +303,10 @@ export default function Interface({ data }: { data: ResumeData }) {
               <Text style={styles.bodyText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 ? (
+            experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Experience</Text>
               <View style={styles.hairline} />
@@ -320,9 +333,9 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects && data.projects.length > 0 ? (
+            projects: data.showProjects && data.projects && data.projects.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Projects</Text>
               <View style={styles.hairline} />
@@ -334,9 +347,9 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Certifications</Text>
               <View style={styles.hairline} />
@@ -350,10 +363,11 @@ export default function Interface({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
-
-          {data.customSections &&
-            data.customSections.map((section) => (
+          ) : null,
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
                 <View style={styles.hairline} />
@@ -370,7 +384,8 @@ export default function Interface({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ))}
+              ))
+          )}
         </View>
       </Page>
     </Document>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -284,6 +285,9 @@ export default function Palette({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.headerBlock}>
           {personalInfo.fullName ? <Text style={styles.name}>{personalInfo.fullName}</Text> : null}
@@ -309,8 +313,11 @@ export default function Palette({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {experience && experience.length > 0 && (
+          // Experience
+          experience: experience && experience.length > 0 && (
           <View style={styles.section}>
             {sectionHead('Experience')}
             {experience.map((exp) => (
@@ -338,9 +345,10 @@ export default function Palette({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             {sectionHead('Projects')}
             {data.projects.map((project) => (
@@ -357,9 +365,10 @@ export default function Palette({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {education && education.length > 0 && (
+        // Education
+        education: education && education.length > 0 && (
           <View style={styles.section}>
             {sectionHead('Education')}
             {education.map((edu) => (
@@ -370,9 +379,10 @@ export default function Palette({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {skills && skills.length > 0 && (
+        // Skills
+        skills: skills && skills.length > 0 && (
           <View style={styles.section}>
             {sectionHead('Skills')}
             <View style={styles.skillsRow}>
@@ -384,9 +394,10 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             {sectionHead('Certifications')}
             {data.certifications.map((cert) => (
@@ -405,9 +416,10 @@ export default function Palette({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section} wrap={false}>
             {sectionHead('References')}
             <View style={styles.refGrid}>
@@ -424,12 +436,11 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 {sectionHead(section.title)}
                 {section.items.map((item) => (
@@ -445,8 +456,8 @@ export default function Palette({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

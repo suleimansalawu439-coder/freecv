@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Fixed warm identity — theme color is intentionally not used.
 const ACCENT = '#ea580c';
@@ -27,6 +28,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-800 px-14 py-12">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="mb-10">
         {data.personalInfo.fullName && (
@@ -55,9 +59,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
           <p className="text-[15px] leading-relaxed text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Education — given prominence */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="Education" />
           <div className="space-y-4">
@@ -81,10 +86,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="Experience" />
           <div className="space-y-7">
@@ -118,10 +122,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             })}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -135,10 +138,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="Certifications" />
           <div className="space-y-4">
@@ -157,10 +159,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="Projects" />
           <div className="space-y-5">
@@ -181,10 +182,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-10">
           <WarmSectionHeader title="References" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -204,11 +204,12 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mb-10">
             <WarmSectionHeader title={section.title} />
             <div className="space-y-5">
@@ -236,7 +237,7 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+        ))
       )}
     </div>
   );

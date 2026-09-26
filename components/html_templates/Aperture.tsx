@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -15,6 +16,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 font-sans px-[0.85in] pt-[0.7in] pb-[0.85in] mx-auto">
       {/* Photo + name with theme ring */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="flex items-center gap-8 mb-10">
         {info.profilePicture ? (
           <img
@@ -48,8 +52,10 @@ export default function Aperture({ data }: { data: ResumeData }) {
           <p className="text-[14px] leading-[1.75] text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           <div className="space-y-6">
@@ -69,9 +75,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           <div className="space-y-4">
@@ -86,9 +92,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -103,9 +109,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           <div className="space-y-5">
@@ -120,9 +126,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -134,9 +140,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-6">
@@ -149,10 +155,11 @@ export default function Aperture({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mb-8">
             <SectionHeader title={section.title} />
             <div className="space-y-5">
@@ -168,8 +175,9 @@ export default function Aperture({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+        ))
+      )}
+
     </div>
   );
 }

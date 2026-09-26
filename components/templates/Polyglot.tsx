@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -103,6 +104,9 @@ export default function Polyglot({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={[styles.name, { color: themeColor }]}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
@@ -117,8 +121,11 @@ export default function Polyglot({ data }: TemplateProps) {
             <Text style={styles.body}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>Work Experience</Text>
@@ -138,9 +145,10 @@ export default function Polyglot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>Certifications &amp; Licenses</Text>
@@ -153,9 +161,10 @@ export default function Polyglot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>Education</Text>
@@ -168,9 +177,10 @@ export default function Polyglot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+        // Skills
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>Skills</Text>
@@ -183,9 +193,10 @@ export default function Polyglot({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>Projects</Text>
@@ -198,9 +209,10 @@ export default function Polyglot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={[styles.sectionTitleText, { color: themeColor }]}>References</Text>
@@ -217,28 +229,26 @@ export default function Polyglot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
-                <View key={section.id} style={styles.section}>
-                  <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
-                    <Text style={[styles.sectionTitleText, { color: themeColor }]}>{section.title}</Text>
-                  </View>
-                  {section.items.map((item) => (
-                    <View key={item.id} style={{ marginBottom: 18 }}>
-                      <Text style={styles.itemTitle}>{item.title}</Text>
-                      {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
-                      {item.date ? <Text style={styles.itemMeta}>{item.date}</Text> : null}
-                      {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                    </View>
-                  ))}
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
+                  <Text style={[styles.sectionTitleText, { color: themeColor }]}>{section.title}</Text>
                 </View>
-              )
-          )}
+                {section.items.map((item) => (
+                  <View key={item.id} style={{ marginBottom: 18 }}>
+                    <Text style={styles.itemTitle}>{item.title}</Text>
+                    {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
+                    {item.date ? <Text style={styles.itemMeta}>{item.date}</Text> : null}
+                    {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

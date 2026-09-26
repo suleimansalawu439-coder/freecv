@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds, isSectionVisible } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -194,31 +195,95 @@ export default function Engine({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
   const contactItems = [info.email, info.phone, info.location, info.website].filter(Boolean);
 
+  // Section numbers ("01", "02", …) follow the rendered display order, so they
+  // stay consecutive when the user reorders or hides sections. References keeps
+  // its signature "99" label and never consumes a sequence number; custom
+  // sections continue the sequence from the original 07 base.
+  const sectionNums: Record<string, string> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return !!data.experience && data.experience.length > 0;
+        case 'skills': return !!data.skills && data.skills.length > 0;
+        case 'education': return !!data.education && data.education.length > 0;
+        case 'projects': return data.showProjects && !!data.projects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && !!data.certifications && data.certifications.length > 0;
+        case 'references': return false;
+        default: return false;
+      }
+    });
+    const map: Record<string, string> = {};
+    rendered.forEach((id, n) => { map[id] = String(n + 1).padStart(2, '0'); });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
+
+  // Custom sections keep their original position: ahead of References (which
+  // closes the document as "99"). If References is hidden or empty, they fall
+  // back to rendering after all ordered sections.
+  const customJSX = (data.customSections || [])
+    .filter((section) => section.items && section.items.length > 0)
+    .map((section, si) => (
+      <View key={section.id} style={styles.section}>
+        <SectionHead
+          index={String(customBase + si + 1).padStart(2, '0')}
+          title={section.title}
+          themeColor={themeColor}
+        />
+        {section.items.map((item) => (
+          <View key={item.id} style={{ marginBottom: 6 }}>
+            <View style={styles.eduRow}>
+              <Text style={styles.degreeText}>{item.title}</Text>
+              {item.date ? <Text style={styles.yearText}>{item.date}</Text> : null}
+            </View>
+            {item.subtitle ? (
+              <Text style={[styles.schoolText, { fontStyle: 'italic' }]}>
+                {item.subtitle}
+              </Text>
+            ) : null}
+            {item.description ? (
+              <Text style={styles.schoolText}>{item.description}</Text>
+            ) : null}
+          </View>
+        ))}
+      </View>
+    ));
+  const refsWillRender =
+    isSectionVisible(data, 'references') &&
+    data.showReferences &&
+    !!data.references &&
+    data.references.length > 0;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.eyebrow}>{'// Resume Specification'}</Text>
-        {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
-        {info.jobTitle ? (
-          <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
-        ) : null}
-        {contactItems.length > 0 ? (
-          <Text style={styles.contactLine}>{contactItems.join('  |  ')}</Text>
-        ) : null}
-        <View style={styles.headerBar}>
-          <View style={[styles.headerBarFill, { backgroundColor: themeColor }]} />
-        </View>
+        {orderSections(data, {
+          personal: (
+            <>
+              <Text style={styles.eyebrow}>{'// Resume Specification'}</Text>
+              {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
+              {info.jobTitle ? (
+                <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
+              ) : null}
+              {contactItems.length > 0 ? (
+                <Text style={styles.contactLine}>{contactItems.join('  |  ')}</Text>
+              ) : null}
+              <View style={styles.headerBar}>
+                <View style={[styles.headerBarFill, { backgroundColor: themeColor }]} />
+              </View>
 
-        {data.summary ? (
-          <View style={styles.section}>
-            <SectionHead index="01" title="Profile" themeColor={themeColor} />
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        ) : null}
+              {data.summary ? (
+                <View style={styles.section}>
+                  <SectionHead index={sectionNums.personal} title="Profile" themeColor={themeColor} />
+                  <Text style={styles.summaryText}>{data.summary}</Text>
+                </View>
+              ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="02" title="Experience" themeColor={themeColor} />
+          experience: data.experience && data.experience.length > 0 && (
+            <View style={styles.section}>
+              <SectionHead index={sectionNums.experience} title="Experience" themeColor={themeColor} />
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.expCard}>
                 <View style={[styles.expCardHeader, { backgroundColor: themeColor }]}>
@@ -247,11 +312,11 @@ export default function Engine({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.skills && data.skills.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="03" title="Technical Skills" themeColor={themeColor} />
+            skills: data.skills && data.skills.length > 0 && (
+              <View style={styles.section}>
+                <SectionHead index={sectionNums.skills} title="Technical Skills" themeColor={themeColor} />
             <View style={styles.skillGrid}>
               {data.skills.map((skill) => (
                 <View key={skill.id} style={styles.skillCell}>
@@ -260,11 +325,11 @@ export default function Engine({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+            ),
 
-        {data.education && data.education.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="04" title="Education" themeColor={themeColor} />
+            education: data.education && data.education.length > 0 && (
+              <View style={styles.section}>
+                <SectionHead index={sectionNums.education} title="Education" themeColor={themeColor} />
             {data.education.map((edu) => (
               <View key={edu.id} style={styles.eduRow}>
                 <View>
@@ -277,11 +342,11 @@ export default function Engine({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="05" title="Projects" themeColor={themeColor} />
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
+              <View style={styles.section}>
+                <SectionHead index={sectionNums.projects} title="Projects" themeColor={themeColor} />
             {data.projects.map((proj) => (
               <View key={proj.id} style={{ marginBottom: 8 }}>
                 <Text style={styles.degreeText}>
@@ -292,11 +357,11 @@ export default function Engine({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="06" title="Certifications" themeColor={themeColor} />
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
+              <View style={styles.section}>
+                <SectionHead index={sectionNums.certifications} title="Certifications" themeColor={themeColor} />
             {data.certifications.map((cert) => (
               <View key={cert.id} style={styles.eduRow}>
                 <Text style={styles.degreeText}>
@@ -307,51 +372,28 @@ export default function Engine({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.customSections &&
-          data.customSections.map((section, si) =>
-            section.items && section.items.length > 0 ? (
-              <View key={section.id} style={styles.section}>
-                <SectionHead
-                  index={String(si + 7).padStart(2, '0')}
-                  title={section.title}
-                  themeColor={themeColor}
-                />
-                {section.items.map((item) => (
-                  <View key={item.id} style={{ marginBottom: 6 }}>
-                    <View style={styles.eduRow}>
-                      <Text style={styles.degreeText}>{item.title}</Text>
-                      {item.date ? <Text style={styles.yearText}>{item.date}</Text> : null}
-                    </View>
-                    {item.subtitle ? (
-                      <Text style={[styles.schoolText, { fontStyle: 'italic' }]}>
-                        {item.subtitle}
-                      </Text>
-                    ) : null}
-                    {item.description ? (
-                      <Text style={styles.schoolText}>{item.description}</Text>
-                    ) : null}
+          references: refsWillRender && (
+            <>
+              {customJSX}
+              <View style={styles.section}>
+                <SectionHead index="99" title="References" themeColor={themeColor} />
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={{ marginBottom: 6 }}>
+                    <Text style={styles.degreeText}>{ref.name}</Text>
+                    <Text style={styles.schoolText}>
+                      {ref.title}
+                      {ref.company ? `, ${ref.company}` : ''}
+                    </Text>
+                    {ref.contact ? <Text style={styles.yearText}>{ref.contact}</Text> : null}
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead index="99" title="References" themeColor={themeColor} />
-            {data.references.map((ref) => (
-              <View key={ref.id} style={{ marginBottom: 6 }}>
-                <Text style={styles.degreeText}>{ref.name}</Text>
-                <Text style={styles.schoolText}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.yearText}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
+            </>
+          ),
+        },
+          refsWillRender ? [] : customJSX
         )}
       </Page>
     </Document>

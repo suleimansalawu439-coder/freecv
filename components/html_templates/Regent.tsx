@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const CHARCOAL = '#1f2937';
 
@@ -30,34 +31,39 @@ export default function Regent({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-[0.85in] font-sans text-gray-900">
-      {/* Header */}
-      <header className="text-center">
-        {data.personalInfo.fullName && (
-          <h1 className="font-serif text-4xl font-bold" style={{ color: CHARCOAL }}>
-            {data.personalInfo.fullName}
-          </h1>
-        )}
-        {data.personalInfo.jobTitle && (
-          <p className="mt-2 text-base font-medium" style={{ color: 'var(--theme-color)' }}>
-            {data.personalInfo.jobTitle}
-          </p>
-        )}
-        {contact.length > 0 && (
-          <p className="mt-3 text-xs text-gray-500">{contact.join(' · ')}</p>
-        )}
-        <div className="mt-6 border-t border-b border-gray-800 h-1.5" />
-      </header>
-
-      {/* Summary */}
-      {data.summary && (
-        <section className="mt-8">
-          <SectionTitle>Profile</SectionTitle>
-          <p className="text-sm leading-relaxed text-gray-700 text-center">{data.summary}</p>
-        </section>
-      )}
-
       {/* Experience */}
-      {data.experience.length > 0 && (
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header */}
+            <header className="text-center">
+              {data.personalInfo.fullName && (
+                <h1 className="font-serif text-4xl font-bold" style={{ color: CHARCOAL }}>
+                  {data.personalInfo.fullName}
+                </h1>
+              )}
+              {data.personalInfo.jobTitle && (
+                <p className="mt-2 text-base font-medium" style={{ color: 'var(--theme-color)' }}>
+                  {data.personalInfo.jobTitle}
+                </p>
+              )}
+              {contact.length > 0 && (
+                <p className="mt-3 text-xs text-gray-500">{contact.join(' · ')}</p>
+              )}
+              <div className="mt-6 border-t border-b border-gray-800 h-1.5" />
+            </header>
+
+            {/* Summary */}
+            {data.summary && (
+              <section className="mt-8">
+                <SectionTitle>Profile</SectionTitle>
+                <p className="text-sm leading-relaxed text-gray-700 text-center">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
+
+        experience: data.experience.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Experience</SectionTitle>
           <div className="space-y-6">
@@ -83,10 +89,10 @@ export default function Regent({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
+          // Education
         <section className="mt-8">
           <SectionTitle>Education</SectionTitle>
           <div className="space-y-4">
@@ -101,20 +107,20 @@ export default function Regent({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
+          // Skills
         <section className="mt-8">
           <SectionTitle>Skills</SectionTitle>
           <p className="text-sm font-bold text-gray-800 text-center leading-relaxed">
             {data.skills.map(s => s.name).join(', ')}
           </p>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
+          // Projects
         <section className="mt-8">
           <SectionTitle>Projects</SectionTitle>
           <div className="space-y-4">
@@ -133,10 +139,10 @@ export default function Regent({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
+          // Certifications
         <section className="mt-8">
           <SectionTitle>Certifications</SectionTitle>
           <ul className="space-y-2 text-sm text-gray-700">
@@ -149,10 +155,10 @@ export default function Regent({ data }: { data: ResumeData }) {
             ))}
           </ul>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
+          // References
         <section className="mt-8">
           <SectionTitle>References</SectionTitle>
           <div className="space-y-4">
@@ -169,11 +175,11 @@ export default function Regent({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom Sections */}
-      {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mt-8">
             <SectionTitle>{section.title}</SectionTitle>
             <div className="space-y-4">
@@ -191,8 +197,10 @@ export default function Regent({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+          ))
+      )}
+
+      {/* Custom Sections */}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
@@ -26,11 +27,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
     data.personalInfo.website,
   ].filter(Boolean);
 
-  let sectionNumber = 0;
-  const numeral = () => ROMAN_NUMERALS[sectionNumber++] ?? '';
-
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-black font-serif px-16 py-14">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="mb-10">
         {data.personalInfo.fullName && (
@@ -65,12 +66,13 @@ export default function Advocate({ data }: { data: ResumeData }) {
             {data.summary}
           </p>
         </section>
-      )}
+        )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="Professional Experience" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Professional Experience" />
           <div className="space-y-7">
             {data.experience.map((exp) => {
               const lines = splitLines(exp.description);
@@ -102,12 +104,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
             })}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="Education" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Education" />
           <div className="space-y-5">
             {data.education.map((edu) => (
               <div key={edu.id} className="flex justify-between items-baseline gap-4">
@@ -126,22 +127,20 @@ export default function Advocate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Skills */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="Skills" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Skills" />
           <p className="font-serif text-sm text-black leading-relaxed">
             {data.skills.map((skill) => skill.name).filter(Boolean).join('; ')}
           </p>
         </section>
-      )}
+        )),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="Certifications" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Certifications" />
           <div className="space-y-3">
             {data.certifications.map((cert) => (
               <div key={cert.id}>
@@ -155,12 +154,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="Selected Projects" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Selected Projects" />
           <div className="space-y-5">
             {data.projects.map((proj) => (
               <div key={proj.id}>
@@ -181,12 +179,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && ((i: number) => (
         <section className="mb-10">
-          <FormalSectionHeader numeral={numeral()} title="References" />
+          <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="References" />
           <div className="space-y-4">
             {data.references.map((ref) => (
               <div key={ref.id}>
@@ -203,13 +200,13 @@ export default function Advocate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+        )),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (i: number) => (
           <section key={section.id} className="mb-10">
-            <FormalSectionHeader numeral={numeral()} title={section.title} />
+            <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title={section.title} />
             <div className="space-y-5">
               {section.items.map((item) => (
                 <div key={item.id}>
@@ -233,8 +230,8 @@ export default function Advocate({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
-      )}
+        )))
+      }
     </div>
   );
 }

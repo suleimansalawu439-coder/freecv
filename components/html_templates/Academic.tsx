@@ -1,10 +1,12 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Academic({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none p-[1in] flex flex-col font-serif mx-auto lg:mx-0 shrink-0 text-black leading-relaxed">
-      
+      {orderSections(data, {
+        personal: (
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-1">{data.personalInfo.fullName}</h1>
         <p className="text-sm font-medium mb-2">Curriculum Vitae</p>
@@ -20,8 +22,9 @@ export default function Academic({ data }: { data: ResumeData }) {
           </div>
         </div>
       </div>
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">Education</h2>
           <div className="space-y-4">
@@ -36,9 +39,9 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">Academic & Professional Appointments</h2>
           <div className="space-y-4">
@@ -58,9 +61,9 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">Research & Projects</h2>
           <div className="space-y-4 pl-[116px]">
@@ -72,9 +75,9 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">Certifications & Awards</h2>
           <div className="space-y-2 pl-[116px]">
@@ -86,9 +89,9 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
 
-{data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">References</h2>
           <div className="space-y-2 pl-[116px]">
@@ -100,35 +103,36 @@ export default function Academic({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mb-6">
-                <h2 className="text-base font-bold uppercase border-b border-black mb-3">{section.title}</h2>
-                <div className="space-y-3">
-                  {section.items.map(item => (
-                    <div key={item.id} className="mb-2">
-                      <div className="flex justify-between items-baseline">
-                        <div>
-                          <p className="text-sm font-bold">{item.title}</p>
-                          {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
-                        </div>
-                        {item.date && <p className="text-sm font-bold">{item.date}</p>}
-                      </div>
-                      {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )
-          ))}
+        ),
 
-
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <div className="mb-6">
           <h2 className="text-base font-bold uppercase border-b border-black mb-3">Technical Proficiencies</h2>
           <p className="text-sm pl-[116px]">{data.skills.map(s => s.name).join(', ')}</p>
         </div>
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
+          <div key={section.id} className="mb-6">
+            <h2 className="text-base font-bold uppercase border-b border-black mb-3">{section.title}</h2>
+            <div className="space-y-3">
+              {section.items.map(item => (
+                <div key={item.id} className="mb-2">
+                  <div className="flex justify-between items-baseline">
+                    <div>
+                      <p className="text-sm font-bold">{item.title}</p>
+                      {item.subtitle && <p className="text-sm italic">{item.subtitle}</p>}
+                    </div>
+                    {item.date && <p className="text-sm font-bold">{item.date}</p>}
+                  </div>
+                  {item.description && <p className="text-sm mt-1 whitespace-pre-wrap">{item.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
       )}
 
     </div>

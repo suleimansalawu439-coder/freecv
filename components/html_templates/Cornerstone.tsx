@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MainTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -27,7 +28,10 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 mx-auto flex">
       {/* Main (left) */}
       <main className="w-[70%] px-11 py-11">
-        <header className="mb-9">
+        {orderSections(data, {
+          personal: (
+            <>
+              <header className="mb-9">
           <h1 className="text-[44px] font-bold leading-tight mb-2">{info.fullName}</h1>
           {info.jobTitle && (
             <p className="text-lg italic text-gray-600">{info.jobTitle}</p>
@@ -40,8 +44,10 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
             <p className="text-[14px] leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <MainTitle>Professional Experience</MainTitle>
             <div className="space-y-6">
@@ -70,9 +76,9 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <MainTitle>Projects</MainTitle>
             <div className="space-y-4">
@@ -92,9 +98,9 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-8">
             <MainTitle>Education</MainTitle>
             <div className="space-y-4">
@@ -113,9 +119,9 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-8">
             <MainTitle>Certifications</MainTitle>
             <div className="space-y-3">
@@ -131,12 +137,11 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <section key={section.id} className="mb-8">
                 <MainTitle>{section.title}</MainTitle>
                 <div className="space-y-4">
@@ -162,13 +167,15 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
+            ))
         )}
       </main>
 
       {/* Cream right sidebar */}
       <aside className="w-[30%] shrink-0 bg-[#faf5ea] px-8 py-11">
-        <div className="mb-9">
+        {orderSections(data, {
+          personal: (
+            <div className="mb-9">
           <SidebarTitle>Contact</SidebarTitle>
           <div className="space-y-2 text-[13px] text-[#4a3f2c]">
             {info.email && <div className="break-words">{info.email}</div>}
@@ -176,18 +183,19 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
             {info.location && <div>{info.location}</div>}
             {info.website && <div className="break-words">{info.website}</div>}
           </div>
-        </div>
+            </div>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-9">
             <SidebarTitle>Skills</SidebarTitle>
             <p className="text-[13px] leading-[1.9] text-[#4a3f2c]">
               {data.skills.map((s) => s.name).join(' · ')}
             </p>
           </div>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <div className="mb-9">
             <SidebarTitle>References</SidebarTitle>
             <div className="space-y-4">
@@ -202,8 +210,9 @@ export default function Cornerstone({ data }: { data: ResumeData }) {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </div>
+          ),
+        })}
       </aside>
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -17,28 +18,33 @@ export default function Slate({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-700 mx-auto px-14 py-12">
-      {/* Quiet slate header */}
-      <header className="pb-6 border-b border-slate-200 mb-2">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-base font-semibold text-slate-500 mt-1">{info.jobTitle}</p>
-        )}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-slate-500">
-          {info.email && <span>{info.email}</span>}
-          {info.phone && <span>{info.phone}</span>}
-          {info.location && <span>{info.location}</span>}
-          {info.website && <span>{info.website}</span>}
-        </div>
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Quiet slate header */}
+            <header className="pb-6 border-b border-slate-200 mb-2">
+              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-base font-semibold text-slate-500 mt-1">{info.jobTitle}</p>
+              )}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-slate-500">
+                {info.email && <span>{info.email}</span>}
+                {info.phone && <span>{info.phone}</span>}
+                {info.location && <span>{info.location}</span>}
+                {info.website && <span>{info.website}</span>}
+              </div>
+            </header>
 
-      {data.summary && (
-        <section>
-          <SectionHeader title="Summary" />
-          <p className="text-sm leading-relaxed">{data.summary}</p>
-        </section>
-      )}
+            {data.summary && (
+              <section>
+                <SectionHeader title="Summary" />
+                <p className="text-sm leading-relaxed">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Experience" />
           <div className="space-y-6">
@@ -66,9 +72,9 @@ export default function Slate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -84,9 +90,9 @@ export default function Slate({ data }: { data: ResumeData }) {
           {/* Theme appears sparingly: one accent line */}
           <div className="mt-4 h-0.5 w-16" style={{ backgroundColor: 'var(--theme-color)' }} />
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -101,9 +107,9 @@ export default function Slate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -118,9 +124,9 @@ export default function Slate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -135,27 +141,10 @@ export default function Slate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
-        <section key={section.id}>
-          <SectionHeader title={section.title} />
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between items-baseline">
-                  <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                  {item.date && <span className="text-xs font-semibold text-slate-400">{item.date}</span>}
-                </div>
-                {item.subtitle && <p className="text-sm italic text-slate-500">{item.subtitle}</p>}
-                {item.description && <p className="text-sm mt-1">{item.description}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -171,6 +160,27 @@ export default function Slate({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+        <section key={section.id}>
+          <SectionHeader title={section.title} />
+          <div className="space-y-3">
+            {section.items.map((item) => (
+              <div key={item.id}>
+                <div className="flex justify-between items-baseline">
+                  <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                  {item.date && <span className="text-xs font-semibold text-slate-400">{item.date}</span>}
+                </div>
+                {item.subtitle && <p className="text-sm italic text-slate-500">{item.subtitle}</p>}
+                {item.description && <p className="text-sm mt-1">{item.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+          ))
       )}
     </div>
   );

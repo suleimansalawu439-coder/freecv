@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -95,6 +96,9 @@ export default function ParsePerfect({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={{ marginBottom: 18 }}>
           <Text style={styles.name}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
@@ -109,8 +113,11 @@ export default function ParsePerfect({ data }: TemplateProps) {
             <Text style={styles.body}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>Work Experience</Text>
@@ -130,9 +137,10 @@ export default function ParsePerfect({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>Certifications &amp; Licenses</Text>
@@ -145,9 +153,10 @@ export default function ParsePerfect({ data }: TemplateProps) {
               </Text>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>Education</Text>
@@ -164,18 +173,20 @@ export default function ParsePerfect({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+        // Skills
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>Skills</Text>
             </View>
             <Text style={styles.body}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>Projects</Text>
@@ -188,9 +199,10 @@ export default function ParsePerfect({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, headingStyle]}>
               <Text style={styles.sectionTitleText}>References</Text>
@@ -207,30 +219,28 @@ export default function ParsePerfect({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
-                <View key={section.id} style={styles.section}>
-                  <View style={[styles.sectionTitleContainer, headingStyle]}>
-                    <Text style={styles.sectionTitleText}>{section.title}</Text>
-                  </View>
-                  {section.items.map((item) => (
-                    <View key={item.id} style={styles.item}>
-                      <View style={styles.itemHeaderRow}>
-                        <Text style={styles.itemTitle}>{item.title}</Text>
-                        {item.date ? <Text style={styles.itemMeta}>{item.date}</Text> : null}
-                      </View>
-                      {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
-                      {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                    </View>
-                  ))}
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <View style={[styles.sectionTitleContainer, headingStyle]}>
+                  <Text style={styles.sectionTitleText}>{section.title}</Text>
                 </View>
-              )
-          )}
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.item}>
+                    <View style={styles.itemHeaderRow}>
+                      <Text style={styles.itemTitle}>{item.title}</Text>
+                      {item.date ? <Text style={styles.itemMeta}>{item.date}</Text> : null}
+                    </View>
+                    {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
+                    {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

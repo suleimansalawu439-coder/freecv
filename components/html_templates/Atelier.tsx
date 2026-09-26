@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const labelClass = 'text-[10px] font-medium uppercase tracking-[0.4em] text-[var(--theme-color)] mb-6';
 
@@ -14,6 +15,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
   return (
     <div className="font-sans px-20 py-24 bg-white text-[#1c1c1c] min-h-[1056px] w-full max-w-[816px] mx-auto">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-20">
         {data.personalInfo.profilePicture && (
           <img
@@ -44,9 +48,10 @@ export default function Atelier({ data }: { data: ResumeData }) {
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>Experience</h2>
           <div className="space-y-12">
@@ -71,10 +76,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </div>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>Projects</h2>
           <div className="space-y-10">
@@ -92,10 +96,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </div>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>Education</h2>
           <div className="space-y-8">
@@ -110,10 +113,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </div>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>Skills</h2>
           <p className="text-sm font-light tracking-[0.2em] leading-[2.2]">
@@ -121,10 +123,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </p>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>Certifications</h2>
           <div className="space-y-8">
@@ -139,10 +140,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </div>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-20">
           <h2 className={labelClass}>References</h2>
           <div className="space-y-8">
@@ -160,11 +160,11 @@ export default function Atelier({ data }: { data: ResumeData }) {
           </div>
           <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mb-20">
             <h2 className={labelClass}>{section.title}</h2>
             <div className="space-y-10">
@@ -183,8 +183,9 @@ export default function Atelier({ data }: { data: ResumeData }) {
             </div>
             <div className="mt-14 h-px w-full bg-[var(--theme-color)] opacity-30" />
           </section>
-        )
-      ))}
+        ))
+      )}
+
     </div>
   );
 }

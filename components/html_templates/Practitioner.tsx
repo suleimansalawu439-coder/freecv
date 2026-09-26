@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -16,6 +17,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-800 mx-auto px-14 py-12">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Calm centered header */}
       <header className="text-center mb-4">
         <div
@@ -45,8 +49,10 @@ export default function Practitioner({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Clinical Experience" />
           <div className="space-y-5">
@@ -76,9 +82,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Clinical Skills" />
           <div className="flex flex-wrap gap-2">
@@ -93,9 +99,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -110,9 +116,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Licenses & Certifications" />
           <div className="space-y-2">
@@ -127,9 +133,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects & Initiatives" />
           <div className="space-y-4">
@@ -144,27 +150,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
-        <section key={section.id}>
-          <SectionHeader title={section.title} />
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between items-baseline">
-                  <p className="text-sm font-bold text-slate-900">{item.title}</p>
-                  {item.date && <span className="text-xs font-semibold text-slate-500">{item.date}</span>}
-                </div>
-                {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
-                {item.description && <p className="text-sm text-slate-600 mt-1">{item.description}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -180,6 +168,28 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
+        ),
+
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
+        <section key={section.id}>
+          <SectionHeader title={section.title} />
+          <div className="space-y-3">
+            {section.items.map((item) => (
+              <div key={item.id}>
+                <div className="flex justify-between items-baseline">
+                  <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                  {item.date && <span className="text-xs font-semibold text-slate-500">{item.date}</span>}
+                </div>
+                {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
+                {item.description && <p className="text-sm text-slate-600 mt-1">{item.description}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ))
       )}
     </div>
   );

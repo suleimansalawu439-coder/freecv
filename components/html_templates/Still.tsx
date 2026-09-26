@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -18,24 +19,29 @@ export default function Still({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-800 font-serif px-[1.1in] pt-[0.9in] pb-[1in] mx-auto text-center">
-      <header>
-        <h1 className="text-[36px] leading-tight font-normal tracking-wide">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-[13.5px] italic text-gray-500 mt-2">{info.jobTitle}</p>
-        )}
-        {contact.length > 0 && (
-          <p className="text-[12px] text-gray-500 mt-4 leading-loose">{contact.join('   ·   ')}</p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            <header>
+              <h1 className="text-[36px] leading-tight font-normal tracking-wide">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-[13.5px] italic text-gray-500 mt-2">{info.jobTitle}</p>
+              )}
+              {contact.length > 0 && (
+                <p className="text-[12px] text-gray-500 mt-4 leading-loose">{contact.join('   ·   ')}</p>
+              )}
+            </header>
 
-      {data.summary && (
-        <section>
-          <SectionHeader title="Profile" />
-          <p className="text-[13.5px] leading-[1.85] text-gray-600 max-w-[5.6in] mx-auto">{data.summary}</p>
-        </section>
-      )}
+            {data.summary && (
+              <section>
+                <SectionHeader title="Profile" />
+                <p className="text-[13.5px] leading-[1.85] text-gray-600 max-w-[5.6in] mx-auto">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Experience" />
           <div className="space-y-8">
@@ -53,9 +59,9 @@ export default function Still({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-6">
@@ -68,16 +74,16 @@ export default function Still({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Skills" />
           <p className="text-[13px] leading-[2] text-gray-600 max-w-[5.8in] mx-auto">{data.skills.map(s => s.name).join('   ·   ')}</p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects" />
           <div className="space-y-7">
@@ -90,9 +96,9 @@ export default function Still({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Certifications" />
           <div className="space-y-3">
@@ -105,9 +111,9 @@ export default function Still({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <div className="space-y-6">
@@ -120,10 +126,11 @@ export default function Still({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id}>
             <SectionHeader title={section.title} />
             <div className="space-y-7">
@@ -137,8 +144,9 @@ export default function Still({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+          ))
+      )}
+
     </div>
   );
 }

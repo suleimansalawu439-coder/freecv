@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Calligraphy({ data }: { data: ResumeData }) {
   const { personalInfo } = data;
@@ -21,6 +22,9 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto px-16 py-16 font-serif text-gray-800 leading-relaxed">
       {/* Header — swash name */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="text-center">
         {name && (
           <h1 className="font-serif italic text-5xl text-gray-900 tracking-wide">
@@ -43,9 +47,10 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
           <p className="text-[15px] leading-[1.9] text-gray-700 italic text-center">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section>
           <SectionHeader>Experience</SectionHeader>
           <div className="space-y-8">
@@ -70,10 +75,9 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section>
           <SectionHeader>Education</SectionHeader>
           <div className="space-y-5">
@@ -90,20 +94,18 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills — italic inline list */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section>
           <SectionHeader>Skills</SectionHeader>
           <p className="text-[14px] italic leading-loose text-gray-700 text-center">
             {data.skills.map((skill) => skill.name).join('   ·   ')}
           </p>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section>
           <SectionHeader>Projects</SectionHeader>
           <div className="space-y-5">
@@ -122,10 +124,9 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader>Certifications</SectionHeader>
           <div className="space-y-4">
@@ -142,10 +143,9 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section>
           <SectionHeader>References</SectionHeader>
           <div className="grid grid-cols-2 gap-8">
@@ -161,14 +161,11 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id}>
                 <SectionHeader>{section.title}</SectionHeader>
                 <div className="space-y-5">
@@ -190,8 +187,9 @@ export default function Calligraphy({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
+
     </div>
   );
 }

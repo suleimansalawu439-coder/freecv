@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, isSectionVisible, getOrderedSectionIds } from '@/lib/template-sections';
 
 function Tile({
   title,
@@ -83,9 +84,136 @@ export default function Mosaic({ data }: { data: ResumeData }) {
     </div>
   ) : null;
 
+  // Mosaic pairs education+skills (55/45 row) and certifications+references
+  // (50/50 row) into shared grid rows. Each pair moves through the section
+  // order as one unit — positioned at whichever member comes first in the
+  // user's order — and the two tiles swap positions within the pair. Widths
+  // stay tied to the section (education 55%, skills 45%). Single-tile
+  // fallbacks match the original full-width variants exactly.
+  const eduShown = hasEducation && isSectionVisible(data, 'education');
+  const skiShown = hasSkills && isSectionVisible(data, 'skills');
+  const certShown = hasCerts && isSectionVisible(data, 'certifications');
+  const refShown = hasRefs && isSectionVisible(data, 'references');
+  const pairAOrder = getOrderedSectionIds(data).filter(
+    (id) => id === 'education' || id === 'skills'
+  );
+  const pairBOrder = getOrderedSectionIds(data).filter(
+    (id) => id === 'certifications' || id === 'references'
+  );
+  const pairAFirst = pairAOrder[0];
+  const pairBFirst = pairBOrder[0];
+
+  const pairA =
+    eduShown || skiShown ? (
+      eduShown && skiShown ? (
+        <div
+          className={`grid gap-5 ${pairAFirst === 'skills' ? 'grid-cols-[45fr_55fr]' : 'grid-cols-[55fr_45fr]'}`}
+        >
+          {orderSections(data, {
+            education: <Tile title="Education">{educationBody}</Tile>,
+            skills: <Tile title="Skills">{skillChips}</Tile>,
+          })}
+        </div>
+      ) : eduShown ? (
+        <Tile title="Education">{educationBody}</Tile>
+      ) : (
+        <Tile title="Skills">{skillChips}</Tile>
+      )
+    ) : null;
+
+  const pairB =
+    certShown || refShown ? (
+      certShown && refShown ? (
+        <div className="grid grid-cols-2 gap-5">
+          {orderSections(data, {
+            certifications: (
+              <Tile title="Certifications">
+                <div className="space-y-3">
+                  {data.certifications.map(cert => (
+                    <div key={cert.id}>
+                      <h3 className="font-bold text-gray-900 text-sm">{cert.name}</h3>
+                      {cert.issuer && (
+                        <div className="text-sm text-gray-600">{cert.issuer}</div>
+                      )}
+                      {cert.date && (
+                        <div
+                          className="text-xs font-bold mt-1"
+                          style={{ color: 'var(--theme-color)' }}
+                        >
+                          {cert.date}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Tile>
+            ),
+            references: (
+              <Tile title="References">
+                <div className="space-y-3">
+                  {data.references.map(ref => (
+                    <div key={ref.id}>
+                      <div className="font-bold text-gray-900 text-sm">{ref.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {[ref.title, ref.company].filter(Boolean).join(' \u00B7 ')}
+                      </div>
+                      {ref.contact && (
+                        <div className="text-xs text-gray-500 mt-1">{ref.contact}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Tile>
+            ),
+          })}
+        </div>
+      ) : certShown ? (
+        <Tile title="Certifications">
+          <div className="space-y-3">
+            {data.certifications.map(cert => (
+              <div key={cert.id} className="flex justify-between items-baseline gap-4">
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">{cert.name}</h3>
+                  {cert.issuer && (
+                    <div className="text-sm text-gray-600">{cert.issuer}</div>
+                  )}
+                </div>
+                {cert.date && (
+                  <span
+                    className="text-xs font-bold whitespace-nowrap"
+                    style={{ color: 'var(--theme-color)' }}
+                  >
+                    {cert.date}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </Tile>
+      ) : (
+        <Tile title="References">
+          <div className="grid grid-cols-2 gap-5">
+            {data.references.map(ref => (
+              <div key={ref.id}>
+                <div className="font-bold text-gray-900 text-sm">{ref.name}</div>
+                <div className="text-sm text-gray-600">
+                  {[ref.title, ref.company].filter(Boolean).join(' \u00B7 ')}
+                </div>
+                {ref.contact && (
+                  <div className="text-xs text-gray-500 mt-1">{ref.contact}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Tile>
+      )
+    ) : null;
+
   return (
     <div className="font-sans w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 px-10 py-10">
       {/* Full-width header: name left, contact right */}
+      {orderSections(data, {
+        personal: (
       <header className="flex items-start justify-between gap-8 mb-8">
         <div>
           {data.personalInfo.fullName && (
@@ -110,17 +238,18 @@ export default function Mosaic({ data }: { data: ResumeData }) {
           </div>
         )}
       </header>
+        ),
+      })}
 
       <div className="space-y-5">
-        {/* Row 1: summary, full width */}
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <Tile title="Summary">
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </Tile>
-        )}
+          ),
 
-        {/* Row 2: experience, full width */}
-        {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
           <Tile title="Experience">
             <div className="space-y-5">
               {data.experience.map(exp => (
@@ -152,110 +281,17 @@ export default function Mosaic({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Tile>
-        )}
+            ),
 
-        {/* Row 3: education (55%) + skills (45%) */}
-        {(hasEducation || hasSkills) && (
-          <>
-            {hasEducation && hasSkills ? (
-              <div className="grid grid-cols-[55fr_45fr] gap-5">
-                <Tile title="Education">{educationBody}</Tile>
-                <Tile title="Skills">{skillChips}</Tile>
-              </div>
-            ) : hasEducation ? (
-              <Tile title="Education">{educationBody}</Tile>
-            ) : (
-              <Tile title="Skills">{skillChips}</Tile>
-            )}
-          </>
-        )}
+            education: pairAFirst === 'education' ? pairA : null,
 
-        {/* Row 4: certifications (50%) + references (50%) */}
-        {(hasCerts || hasRefs) && (
-          <>
-            {hasCerts && hasRefs ? (
-              <div className="grid grid-cols-2 gap-5">
-                <Tile title="Certifications">
-                  <div className="space-y-3">
-                    {data.certifications.map(cert => (
-                      <div key={cert.id}>
-                        <h3 className="font-bold text-gray-900 text-sm">{cert.name}</h3>
-                        {cert.issuer && (
-                          <div className="text-sm text-gray-600">{cert.issuer}</div>
-                        )}
-                        {cert.date && (
-                          <div
-                            className="text-xs font-bold mt-1"
-                            style={{ color: 'var(--theme-color)' }}
-                          >
-                            {cert.date}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </Tile>
-                <Tile title="References">
-                  <div className="space-y-3">
-                    {data.references.map(ref => (
-                      <div key={ref.id}>
-                        <div className="font-bold text-gray-900 text-sm">{ref.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {[ref.title, ref.company].filter(Boolean).join(' \u00B7 ')}
-                        </div>
-                        {ref.contact && (
-                          <div className="text-xs text-gray-500 mt-1">{ref.contact}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </Tile>
-              </div>
-            ) : hasCerts ? (
-              <Tile title="Certifications">
-                <div className="space-y-3">
-                  {data.certifications.map(cert => (
-                    <div key={cert.id} className="flex justify-between items-baseline gap-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 text-sm">{cert.name}</h3>
-                        {cert.issuer && (
-                          <div className="text-sm text-gray-600">{cert.issuer}</div>
-                        )}
-                      </div>
-                      {cert.date && (
-                        <span
-                          className="text-xs font-bold whitespace-nowrap"
-                          style={{ color: 'var(--theme-color)' }}
-                        >
-                          {cert.date}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Tile>
-            ) : (
-              <Tile title="References">
-                <div className="grid grid-cols-2 gap-5">
-                  {data.references.map(ref => (
-                    <div key={ref.id}>
-                      <div className="font-bold text-gray-900 text-sm">{ref.name}</div>
-                      <div className="text-sm text-gray-600">
-                        {[ref.title, ref.company].filter(Boolean).join(' \u00B7 ')}
-                      </div>
-                      {ref.contact && (
-                        <div className="text-xs text-gray-500 mt-1">{ref.contact}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Tile>
-            )}
-          </>
-        )}
+            skills: pairAFirst === 'skills' ? pairA : null,
 
-        {/* Projects, full width */}
-        {hasProjects && (
+            certifications: pairBFirst === 'certifications' ? pairB : null,
+
+            references: pairBFirst === 'references' ? pairB : null,
+
+            projects: hasProjects && (
           <Tile title="Projects">
             <div className="space-y-4">
               {data.projects.map(project => (
@@ -278,13 +314,12 @@ export default function Mosaic({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Tile>
-        )}
+            ),
 
-        {/* Custom sections, full width */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(section =>
-            section.items && section.items.length > 0 ? (
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <Tile key={section.id} title={section.title}>
                 <div className="space-y-4">
                   {section.items.map(item => (
@@ -307,7 +342,7 @@ export default function Mosaic({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </Tile>
-            ) : null
+              ))
           )}
       </div>
     </div>

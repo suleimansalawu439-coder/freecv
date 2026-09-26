@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Fixed warm identity — the theme color is intentionally not used here.
 const ACCENT = '#ea580c';
@@ -264,6 +265,9 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.content}>
+          {orderSections(data, {
+          personal: (
+            <>
           {/* Header */}
           <View style={styles.header}>
             {data.personalInfo.fullName ? (
@@ -288,9 +292,11 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+            </>
+          ),
 
-          {/* Education — given prominence */}
-          {data.education && data.education.length > 0 && (
+          // Education — given prominence
+          education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               <WarmSectionHeader title="Education" />
               {data.education.map((edu) => (
@@ -307,10 +313,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {/* Experience */}
-          {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               <WarmSectionHeader title="Experience" />
               {data.experience.map((exp) => (
@@ -343,10 +349,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {/* Skills */}
-          {data.skills && data.skills.length > 0 && (
+          // Skills
+          skills: data.skills && data.skills.length > 0 && (
             <View style={styles.section}>
               <WarmSectionHeader title="Skills" />
               <View style={styles.skillsRow}>
@@ -357,10 +363,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {/* Certifications */}
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          // Certifications
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               <WarmSectionHeader title="Certifications" />
               {data.certifications.map((cert) => (
@@ -374,10 +380,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {/* Projects */}
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               <WarmSectionHeader title="Projects" />
               {data.projects.map((proj) => (
@@ -394,10 +400,10 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {/* References */}
-          {data.showReferences && data.references && data.references.length > 0 && (
+          // References
+          references: data.showReferences && data.references && data.references.length > 0 && (
             <View style={styles.section} wrap={false}>
               <WarmSectionHeader title="References" />
               <View style={styles.refGrid}>
@@ -416,36 +422,34 @@ export default function Pedagogue({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
-
-          {/* Custom sections */}
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
-                <View key={section.id} style={styles.section}>
-                  <WarmSectionHeader title={section.title} />
-                  {section.items.map((item) => (
-                    <View key={item.id} style={styles.customItem}>
-                      <View style={styles.itemHeaderRow}>
-                        <View>
-                          <Text style={styles.customTitle}>{item.title}</Text>
-                          {item.subtitle ? (
-                            <Text style={styles.customSubtitle}>{item.subtitle}</Text>
-                          ) : null}
-                        </View>
-                        {item.date ? (
-                          <Text style={styles.customDate}>{item.date}</Text>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <WarmSectionHeader title={section.title} />
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.customItem}>
+                    <View style={styles.itemHeaderRow}>
+                      <View>
+                        <Text style={styles.customTitle}>{item.title}</Text>
+                        {item.subtitle ? (
+                          <Text style={styles.customSubtitle}>{item.subtitle}</Text>
                         ) : null}
                       </View>
-                      {item.description ? (
-                        <Text style={styles.customDescription}>{item.description}</Text>
+                      {item.date ? (
+                        <Text style={styles.customDate}>{item.date}</Text>
                       ) : null}
                     </View>
-                  ))}
-                </View>
-              ) : null
-            )}
+                    {item.description ? (
+                      <Text style={styles.customDescription}>{item.description}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
         </View>
       </Page>
     </Document>

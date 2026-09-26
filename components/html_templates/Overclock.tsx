@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -18,6 +19,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 px-[0.9in] py-[0.8in] mx-auto overflow-hidden">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Huge italic bold name, slightly skewed */}
       <header className="mb-8">
         <h1
@@ -45,8 +49,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700 italic">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           <div className="space-y-6">
@@ -80,9 +86,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -99,9 +105,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -119,9 +125,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -136,9 +142,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -153,9 +159,30 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
+        references: data.showReferences && data.references.length > 0 && (
+        <section className="mb-8">
+          <SectionHeader title="References" />
+          <div className="space-y-3">
+            {data.references.map((ref) => (
+              <div key={ref.id}>
+                <p className="text-sm font-bold italic text-gray-900">{ref.name}</p>
+                <p className="text-sm text-gray-600">
+                  {ref.title}
+                  {ref.company && `, ${ref.company}`}
+                </p>
+                {ref.contact && <p className="text-xs text-gray-500">{ref.contact}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ),
+
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
         <section key={section.id} className="mb-8">
           <SectionHeader title={section.title} />
           <div className="space-y-4">
@@ -173,24 +200,7 @@ export default function Overclock({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
-        <section className="mb-8">
-          <SectionHeader title="References" />
-          <div className="space-y-3">
-            {data.references.map((ref) => (
-              <div key={ref.id}>
-                <p className="text-sm font-bold italic text-gray-900">{ref.name}</p>
-                <p className="text-sm text-gray-600">
-                  {ref.title}
-                  {ref.company && `, ${ref.company}`}
-                </p>
-                {ref.contact && <p className="text-xs text-gray-500">{ref.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
+        ))
       )}
     </div>
   );

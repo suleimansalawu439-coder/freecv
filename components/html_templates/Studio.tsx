@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionPill({ title }: { title: string }) {
   return (
@@ -25,35 +26,41 @@ export default function Studio({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 px-12 py-10">
       {/* Header */}
-      <header className="mb-9">
-        <h1 className="text-5xl font-extrabold tracking-tight leading-none mb-4">{personalInfo.fullName}</h1>
-        {disciplineTags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-5">
-            {disciplineTags.map((tag, i) => (
-              <span
-                key={i}
-                className="text-xs font-bold uppercase tracking-wider text-white rounded-full px-3 py-1"
-                style={{ backgroundColor: 'var(--theme-color)' }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        {contacts.length > 0 && <div className="text-sm text-gray-500 font-medium">{contacts.join('  •  ')}</div>}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <header className="mb-9">
+            <h1 className="text-5xl font-extrabold tracking-tight leading-none mb-4">{personalInfo.fullName}</h1>
+            {disciplineTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-5">
+                {disciplineTags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="text-xs font-bold uppercase tracking-wider text-white rounded-full px-3 py-1"
+                    style={{ backgroundColor: 'var(--theme-color)' }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            {contacts.length > 0 && <div className="text-sm text-gray-500 font-medium">{contacts.join('  •  ')}</div>}
+          </header>
+        ),
+      })}
+
 
       <main className="space-y-8">
-        {summary && (
+        {orderSections(data, {
+          personal: summary && (
           <section>
             <div className="mb-4">
               <SectionPill title="Profile" />
             </div>
             <p className="text-sm leading-relaxed text-gray-700">{summary}</p>
           </section>
-        )}
+          ),
 
-        {experience.length > 0 && (
+          experience: experience.length > 0 && (
           <section>
             <div className="mb-5">
               <SectionPill title="Experience" />
@@ -82,9 +89,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <div className="mb-5">
               <SectionPill title="Projects" />
@@ -105,9 +112,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {education.length > 0 && (
+          education: education.length > 0 && (
           <section>
             <div className="mb-5">
               <SectionPill title="Education" />
@@ -122,9 +129,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {skills.length > 0 && (
+          skills: skills.length > 0 && (
           <section>
             <div className="mb-4">
               <SectionPill title="Skills" />
@@ -141,9 +148,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <div className="mb-4">
               <SectionPill title="Certifications" />
@@ -164,9 +171,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section className="break-inside-avoid">
             <div className="mb-4">
               <SectionPill title="References" />
@@ -185,13 +192,11 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(
-            (section) =>
-              section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <section key={section.id}>
                   <div className="mb-4">
                     <SectionPill title={section.title} />
@@ -211,8 +216,9 @@ export default function Studio({ data }: { data: ResumeData }) {
                     ))}
                   </div>
                 </section>
-              )
-          )}
+            ))
+        )}
+
       </main>
     </div>
   );

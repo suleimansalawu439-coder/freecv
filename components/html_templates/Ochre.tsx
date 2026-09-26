@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -21,6 +22,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
       className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-stone-800 mx-auto px-14 py-12"
       style={{ fontFamily: "'Segoe UI', 'Trebuchet MS', Verdana, sans-serif" }}
     >
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header: warm and welcoming */}
       <header className="mb-9 text-center">
         <h1 className="text-4xl font-bold tracking-tight mb-2">{info.fullName}</h1>
@@ -47,9 +51,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Work Experience" />
           <div className="space-y-6">
@@ -75,10 +80,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -96,10 +100,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           <div className="space-y-4">
@@ -120,10 +123,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -138,10 +140,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -153,10 +154,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -169,10 +169,12 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections.map((section) => (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
         <section key={section.id} className="mb-8">
           <SectionHeader title={section.title} />
           <div className="space-y-4">
@@ -188,7 +190,8 @@ export default function Ochre({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      ))}
+        ))
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
 
 // Register fonts for React-PDF
@@ -198,91 +199,99 @@ export default function ZenJapanese({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.name}>{data.personalInfo.fullName}</Text>
-            <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
-          </View>
-          <View style={[styles.contactInfo, dynamicStyles.accentText]}>
-            {data.personalInfo.email && <Text>{data.personalInfo.email}</Text>}
-            {data.personalInfo.phone && <Text>{data.personalInfo.phone}</Text>}
-            {data.personalInfo.location && <Text>{data.personalInfo.location}</Text>}
-            {data.personalInfo.website && <Text>{data.personalInfo.website}</Text>}
-          </View>
-        </View>
-
-        {data.summary && (
-          <View style={[styles.summaryContainer, dynamicStyles.accentBorderLeft]}>
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        )}
-
-        {data.experience.length > 0 && (
-          <View style={{ marginBottom: 24 }}>
-            <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>experience</Text>
-            <View>
-              {data.experience.map(exp => (
-                <View key={exp.id} style={styles.expItem}>
-                  <View style={styles.expHeader}>
-                    <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={[styles.expDates, dynamicStyles.accentText]}>{exp.startDate} – {exp.endDate}</Text>
-                  </View>
-                  <Text style={[styles.expCompany, dynamicStyles.accentText]}>{exp.company}</Text>
-                  <View>
-                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
-                      <Text key={i} style={styles.expDesc}>{l}</Text>
-                    ))}
-                  </View>
+        {orderSections(data, {
+          personal: (
+            <>
+              <View style={styles.header}>
+                <View>
+                  <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+                  <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
                 </View>
-              ))}
+                <View style={[styles.contactInfo, dynamicStyles.accentText]}>
+                  {data.personalInfo.email && <Text>{data.personalInfo.email}</Text>}
+                  {data.personalInfo.phone && <Text>{data.personalInfo.phone}</Text>}
+                  {data.personalInfo.location && <Text>{data.personalInfo.location}</Text>}
+                  {data.personalInfo.website && <Text>{data.personalInfo.website}</Text>}
+                </View>
+              </View>
+
+              {data.summary && (
+                <View style={[styles.summaryContainer, dynamicStyles.accentBorderLeft]}>
+                  <Text style={styles.summaryText}>{data.summary}</Text>
+                </View>
+              )}
+            </>
+          ),
+
+          experience: data.experience.length > 0 && (
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>experience</Text>
+              <View>
+                {data.experience.map(exp => (
+                  <View key={exp.id} style={styles.expItem}>
+                    <View style={styles.expHeader}>
+                      <Text style={styles.expRole}>{exp.role}</Text>
+                      <Text style={[styles.expDates, dynamicStyles.accentText]}>{exp.startDate} – {exp.endDate}</Text>
+                    </View>
+                    <Text style={[styles.expCompany, dynamicStyles.accentText]}>{exp.company}</Text>
+                    <View>
+                      {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((l, i) => (
+                        <Text key={i} style={styles.expDesc}>{l}</Text>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.customSection}>
+                <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>{section.title}</Text>
+                <View>
+                  {section.items.map(item => (
+                    <View key={item.id} style={styles.customItem}>
+                      <View style={styles.customItemHeader}>
+                        <Text style={styles.customItemTitle}>{item.title}</Text>
+                        {item.date && <Text style={[styles.customItemDate, dynamicStyles.accentText]}>{item.date}</Text>}
+                      </View>
+                      {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
+                      {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))
         )}
 
         <View style={styles.grid}>
-          {data.education.length > 0 && (
-            <View style={styles.column}>
-              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>education</Text>
-              {data.education.map(edu => (
-                <View key={edu.id} style={styles.eduItem}>
-                  <Text style={styles.eduDegree}>{edu.degree}</Text>
-                  <Text style={[styles.eduSchool, dynamicStyles.accentText]}>{edu.school}, {edu.graduationYear}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {data.skills.length > 0 && (
-            <View style={styles.column}>
-              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>skills</Text>
-              <View style={styles.skillsContainer}>
-                {data.skills.map(s => (
-                  <Text key={s.id} style={styles.skillItem}>{s.name}</Text>
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
-
-        {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-          section.items.length > 0 && (
-            <View key={section.id} style={styles.customSection}>
-              <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>{section.title}</Text>
-              <View>
-                {section.items.map(item => (
-                  <View key={item.id} style={styles.customItem}>
-                    <View style={styles.customItemHeader}>
-                      <Text style={styles.customItemTitle}>{item.title}</Text>
-                      {item.date && <Text style={[styles.customItemDate, dynamicStyles.accentText]}>{item.date}</Text>}
-                    </View>
-                    {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
-                    {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
+          {orderSections(data, {
+            education: data.education.length > 0 && (
+              <View style={styles.column}>
+                <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>education</Text>
+                {data.education.map(edu => (
+                  <View key={edu.id} style={styles.eduItem}>
+                    <Text style={styles.eduDegree}>{edu.degree}</Text>
+                    <Text style={[styles.eduSchool, dynamicStyles.accentText]}>{edu.school}, {edu.graduationYear}</Text>
                   </View>
                 ))}
               </View>
-            </View>
-          )
-        ))}
+            ),
+
+            skills: data.skills.length > 0 && (
+              <View style={styles.column}>
+                <Text style={[styles.sectionTitle, dynamicStyles.accentText]}>skills</Text>
+                <View style={styles.skillsContainer}>
+                  {data.skills.map(s => (
+                    <Text key={s.id} style={styles.skillItem}>{s.name}</Text>
+                  ))}
+                </View>
+              </View>
+            ),
+          })}
+        </View>
       </Page>
     </Document>
   );

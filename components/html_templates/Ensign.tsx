@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -20,6 +21,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 font-sans mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header with pennant */}
       <header className="px-[0.85in] pt-[0.7in] pb-8">
         <h1 className="text-[44px] leading-tight font-black tracking-tight">{info.fullName}</h1>
@@ -39,16 +43,20 @@ export default function Ensign({ data }: { data: ResumeData }) {
           <p className="text-white text-[12.5px] font-semibold tracking-wide">{contact.join('   ·   ')}</p>
         )}
       </div>
+          </>
+        ),
+      })}
 
       <div className="px-[0.85in] pb-[0.85in]">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionHeader title="Profile" />
             <p className="text-[14px] leading-[1.75] text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Experience" />
             <div className="space-y-5">
@@ -68,9 +76,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-4">
@@ -85,9 +93,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Skills" />
             <div className="flex flex-wrap gap-2">
@@ -101,9 +109,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Projects" />
             <div className="space-y-5">
@@ -118,9 +126,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-2">
@@ -132,9 +140,9 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section>
             <SectionHeader title="References" />
             <div className="grid grid-cols-2 gap-6">
@@ -147,10 +155,11 @@ export default function Ensign({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections && data.customSections.map(section => (
-          section.items && section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <SectionHeader title={section.title} />
               <div className="space-y-5">
@@ -166,8 +175,8 @@ export default function Ensign({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
-        ))}
+            ))
+        )}
       </div>
     </div>
   );

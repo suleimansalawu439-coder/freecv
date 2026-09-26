@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +18,9 @@ export default function Mono({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none mx-auto lg:mx-0 shrink-0 font-sans text-black px-[0.9in] py-[0.7in] flex flex-col">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Masthead */}
       <header className="mb-8">
         <h1 className="font-serif text-5xl font-black tracking-tight leading-none mb-3">
@@ -44,8 +48,10 @@ export default function Mono({ data }: { data: ResumeData }) {
           <p className="font-serif text-lg leading-relaxed italic text-gray-900">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>Expertise</SectionHeading>
           <p className="text-sm leading-loose text-gray-900">
@@ -57,9 +63,9 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </p>
         </section>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>Experience</SectionHeading>
           <div className="space-y-7">
@@ -89,9 +95,9 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>Education</SectionHeading>
           <div className="space-y-4">
@@ -108,9 +114,9 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>Projects</SectionHeading>
           <div className="space-y-5">
@@ -127,9 +133,9 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>Certifications</SectionHeading>
           <div className="space-y-2">
@@ -148,9 +154,9 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="border-t-4 border-black pt-6 mb-8">
           <SectionHeading>References</SectionHeading>
           <div className="grid grid-cols-2 gap-6">
@@ -166,13 +172,12 @@ export default function Mono({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id} className="border-t-4 border-black pt-6 mb-8">
                 <SectionHeading>{section.title}</SectionHeading>
                 <div className="space-y-5">
@@ -198,8 +203,8 @@ export default function Mono({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Brief({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -14,6 +15,9 @@ export default function Brief({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto px-8 py-8">
       {/* Name + clean contact row */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-5">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">{pi.fullName}</h1>
         {pi.jobTitle && <p className="text-sm font-medium text-gray-600 mt-1">{pi.jobTitle}</p>}
@@ -29,8 +33,10 @@ export default function Brief({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
         </div>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-6">
           <BriefHead title="Experience" />
           <div className="space-y-4">
@@ -54,9 +60,9 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-6">
           <BriefHead title="Skills" />
           <div className="flex flex-wrap gap-1.5">
@@ -67,9 +73,9 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-6">
           <BriefHead title="Education" />
           <div className="space-y-2.5">
@@ -84,9 +90,9 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-6">
           <BriefHead title="Projects" />
           <div className="space-y-2.5">
@@ -101,9 +107,9 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-6">
           <BriefHead title="Certifications" />
           <div className="space-y-1.5">
@@ -115,9 +121,9 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-6">
           <BriefHead title="References" />
           <div className="space-y-2.5">
@@ -132,10 +138,11 @@ export default function Brief({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.length > 0 && data.customSections.map(section =>
-        section.items && section.items.length > 0 ? (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mb-6">
             <BriefHead title={section.title} />
             <div className="space-y-2.5">
@@ -151,8 +158,9 @@ export default function Brief({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+        ))
       )}
+
     </div>
   );
 }

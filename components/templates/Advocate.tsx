@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 const INK = '#000000';
@@ -221,9 +222,6 @@ function FormalSectionHeader({ numeral, title }: { numeral: string; title: strin
 export default function Advocate({ data }: { data: ResumeData }) {
   const themeColor = data.theme?.color || '#2563eb';
 
-  let sectionNumber = 0;
-  const numeral = () => ROMAN_NUMERALS[sectionNumber++] ?? '';
-
   const contactItems = [
     data.personalInfo.email,
     data.personalInfo.phone,
@@ -235,6 +233,9 @@ export default function Advocate({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.content}>
+          {orderSections(data, {
+            personal: (
+              <>
           {/* Header */}
           <View style={styles.header}>
             {data.personalInfo.fullName ? (
@@ -263,11 +264,12 @@ export default function Advocate({ data }: { data: ResumeData }) {
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {/* Experience */}
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && ((i: number) => (
             <View style={styles.section}>
-              <FormalSectionHeader numeral={numeral()} title="Professional Experience" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Professional Experience" />
               {data.experience.map((exp) => (
                 <View key={exp.id} style={styles.experienceItem}>
                   <View style={styles.itemHeaderRow}>
@@ -298,12 +300,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+            )),
 
-          {/* Education */}
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && ((i: number) => (
             <View style={styles.section}>
-              <FormalSectionHeader numeral={numeral()} title="Education" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Education" />
               {data.education.map((edu) => (
                 <View key={edu.id} style={styles.educationItem}>
                   <View style={styles.educationRow}>
@@ -318,22 +319,20 @@ export default function Advocate({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+            )),
 
-          {/* Skills */}
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && ((i: number) => (
             <View style={styles.section}>
-              <FormalSectionHeader numeral={numeral()} title="Skills" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Skills" />
               <Text style={styles.skillsText}>
                 {data.skills.map((skill) => skill.name).filter(Boolean).join('; ')}
               </Text>
             </View>
-          )}
+            )),
 
-          {/* Certifications */}
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && ((i: number) => (
             <View style={styles.section}>
-              <FormalSectionHeader numeral={numeral()} title="Certifications" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Certifications" />
               {data.certifications.map((cert) => (
                 <View key={cert.id} style={styles.certItem}>
                   <Text style={styles.certName}>{cert.name}</Text>
@@ -345,12 +344,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+            )),
 
-          {/* Projects */}
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && ((i: number) => (
             <View style={styles.section}>
-              <FormalSectionHeader numeral={numeral()} title="Selected Projects" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="Selected Projects" />
               {data.projects.map((proj) => (
                 <View key={proj.id} style={styles.projectItem}>
                   <View style={styles.itemHeaderRow}>
@@ -367,12 +365,11 @@ export default function Advocate({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+            )),
 
-          {/* References */}
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && ((i: number) => (
             <View style={styles.section} wrap={false}>
-              <FormalSectionHeader numeral={numeral()} title="References" />
+              <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title="References" />
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.refItem}>
                   <Text style={styles.refName}>{ref.name}</Text>
@@ -387,36 +384,35 @@ export default function Advocate({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+            )),
 
-          {/* Custom sections */}
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
-                <View key={section.id} style={styles.section}>
-                  <FormalSectionHeader numeral={numeral()} title={section.title} />
-                  {section.items.map((item) => (
-                    <View key={item.id} style={styles.customItem}>
-                      <View style={styles.itemHeaderRow}>
-                        <View>
-                          <Text style={styles.customTitle}>{item.title}</Text>
-                          {item.subtitle ? (
-                            <Text style={styles.customSubtitle}>{item.subtitle}</Text>
-                          ) : null}
-                        </View>
-                        {item.date ? (
-                          <Text style={styles.dateText}>{item.date}</Text>
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (i: number) => (
+              <View key={section.id} style={styles.section}>
+                <FormalSectionHeader numeral={ROMAN_NUMERALS[i] ?? ''} title={section.title} />
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.customItem}>
+                    <View style={styles.itemHeaderRow}>
+                      <View>
+                        <Text style={styles.customTitle}>{item.title}</Text>
+                        {item.subtitle ? (
+                          <Text style={styles.customSubtitle}>{item.subtitle}</Text>
                         ) : null}
                       </View>
-                      {item.description ? (
-                        <Text style={styles.customDescription}>{item.description}</Text>
+                      {item.date ? (
+                        <Text style={styles.dateText}>{item.date}</Text>
                       ) : null}
                     </View>
-                  ))}
-                </View>
-              ) : null
-            )}
+                    {item.description ? (
+                      <Text style={styles.customDescription}>{item.description}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            )))
+          }
         </View>
       </Page>
     </Document>

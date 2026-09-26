@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -184,6 +185,9 @@ export default function Consul({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           {data.personalInfo.fullName ? (
             <Text style={styles.name}>{data.personalInfo.fullName}</Text>
@@ -200,9 +204,11 @@ export default function Consul({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Experience — role left, company right; dates row 2 */}
-        {data.experience && data.experience.length > 0 && (
+          // Experience — role left, company right; dates row 2
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Experience</Text>
             {data.experience.map((exp) => (
@@ -232,10 +238,10 @@ export default function Consul({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Education */}
-        {data.education && data.education.length > 0 && (
+          // Education
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
             {data.education.map((edu) => (
@@ -250,10 +256,10 @@ export default function Consul({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Skills — 3 column grid */}
-        {data.skills && data.skills.length > 0 && (
+          // Skills — 3 column grid
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Skills</Text>
             <View style={styles.skillsGrid}>
@@ -264,10 +270,10 @@ export default function Consul({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+          ),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Projects</Text>
             {data.projects.map((proj) => (
@@ -278,10 +284,10 @@ export default function Consul({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          // Certifications
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -294,10 +300,10 @@ export default function Consul({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+          // References
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>References</Text>
             {data.references.map((ref) => (
@@ -310,13 +316,12 @@ export default function Consul({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
-
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          ),
+        },
+          // Custom sections
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -330,8 +335,8 @@ export default function Consul({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

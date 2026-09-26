@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -23,6 +24,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-neutral-900 mx-auto px-16 py-12">
       {/* Formal centered header */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="text-center border-b-2 border-neutral-900 pb-6 mb-2">
         <h1 className="text-4xl font-bold tracking-wide uppercase">{info.fullName}</h1>
         {info.jobTitle && (
@@ -39,8 +43,10 @@ export default function Barrister({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-neutral-800 text-justify">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Professional Experience" />
           <div className="space-y-6">
@@ -70,9 +76,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -87,9 +93,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Admissions & Certifications" />
           <div className="space-y-2">
@@ -104,9 +110,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Areas of Practice" />
           <p className="text-sm leading-loose text-center text-neutral-800">
@@ -118,9 +124,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Notable Matters" />
           <div className="space-y-4">
@@ -132,29 +138,9 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
-        <section key={section.id}>
-          <SectionHeader title={section.title} />
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between items-baseline">
-                  <p className="text-sm font-bold">{item.title}</p>
-                  {item.date && <span className="text-sm italic text-neutral-600">{item.date}</span>}
-                </div>
-                {item.subtitle && <p className="text-sm italic text-neutral-700">{item.subtitle}</p>}
-                {item.description && (
-                  <p className="text-sm text-neutral-800 mt-1 text-justify">{item.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <p className="text-sm italic text-center text-neutral-600">
@@ -173,6 +159,29 @@ export default function Barrister({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
+        <section key={section.id}>
+          <SectionHeader title={section.title} />
+          <div className="space-y-3">
+            {section.items.map((item) => (
+              <div key={item.id}>
+                <div className="flex justify-between items-baseline">
+                  <p className="text-sm font-bold">{item.title}</p>
+                  {item.date && <span className="text-sm italic text-neutral-600">{item.date}</span>}
+                </div>
+                {item.subtitle && <p className="text-sm italic text-neutral-700">{item.subtitle}</p>}
+                {item.description && (
+                  <p className="text-sm text-neutral-800 mt-1 text-justify">{item.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+        ))
       )}
     </div>
   );

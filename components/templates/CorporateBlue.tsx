@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -262,6 +263,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={[styles.header, dynamicStyles.accentBackground]} wrap={false}>
           <View style={styles.headerContent}>
             <View style={styles.headerLeft}>
@@ -292,8 +296,10 @@ export default function CorporateBlue({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         )}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitleText}>Professional Experience</Text>
@@ -318,11 +324,13 @@ export default function CorporateBlue({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+          ),
+        })}
 
         {(data.education?.length > 0 || data.skills?.length > 0) && (
           <View style={styles.twoColRow} wrap={false}>
-            {data.education && data.education.length > 0 && (
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 && (
               <View style={styles.colHalf}>
                 <View style={styles.sectionTitleContainer}>
                   <Text style={styles.sectionTitleText}>Education</Text>
@@ -334,9 +342,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.skills && data.skills.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.colHalf}>
                 <View style={styles.sectionTitleContainer}>
                   <Text style={styles.sectionTitleText}>Core Skills</Text>
@@ -349,11 +357,14 @@ export default function CorporateBlue({ data }: TemplateProps) {
                   ))}
                 </View>
               </View>
+              ),
+            },
             )}
           </View>
         )}
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        {orderSections(data, {
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={[styles.section, styles.sectionBorderTop]} wrap={false}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitleText}>Projects</Text>
@@ -376,9 +387,9 @@ export default function CorporateBlue({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={[styles.section, styles.sectionBorderTop]} wrap={false}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitleText}>References</Text>
@@ -393,14 +404,11 @@ export default function CorporateBlue({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={[styles.section, styles.sectionBorderTop]} wrap={false}>
                   <View style={styles.sectionTitleContainer}>
                     <Text style={styles.sectionTitleText}>{section.title}</Text>
@@ -422,8 +430,8 @@ export default function CorporateBlue({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

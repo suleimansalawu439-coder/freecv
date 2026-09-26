@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -26,6 +27,8 @@ export default function Gutter({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 px-20 py-16 mx-auto">
+      {orderSections(data, {
+        personal: (
       <header className="mb-6 ml-[154px]">
         {info.fullName && (
           <h1 className="text-4xl font-normal tracking-tight leading-tight">{info.fullName}</h1>
@@ -37,8 +40,11 @@ export default function Gutter({ data }: { data: ResumeData }) {
           <p className="text-sm text-gray-500 mt-3">{contact.join('   ·   ')}</p>
         )}
       </header>
+        ),
+      })}
 
-      {data.summary && (
+      {orderSections(data, {
+        personal: data.summary && (
         <section>
           <SectionTitle>Profile</SectionTitle>
           <div className="grid grid-cols-[130px_1fr] gap-6">
@@ -46,9 +52,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             <p className="text-[15px] text-gray-800 leading-[1.9]">{data.summary}</p>
           </div>
         </section>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionTitle>Experience</SectionTitle>
           {data.experience.map((exp) => (
@@ -72,9 +78,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </MarginRow>
           ))}
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionTitle>Education</SectionTitle>
           {data.education.map((edu) => (
@@ -84,9 +90,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </MarginRow>
           ))}
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionTitle>Skills</SectionTitle>
           <div className="grid grid-cols-[130px_1fr] gap-6">
@@ -98,9 +104,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </p>
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionTitle>Projects</SectionTitle>
           {data.projects.map((proj) => (
@@ -112,9 +118,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </MarginRow>
           ))}
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionTitle>Certifications</SectionTitle>
           {data.certifications.map((cert) => (
@@ -126,26 +132,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </MarginRow>
           ))}
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
-          <section key={section.id}>
-            <SectionTitle>{section.title}</SectionTitle>
-            {section.items.map((item) => (
-              <MarginRow key={item.id} margin={item.date || undefined}>
-                {item.title && <h3 className="font-serif text-base font-bold">{item.title}</h3>}
-                {item.subtitle && <p className="text-sm text-gray-600 italic mt-0.5">{item.subtitle}</p>}
-                {item.description && (
-                  <p className="text-[15px] text-gray-700 mt-1.5 leading-[1.85]">{item.description}</p>
-                )}
-              </MarginRow>
-            ))}
-          </section>
-        ) : null
-      )}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionTitle>References</SectionTitle>
           <div className="grid grid-cols-[130px_1fr] gap-6">
@@ -165,6 +154,24 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </div>
           </div>
         </section>
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+          <section key={section.id}>
+            <SectionTitle>{section.title}</SectionTitle>
+            {section.items.map((item) => (
+              <MarginRow key={item.id} margin={item.date || undefined}>
+                {item.title && <h3 className="font-serif text-base font-bold">{item.title}</h3>}
+                {item.subtitle && <p className="text-sm text-gray-600 italic mt-0.5">{item.subtitle}</p>}
+                {item.description && (
+                  <p className="text-[15px] text-gray-700 mt-1.5 leading-[1.85]">{item.description}</p>
+                )}
+              </MarginRow>
+            ))}
+          </section>
+          ))
       )}
     </div>
   );

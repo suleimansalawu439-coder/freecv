@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -186,15 +187,18 @@ export default function Northstar({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.sidebar}>
+          {orderSections(data, {
+            personal: (
           <View style={styles.sidebarBlock}>
             <Text style={styles.sidebarLabel}>•  Contact</Text>
             {info.email ? <Text style={styles.contactItem}>{info.email}</Text> : null}
             {info.phone ? <Text style={styles.contactItem}>{info.phone}</Text> : null}
             {info.location ? <Text style={styles.contactItem}>{info.location}</Text> : null}
             {info.website ? <Text style={styles.contactItem}>{info.website}</Text> : null}
-          </View>
+            </View>
+          ),
 
-          {data.skills && data.skills.length > 0 ? (
+            skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.sidebarBlock}>
               <Text style={[styles.sidebarLabel, { color: themeColor }]}>Skills</Text>
               {data.skills.map((s) => (
@@ -203,9 +207,9 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.education && data.education.length > 0 ? (
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.sidebarBlock}>
               <Text style={[styles.sidebarLabel, { color: themeColor }]}>Education</Text>
               {data.education.map((edu) => (
@@ -221,9 +225,9 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
             <View style={styles.sidebarBlock}>
               <Text style={[styles.sidebarLabel, { color: themeColor }]}>Certifications</Text>
               {data.certifications.map((c) => (
@@ -236,10 +240,14 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
+          })}
         </View>
 
         <View style={styles.main}>
+          {orderSections(data, {
+            personal: (
+              <>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
 
@@ -249,8 +257,10 @@ export default function Northstar({ data }: { data: ResumeData }) {
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 ? (
+            experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Experience</Text>
               <View style={[styles.rail, { borderLeftColor: themeColor }]}>
@@ -280,9 +290,9 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects && data.projects.length > 0 ? (
+            projects: data.showProjects && data.projects && data.projects.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Projects</Text>
               {data.projects.map((p) => (
@@ -292,9 +302,9 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showReferences && data.references && data.references.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>References</Text>
               <View style={styles.refGrid}>
@@ -310,12 +320,11 @@ export default function Northstar({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
-
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+          ) : null,
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <Text style={styles.sectionTitle}>{section.title}</Text>
                   {section.items.map((item) => (
@@ -333,8 +342,8 @@ export default function Northstar({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )}
+              ))
+          )}
         </View>
       </Page>
     </Document>

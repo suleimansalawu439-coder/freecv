@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -167,6 +168,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerBlock}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
@@ -180,8 +184,10 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             <View style={[styles.quoteRule, { backgroundColor: themeColor }]} />
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>Experience</QuoteHead>
             {data.experience.map((exp) => (
@@ -206,9 +212,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>Skills</QuoteHead>
             <View style={styles.chipRow}>
@@ -219,9 +225,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>Education</QuoteHead>
             {data.education.map((edu) => (
@@ -234,9 +240,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>Projects</QuoteHead>
             {data.projects.map((proj) => (
@@ -249,9 +255,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>Certifications</QuoteHead>
             {data.certifications.map((cert) => (
@@ -262,29 +268,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
-              <View key={section.id}>
-                <QuoteHead themeColor={themeColor}>{section.title}</QuoteHead>
-                {section.items.map((item) => (
-                  <View key={item.id} style={{ marginBottom: 12 }}>
-                    <View style={styles.expHeaderRow}>
-                      {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
-                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                    </View>
-                    {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
-                    {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View>
             <QuoteHead themeColor={themeColor}>References</QuoteHead>
             <View style={styles.refGrid}>
@@ -303,6 +289,25 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id}>
+                <QuoteHead themeColor={themeColor}>{section.title}</QuoteHead>
+                {section.items.map((item) => (
+                  <View key={item.id} style={{ marginBottom: 12 }}>
+                    <View style={styles.expHeaderRow}>
+                      {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
+                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                    </View>
+                    {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
+                    {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            ))
         )}
       </Page>
     </Document>

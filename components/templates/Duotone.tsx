@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const DARK = '#1E293B';
@@ -188,6 +189,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerRow}>
           <View style={styles.headerDark}>
             {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
@@ -209,8 +213,10 @@ export default function Duotone({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Experience" dark themeColor={themeColor} />
             {data.experience.map((exp, i) => {
@@ -239,9 +245,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
               );
             })}
           </View>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Skills" themeColor={themeColor} />
             <View style={styles.skillsWrap}>
@@ -255,9 +261,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Education" dark themeColor={themeColor} />
             {data.education.map((edu) => (
@@ -274,9 +280,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Projects" themeColor={themeColor} />
             {data.projects.map((proj) => (
@@ -289,9 +295,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Certifications" dark themeColor={themeColor} />
             {data.certifications.map((cert) => (
@@ -304,11 +310,27 @@ export default function Duotone({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.customSections &&
-          data.customSections.map((section, si) =>
-            section.items && section.items.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <View style={styles.section}>
+            <SectionHead title="References" themeColor={themeColor} />
+            {data.references.map((ref) => (
+              <View key={ref.id} style={{ marginBottom: 6 }}>
+                <Text style={styles.degreeText}>{ref.name}</Text>
+                <Text style={styles.schoolText}>
+                  {ref.title}
+                  {ref.company ? `, ${ref.company}` : ''}
+                </Text>
+                {ref.contact ? <Text style={styles.schoolText}>{ref.contact}</Text> : null}
+              </View>
+            ))}
+          </View>
+          ),
+        },
+          (data.customSections || [])
+            .map((section, si) =>
+              section.items && section.items.length > 0 ? (
               <View key={section.id} style={styles.section}>
                 <SectionHead
                   title={section.title}
@@ -332,23 +354,8 @@ export default function Duotone({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead title="References" themeColor={themeColor} />
-            {data.references.map((ref) => (
-              <View key={ref.id} style={{ marginBottom: 6 }}>
-                <Text style={styles.degreeText}>{ref.name}</Text>
-                <Text style={styles.schoolText}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.schoolText}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
+              ) : null
+            )
         )}
       </Page>
     </Document>

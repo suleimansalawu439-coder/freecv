@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -19,6 +20,8 @@ export default function Frontline({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-900 mx-auto">
       {/* Bold direct header */}
+      {orderSections(data, {
+        personal: (
       <header className="px-12 pt-12 pb-8" style={{ backgroundColor: 'var(--theme-color)' }}>
         <h1 className="text-5xl font-black tracking-tight text-white uppercase">{info.fullName}</h1>
         {info.jobTitle && (
@@ -28,9 +31,12 @@ export default function Frontline({ data }: { data: ResumeData }) {
           <p className="text-sm font-semibold text-white/80 mt-3">{contactItems.join('   |   ')}</p>
         )}
       </header>
+        ),
+      })}
 
       <div className="px-12 py-8">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionHeader title="Mission Statement" />
             <p className="text-[15px] font-medium leading-relaxed text-slate-800 border-l-4 pl-4"
@@ -38,9 +44,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               {data.summary}
             </p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Service Record" />
             <div className="space-y-6">
@@ -72,9 +78,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Key Strengths" />
             <div className="grid grid-cols-2 gap-2">
@@ -89,9 +95,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Training & Education" />
             <div className="space-y-3">
@@ -106,9 +112,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-2">
@@ -123,9 +129,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Operations & Projects" />
             <div className="space-y-4">
@@ -140,27 +146,9 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections.map((section) => (
-          <section key={section.id}>
-            <SectionHeader title={section.title} />
-            <div className="space-y-3">
-              {section.items.map((item) => (
-                <div key={item.id}>
-                  <div className="flex justify-between items-baseline">
-                    <p className="text-sm font-black">{item.title}</p>
-                    {item.date && <span className="text-sm font-black">{item.date}</span>}
-                  </div>
-                  {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
-                  {item.description && <p className="text-sm text-slate-700 mt-1">{item.description}</p>}
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
-
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section>
             <SectionHeader title="References" />
             <div className="grid grid-cols-2 gap-4">
@@ -176,6 +164,27 @@ export default function Frontline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+          <section key={section.id}>
+            <SectionHeader title={section.title} />
+            <div className="space-y-3">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-sm font-black">{item.title}</p>
+                    {item.date && <span className="text-sm font-black">{item.date}</span>}
+                  </div>
+                  {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
+                  {item.description && <p className="text-sm text-slate-700 mt-1">{item.description}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+            ))
         )}
       </div>
     </div>

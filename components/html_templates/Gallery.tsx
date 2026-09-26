@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHead({ title }: { title: string }) {
   return (
@@ -15,6 +16,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-black px-16 py-14">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="text-center mb-2">
         <h1 className="text-5xl font-bold tracking-tight">{personalInfo.fullName}</h1>
@@ -26,16 +30,20 @@ export default function Gallery({ data }: { data: ResumeData }) {
       {contacts.length > 0 && (
         <p className="text-center text-[13px] text-gray-500 mb-14">{contacts.join('  ·  ')}</p>
       )}
+          </>
+        ),
+      })}
 
       <main className="space-y-12">
-        {summary && (
+        {orderSections(data, {
+          personal: summary && (
           <section>
             <SectionHead title="Profile" />
             <p className="text-[15px] leading-loose text-gray-800 text-center max-w-[620px] mx-auto">{summary}</p>
           </section>
-        )}
+          ),
 
-        {experience.length > 0 && (
+          experience: experience.length > 0 && (
           <section>
             <SectionHead title="Experience" />
             <div className="space-y-10">
@@ -60,9 +68,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionHead title="Selected Work" />
             <div className="space-y-8">
@@ -79,9 +87,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {education.length > 0 && (
+          education: education.length > 0 && (
           <section>
             <SectionHead title="Education" />
             <div className="space-y-8 text-center">
@@ -94,9 +102,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {skills.length > 0 && (
+          skills: skills.length > 0 && (
           <section>
             <SectionHead title="Capabilities" />
             <div className="grid grid-cols-2 gap-x-10 gap-y-3 max-w-[560px] mx-auto">
@@ -107,9 +115,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionHead title="Certifications" />
             <div className="space-y-4 text-center">
@@ -127,9 +135,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section className="break-inside-avoid">
             <SectionHead title="References" />
             <div className="grid grid-cols-2 gap-10 max-w-[600px] mx-auto">
@@ -146,34 +154,32 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(
-            (section) =>
-              section.items.length > 0 && (
-                <section key={section.id}>
-                  <SectionHead title={section.title} />
-                  <div className="space-y-8">
-                    {section.items.map((item) => (
-                      <div key={item.id} className="text-center">
-                        <div className="flex justify-center items-baseline gap-4">
-                          <h3 className="text-lg font-bold">{item.title}</h3>
-                          {item.date && <span className="text-xs text-gray-500 tracking-wide">{item.date}</span>}
-                        </div>
-                        {item.subtitle && <p className="italic text-gray-700 mt-1">{item.subtitle}</p>}
-                        {item.description && (
-                          <p className="text-[15px] text-gray-800 leading-loose mt-2 max-w-[560px] mx-auto whitespace-pre-wrap">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+            <section key={section.id}>
+              <SectionHead title={section.title} />
+              <div className="space-y-8">
+                {section.items.map((item) => (
+                  <div key={item.id} className="text-center">
+                    <div className="flex justify-center items-baseline gap-4">
+                      <h3 className="text-lg font-bold">{item.title}</h3>
+                      {item.date && <span className="text-xs text-gray-500 tracking-wide">{item.date}</span>}
+                    </div>
+                    {item.subtitle && <p className="italic text-gray-700 mt-1">{item.subtitle}</p>}
+                    {item.description && (
+                      <p className="text-[15px] text-gray-800 leading-loose mt-2 max-w-[560px] mx-auto whitespace-pre-wrap">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
-                </section>
-              )
-          )}
+                ))}
+              </div>
+            </section>
+            ))
+        )}
       </main>
     </div>
   );

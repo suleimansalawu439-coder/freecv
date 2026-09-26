@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -21,35 +22,40 @@ export default function Spotlight({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 font-sans mx-auto">
       {/* Dark band with spotlight bar */}
-      <header className="relative bg-[#14181f] px-[0.85in] pt-12 pb-10 overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 60% 90% at 30% 20%, rgba(255,255,255,0.09), transparent)' }}
-        />
-        <div className="relative">
-          <h1 className="text-[42px] leading-tight font-black text-white tracking-tight">{info.fullName}</h1>
-          {info.jobTitle && (
-            <p className="text-[15px] font-semibold text-white/80 mt-2">{info.jobTitle}</p>
-          )}
-          {contact.length > 0 && (
-            <p className="text-[12.5px] text-white/60 mt-3">{contact.join('  ·  ')}</p>
-          )}
-        </div>
-        <div
-          className="absolute bottom-0 left-0 h-1.5 w-full"
-          style={{ backgroundColor: 'var(--theme-color)' }}
-        />
-      </header>
+      {orderSections(data, {
+        personal: (
+          <header className="relative bg-[#14181f] px-[0.85in] pt-12 pb-10 overflow-hidden">
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse 60% 90% at 30% 20%, rgba(255,255,255,0.09), transparent)' }}
+            />
+            <div className="relative">
+              <h1 className="text-[42px] leading-tight font-black text-white tracking-tight">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-[15px] font-semibold text-white/80 mt-2">{info.jobTitle}</p>
+              )}
+              {contact.length > 0 && (
+                <p className="text-[12.5px] text-white/60 mt-3">{contact.join('  ·  ')}</p>
+              )}
+            </div>
+            <div
+              className="absolute bottom-0 left-0 h-1.5 w-full"
+              style={{ backgroundColor: 'var(--theme-color)' }}
+            />
+          </header>
+        ),
+      })}
 
       <div className="px-[0.85in] pb-[0.85in]">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && data.summary.length > 0 && (
           <section>
             <SectionHeader title="Profile" />
             <p className="text-[14px] leading-[1.75] text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Experience" />
             <div className="space-y-6">
@@ -69,9 +75,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-4">
@@ -86,9 +92,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Skills" />
             <div className="grid grid-cols-2 gap-x-10 gap-y-3">
@@ -111,9 +117,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Projects" />
             <div className="space-y-5">
@@ -128,9 +134,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-2">
@@ -142,9 +148,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section>
             <SectionHeader title="References" />
             <div className="grid grid-cols-2 gap-6">
@@ -157,10 +163,11 @@ export default function Spotlight({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections && data.customSections.map(section => (
-          section.items && section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <SectionHeader title={section.title} />
               <div className="space-y-5">
@@ -176,8 +183,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
-        ))}
+            ))
+        )}
+
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const WARM = '#78716c';
 const WARM_LINE = '#e7e2dc';
@@ -18,6 +19,9 @@ export default function Calm({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-stone-800 p-[1.25in] mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-6">
         {info.fullName && (
           <h1 className="text-4xl font-normal tracking-wide text-stone-900 leading-snug">{info.fullName}</h1>
@@ -38,8 +42,10 @@ export default function Calm({ data }: { data: ResumeData }) {
           <p className="text-[15px] text-stone-700 leading-[2.1]">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionTitle>Experience</SectionTitle>
           <div className="space-y-12">
@@ -67,9 +73,9 @@ export default function Calm({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionTitle>Education</SectionTitle>
           <div className="space-y-8">
@@ -84,9 +90,9 @@ export default function Calm({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionTitle>Skills</SectionTitle>
           <div className="space-y-3">
@@ -98,9 +104,9 @@ export default function Calm({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionTitle>Projects</SectionTitle>
           <div className="space-y-10">
@@ -117,9 +123,9 @@ export default function Calm({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionTitle>Certifications</SectionTitle>
           <div className="space-y-4">
@@ -132,10 +138,30 @@ export default function Calm({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+        references: data.showReferences && data.references.length > 0 && (
+        <section>
+          <SectionTitle>References</SectionTitle>
+          <div className="space-y-8">
+            {data.references.map((ref) => (
+              <div key={ref.id}>
+                <p className="text-[15px] text-stone-900">{ref.name}</p>
+                {(ref.title || ref.company) && (
+                  <p className="text-sm text-stone-500 mt-1">
+                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
+                  </p>
+                )}
+                {ref.contact && <p className="text-sm text-stone-400 mt-1">{ref.contact}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id}>
             <SectionTitle>{section.title}</SectionTitle>
             <div className="space-y-8">
@@ -154,26 +180,7 @@ export default function Calm({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
-      )}
-
-      {data.showReferences && data.references.length > 0 && (
-        <section>
-          <SectionTitle>References</SectionTitle>
-          <div className="space-y-8">
-            {data.references.map((ref) => (
-              <div key={ref.id}>
-                <p className="text-[15px] text-stone-900">{ref.name}</p>
-                {(ref.title || ref.company) && (
-                  <p className="text-sm text-stone-500 mt-1">
-                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
-                  </p>
-                )}
-                {ref.contact && <p className="text-sm text-stone-400 mt-1">{ref.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
+        ))
       )}
     </div>
   );

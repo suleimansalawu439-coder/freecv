@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -33,6 +34,9 @@ export default function Arsenal({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none mx-auto lg:mx-0 shrink-0 font-sans text-gray-900 px-[0.9in] py-[0.7in] flex flex-col">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Top: name + contact */}
       <header className="mb-8">
         <div className="flex justify-between items-end gap-6">
@@ -58,9 +62,10 @@ export default function Arsenal({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700 mt-5">{data.summary}</p>
         )}
       </header>
+          </>
+        ),
 
-      {/* Core Competencies FIRST */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionTitle>Core Competencies</SectionTitle>
           <div className="grid grid-cols-3 gap-2">
@@ -74,8 +79,10 @@ export default function Arsenal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
+        experience: (
+          <>
       {/* Selected Achievements — flattened bullets */}
       {achievements.length > 0 && (
         <section className="mb-8">
@@ -112,8 +119,10 @@ export default function Arsenal({ data }: { data: ResumeData }) {
           </div>
         </section>
       )}
+          </>
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionTitle>Education</SectionTitle>
           <div className="space-y-3">
@@ -130,9 +139,9 @@ export default function Arsenal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionTitle>Projects</SectionTitle>
           <div className="space-y-4">
@@ -147,9 +156,9 @@ export default function Arsenal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionTitle>Certifications</SectionTitle>
           <div className="space-y-2">
@@ -168,9 +177,9 @@ export default function Arsenal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-8">
           <SectionTitle>References</SectionTitle>
           <div className="grid grid-cols-2 gap-6">
@@ -186,40 +195,38 @@ export default function Arsenal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
-              <section key={section.id} className="mb-8">
-                <SectionTitle>{section.title}</SectionTitle>
-                <div className="space-y-4">
-                  {section.items.map((item) => (
-                    <div key={item.id}>
-                      <div className="flex justify-between items-baseline gap-4">
-                        <h3 className="font-bold text-sm text-gray-900">{item.title}</h3>
-                        {item.date && (
-                          <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">
-                            {item.date}
-                          </span>
-                        )}
-                      </div>
-                      {item.subtitle && (
-                        <div className="text-sm italic text-gray-600">{item.subtitle}</div>
-                      )}
-                      {item.description && (
-                        <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
+          <section key={section.id} className="mb-8">
+            <SectionTitle>{section.title}</SectionTitle>
+            <div className="space-y-4">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <div className="flex justify-between items-baseline gap-4">
+                    <h3 className="font-bold text-sm text-gray-900">{item.title}</h3>
+                    {item.date && (
+                      <span className="text-xs font-semibold text-gray-500 whitespace-nowrap">
+                        {item.date}
+                      </span>
+                    )}
+                  </div>
+                  {item.subtitle && (
+                    <div className="text-sm italic text-gray-600">{item.subtitle}</div>
+                  )}
+                  {item.description && (
+                    <p className="text-sm text-gray-700 mt-1 whitespace-pre-wrap">
+                      {item.description}
+                    </p>
+                  )}
                 </div>
-              </section>
-            )
-        )}
+              ))}
+            </div>
+          </section>
+        ))
+      )}
     </div>
   );
 }

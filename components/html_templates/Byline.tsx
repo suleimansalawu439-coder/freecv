@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHead({ kicker, title }: { kicker: string; title: string }) {
   return (
@@ -16,6 +17,9 @@ export default function Byline({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 px-16 py-14 mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="border-b-2 border-gray-900 pb-8 mb-2">
         {info.location && (
           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-4">
@@ -43,8 +47,10 @@ export default function Byline({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHead kicker="Career" title="Professional Experience" />
           <div className="space-y-8">
@@ -70,9 +76,9 @@ export default function Byline({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHead kicker="Schooling" title="Education" />
           <div className="space-y-5">
@@ -87,18 +93,18 @@ export default function Byline({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHead kicker="Toolkit" title="Skills" />
           <p className="font-serif text-[15px] text-gray-800 leading-[2]">
             {data.skills.map((s) => s.name).join(', ')}
           </p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHead kicker="Features" title="Projects" />
           <div className="space-y-7">
@@ -115,9 +121,9 @@ export default function Byline({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHead kicker="Credentials" title="Certifications" />
           <div className="space-y-3">
@@ -130,10 +136,30 @@ export default function Byline({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+        references: data.showReferences && data.references.length > 0 && (
+        <section>
+          <SectionHead kicker="Sources" title="References" />
+          <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+            {data.references.map((ref) => (
+              <div key={ref.id}>
+                <p className="font-serif text-[15px] font-bold text-gray-900">{ref.name}</p>
+                {(ref.title || ref.company) && (
+                  <p className="text-sm text-gray-600 italic">
+                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
+                  </p>
+                )}
+                {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id}>
             <SectionHead kicker="Filed" title={section.title} />
             <div className="space-y-6">
@@ -152,26 +178,7 @@ export default function Byline({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
-      )}
-
-      {data.showReferences && data.references.length > 0 && (
-        <section>
-          <SectionHead kicker="Sources" title="References" />
-          <div className="grid grid-cols-2 gap-x-10 gap-y-6">
-            {data.references.map((ref) => (
-              <div key={ref.id}>
-                <p className="font-serif text-[15px] font-bold text-gray-900">{ref.name}</p>
-                {(ref.title || ref.company) && (
-                  <p className="text-sm text-gray-600 italic">
-                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
-                  </p>
-                )}
-                {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
+        ))
       )}
     </div>
   );

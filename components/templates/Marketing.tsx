@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -35,196 +36,204 @@ export default function Marketing({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={[styles.header, dynamicStyles.headerBorder]}>
-          <View style={[styles.avatar, dynamicStyles.avatarBg]}>
-            <Text style={styles.avatarText}>
-              {data.personalInfo.fullName
-                ? data.personalInfo.fullName
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                : ''}
-            </Text>
-          </View>
-          <View style={styles.headerContent}>
-            <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
-            <Text style={[styles.jobTitle, dynamicStyles.jobTitle]}>{data.personalInfo.jobTitle}</Text>
-            <View style={styles.contactRow}>
-              {data.personalInfo.email ? (
-                <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
-              ) : null}
-              {data.personalInfo.phone ? (
-                <Text style={styles.contactItem}>
-                  {data.personalInfo.email ? ' • ' : ''}
-                  {data.personalInfo.phone}
-                </Text>
-              ) : null}
-              {data.personalInfo.location ? (
-                <Text style={styles.contactItem}>
-                  {data.personalInfo.email || data.personalInfo.phone ? ' • ' : ''}
-                  {data.personalInfo.location}
-                </Text>
-              ) : null}
-              {data.personalInfo.website ? (
-                <Text style={styles.contactItem}>
-                  {data.personalInfo.email || data.personalInfo.phone || data.personalInfo.location
-                    ? ' • '
-                    : ''}
-                  {data.personalInfo.website}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-        </View>
-
-        {/* Summary */}
-        {data.summary ? (
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        ) : null}
-
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 ? (
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionSlash, dynamicStyles.accentText]}>/</Text>
-              <Text style={styles.sectionTitle}> Experience</Text>
-            </View>
-            <View style={styles.experienceList}>
-              {data.experience.map((exp) => (
-                <View key={exp.id} style={styles.expItem}>
-                  <View style={styles.expHeader}>
-                    <Text style={styles.expRole}>{exp.role}</Text>
-                    <Text style={[styles.expDate, dynamicStyles.dateBadge]}>{exp.startDate} — {exp.endDate}</Text>
+        {orderSections(data, {
+          personal: (
+            <>
+              {/* Header */}
+              <View style={[styles.header, dynamicStyles.headerBorder]}>
+                <View style={[styles.avatar, dynamicStyles.avatarBg]}>
+                  <Text style={styles.avatarText}>
+                    {data.personalInfo.fullName
+                      ? data.personalInfo.fullName
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                      : ''}
+                  </Text>
+                </View>
+                <View style={styles.headerContent}>
+                  <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
+                  <Text style={[styles.jobTitle, dynamicStyles.jobTitle]}>{data.personalInfo.jobTitle}</Text>
+                  <View style={styles.contactRow}>
+                    {data.personalInfo.email ? (
+                      <Text style={styles.contactItem}>{data.personalInfo.email}</Text>
+                    ) : null}
+                    {data.personalInfo.phone ? (
+                      <Text style={styles.contactItem}>
+                        {data.personalInfo.email ? ' • ' : ''}
+                        {data.personalInfo.phone}
+                      </Text>
+                    ) : null}
+                    {data.personalInfo.location ? (
+                      <Text style={styles.contactItem}>
+                        {data.personalInfo.email || data.personalInfo.phone ? ' • ' : ''}
+                        {data.personalInfo.location}
+                      </Text>
+                    ) : null}
+                    {data.personalInfo.website ? (
+                      <Text style={styles.contactItem}>
+                        {data.personalInfo.email || data.personalInfo.phone || data.personalInfo.location
+                          ? ' • '
+                          : ''}
+                        {data.personalInfo.website}
+                      </Text>
+                    ) : null}
                   </View>
-                  <Text style={styles.expCompany}>{exp.company}</Text>
-                  {exp.description
-                    ? exp.description
-                        .split(/\\n|\r?\n/)
-                        .filter((l) => l.trim())
-                        .map((line, i) => (
-                          <View key={i} style={styles.bulletRow}>
-                            <Text style={[styles.bulletPoint, dynamicStyles.bullet]}>›</Text>
-                            <Text style={styles.bulletText}>{line}</Text>
-                          </View>
-                        ))
-                    : null}
                 </View>
-              ))}
-            </View>
-          </View>
-        ) : null}
+              </View>
+              //Summary
+                      {data.summary ? (
+                        <View style={styles.summaryContainer}>
+                          <Text style={styles.summaryText}>{data.summary}</Text>
+                        </View>
+                      ) : null}
+            </>
+          ),
 
-        {/* Projects / Campaigns */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionSlash, dynamicStyles.accentText]}>/</Text>
-              <Text style={styles.sectionTitle}> Campaigns & Projects</Text>
+          //Experience
+          experience: data.experience && data.experience.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={[styles.sectionSlash, dynamicStyles.accentText]}>/</Text>
+                <Text style={styles.sectionTitle}> Experience</Text>
+              </View>
+              <View style={styles.experienceList}>
+                {data.experience.map((exp) => (
+                  <View key={exp.id} style={styles.expItem}>
+                    <View style={styles.expHeader}>
+                      <Text style={styles.expRole}>{exp.role}</Text>
+                      <Text style={[styles.expDate, dynamicStyles.dateBadge]}>{exp.startDate} — {exp.endDate}</Text>
+                    </View>
+                    <Text style={styles.expCompany}>{exp.company}</Text>
+                    {exp.description
+                      ? exp.description
+                          .split(/\\n|\r?\n/)
+                          .filter((l) => l.trim())
+                          .map((line, i) => (
+                            <View key={i} style={styles.bulletRow}>
+                              <Text style={[styles.bulletPoint, dynamicStyles.bullet]}>›</Text>
+                              <Text style={styles.bulletText}>{line}</Text>
+                            </View>
+                          ))
+                      : null}
+                  </View>
+                ))}
+              </View>
             </View>
-            <View style={styles.projectsGrid}>
-              {data.projects.map((proj) => (
-                <View key={proj.id} style={styles.projectCard}>
-                  <Text style={styles.projectName}>{proj.name}</Text>
-                  {proj.link ? (
-                    <Link src={proj.link} style={[styles.projectLink, dynamicStyles.accentText]}>
-                      {proj.link}
-                    </Link>
-                  ) : null}
-                  <Text style={styles.projectDesc}>{proj.description}</Text>
-                </View>
-              ))}
+          ) : null,
+
+          //Projects / Campaigns
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={[styles.sectionSlash, dynamicStyles.accentText]}>/</Text>
+                <Text style={styles.sectionTitle}> Campaigns & Projects</Text>
+              </View>
+              <View style={styles.projectsGrid}>
+                {data.projects.map((proj) => (
+                  <View key={proj.id} style={styles.projectCard}>
+                    <Text style={styles.projectName}>{proj.name}</Text>
+                    {proj.link ? (
+                      <Link src={proj.link} style={[styles.projectLink, dynamicStyles.accentText]}>
+                        {proj.link}
+                      </Link>
+                    ) : null}
+                    <Text style={styles.projectDesc}>{proj.description}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
-        ) : null}
+          ) : null,
+        })}
 
         {/* Bottom Columns Section */}
         <View style={styles.bottomGrid}>
           {/* Column 1: Education */}
           <View style={styles.bottomCol}>
-            {data.education && data.education.length > 0 ? (
-              <View>
-                <Text style={styles.bottomSectionTitle}>Education</Text>
-                {data.education.map((edu) => (
-                  <View key={edu.id} style={styles.bottomItem}>
-                    <Text style={styles.itemTitle}>{edu.degree}</Text>
-                    <Text style={styles.itemSubtitle}>{edu.school}</Text>
-                    <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{edu.graduationYear}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 ? (
+                <View>
+                  <Text style={styles.bottomSectionTitle}>Education</Text>
+                  {data.education.map((edu) => (
+                    <View key={edu.id} style={styles.bottomItem}>
+                      <Text style={styles.itemTitle}>{edu.degree}</Text>
+                      <Text style={styles.itemSubtitle}>{edu.school}</Text>
+                      <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{edu.graduationYear}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null,
+            })}
           </View>
 
           {/* Column 2: Certifications / References / Custom */}
           <View style={styles.bottomCol}>
-            {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
-              <View style={styles.bottomGroup}>
-                <Text style={styles.bottomSectionTitle}>Certifications</Text>
-                {data.certifications.map((cert) => (
-                  <View key={cert.id} style={styles.bottomItem}>
-                    <Text style={styles.itemTitle}>{cert.name}</Text>
-                    <Text style={styles.itemSubtitle}>{cert.issuer}</Text>
-                    <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{cert.date}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
+            {orderSections(data, {
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+                <View style={styles.bottomGroup}>
+                  <Text style={styles.bottomSectionTitle}>Certifications</Text>
+                  {data.certifications.map((cert) => (
+                    <View key={cert.id} style={styles.bottomItem}>
+                      <Text style={styles.itemTitle}>{cert.name}</Text>
+                      <Text style={styles.itemSubtitle}>{cert.issuer}</Text>
+                      <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{cert.date}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null,
 
-            {data.showReferences && data.references && data.references.length > 0 ? (
-              <View style={styles.bottomGroup}>
-                <Text style={styles.bottomSectionTitle}>References</Text>
-                {data.references.map((ref) => (
-                  <View key={ref.id} style={styles.bottomItem}>
-                    <Text style={styles.itemTitle}>{ref.name}</Text>
-                    <Text style={styles.itemSubtitle}>{ref.title} at {ref.company}</Text>
-                    <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{ref.contact}</Text>
-                  </View>
-                ))}
-              </View>
-            ) : null}
-
-            {data.customSections && data.customSections.length > 0
-              ? data.customSections.map(
-                  (sec) =>
-                    sec.items &&
-                    sec.items.length > 0 && (
-                      <View key={sec.id} style={styles.bottomGroup}>
-                        <Text style={styles.bottomSectionTitle}>{sec.title}</Text>
-                        {sec.items.map((item) => (
-                          <View key={item.id} style={styles.bottomItem}>
-                            <Text style={styles.itemTitle}>{item.title}</Text>
-                            {item.subtitle ? (
-                              <Text style={styles.itemSubtitleItalic}>{item.subtitle}</Text>
-                            ) : null}
-                            {item.date ? (
-                              <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{item.date}</Text>
-                            ) : null}
-                            {item.description ? (
-                              <Text style={styles.itemDesc}>{item.description}</Text>
-                            ) : null}
-                          </View>
-                        ))}
+              references: data.showReferences && data.references && data.references.length > 0 ? (
+                <View style={styles.bottomGroup}>
+                  <Text style={styles.bottomSectionTitle}>References</Text>
+                  {data.references.map((ref) => (
+                    <View key={ref.id} style={styles.bottomItem}>
+                      <Text style={styles.itemTitle}>{ref.name}</Text>
+                      <Text style={styles.itemSubtitle}>{ref.title} at {ref.company}</Text>
+                      <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{ref.contact}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null,
+            },
+              (data.customSections || [])
+                .filter((sec) => sec.items &&
+                    sec.items.length > 0)
+                .map((sec) => (
+                  <View key={sec.id} style={styles.bottomGroup}>
+                    <Text style={styles.bottomSectionTitle}>{sec.title}</Text>
+                    {sec.items.map((item) => (
+                      <View key={item.id} style={styles.bottomItem}>
+                        <Text style={styles.itemTitle}>{item.title}</Text>
+                        {item.subtitle ? (
+                          <Text style={styles.itemSubtitleItalic}>{item.subtitle}</Text>
+                        ) : null}
+                        {item.date ? (
+                          <Text style={[styles.itemMeta, dynamicStyles.accentText]}>{item.date}</Text>
+                        ) : null}
+                        {item.description ? (
+                          <Text style={styles.itemDesc}>{item.description}</Text>
+                        ) : null}
                       </View>
-                    )
-                )
-              : null}
+                    ))}
+                  </View>
+                ))
+            )}
           </View>
 
           {/* Column 3: Core Skills */}
           <View style={styles.bottomCol}>
-            {data.skills && data.skills.length > 0 ? (
-              <View>
-                <Text style={styles.bottomSectionTitle}>Core Skills</Text>
-                <View style={styles.skillsList}>
-                  {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
-                  ))}
+            {orderSections(data, {
+              skills: data.skills && data.skills.length > 0 ? (
+                <View>
+                  <Text style={styles.bottomSectionTitle}>Core Skills</Text>
+                  <View style={styles.skillsList}>
+                    {data.skills.map((s) => (
+                      <Text key={s.id} style={styles.skillText}>{s.name}</Text>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            ) : null}
+              ) : null,
+            })}
           </View>
         </View>
       </Page>

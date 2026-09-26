@@ -1,10 +1,14 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 
 export default function Executive({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none p-[0.75in] flex flex-col font-serif mx-auto lg:mx-0 shrink-0">
+      {orderSections(data, {
+        personal: (
+          <>
       <div className="border-b-4 border-black pb-8 mb-8 flex justify-between items-end">
         <div className="max-w-[65%]">
           <h1 className="text-5xl font-black tracking-tight leading-[0.9] mb-4 uppercase">{data.personalInfo.fullName}</h1>
@@ -23,8 +27,10 @@ export default function Executive({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700 italic border-l-2 border-gray-200 pl-6">{data.summary}</p>
         </div>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-6 font-sans">Professional History</h2>
           <div className="space-y-6">
@@ -47,9 +53,9 @@ export default function Executive({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <div className="mb-8">
           <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-6 font-sans">Projects</h2>
           <div className="space-y-5">
@@ -64,11 +70,13 @@ export default function Executive({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+        ),
+      })}
 
       <div className="mt-auto grid grid-cols-2 gap-12 border-t border-gray-100 pt-8">
         <div>
-          {data.education.length > 0 && (
+          {orderSections(data, {
+            education: data.education.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Formation</h2>
               <div className="space-y-4">
@@ -80,10 +88,12 @@ export default function Executive({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
+          })}
         </div>
         <div>
-          {data.showCertifications && data.certifications.length > 0 && (
+          {orderSections(data, {
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Certifications</h2>
               <div className="space-y-3">
@@ -95,9 +105,9 @@ export default function Executive({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
+            ),
 
-{data.showReferences && data.references.length > 0 && (
+            references: data.showReferences && data.references.length > 0 && (
             <div className="mb-6">
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">References</h2>
               <div className="space-y-3">
@@ -109,9 +119,22 @@ export default function Executive({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </div>
-          )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+            ),
+
+            skills: data.skills.length > 0 && (
+            <div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Skills</h2>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {data.skills.map(s => (
+                  <span key={s.id} className="text-[11px] font-bold font-sans uppercase tracking-wider">{s.name}</span>
+                ))}
+              </div>
+            </div>
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <div key={section.id} className="mb-6">
                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">{section.title}</h2>
                 <div className="space-y-3">
@@ -129,18 +152,7 @@ export default function Executive({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
-
-          {data.skills.length > 0 && (
-            <div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-300 mb-4 font-sans">Skills</h2>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {data.skills.map(s => (
-                  <span key={s.id} className="text-[11px] font-bold font-sans uppercase tracking-wider">{s.name}</span>
-                ))}
-              </div>
-            </div>
+              ))
           )}
         </div>
       </div>

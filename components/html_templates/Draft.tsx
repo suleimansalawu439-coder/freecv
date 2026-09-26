@@ -1,5 +1,7 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { getOrderedSectionIds, isSectionVisible } from '@/lib/template-sections';
+import type { ResumeSectionId } from '@/store/types';
 
 const BLUE = '#1d4ed8';
 
@@ -16,17 +18,17 @@ export default function Draft({ data }: { data: ResumeData }) {
     data.personalInfo.website,
   ].filter(Boolean);
 
-  const sections: { title: string; body: React.ReactNode }[] = [];
+  const defs: Partial<Record<ResumeSectionId, { title: string; body: React.ReactNode }>> = {};
 
   if (data.summary) {
-    sections.push({
+    defs.personal = {
       title: 'Summary',
       body: <p className="font-mono text-sm leading-relaxed text-gray-700">{data.summary}</p>,
-    });
+    };
   }
 
   if (data.experience && data.experience.length > 0) {
-    sections.push({
+    defs.experience = {
       title: 'Experience',
       body: (
         <div className="space-y-6">
@@ -64,11 +66,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
 
   if (data.education && data.education.length > 0) {
-    sections.push({
+    defs.education = {
       title: 'Education',
       body: (
         <div className="space-y-4">
@@ -91,11 +93,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
 
   if (data.skills && data.skills.length > 0) {
-    sections.push({
+    defs.skills = {
       title: 'Skills',
       body: (
         <div className="flex flex-wrap gap-2">
@@ -109,11 +111,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
 
   if (data.showProjects && data.projects && data.projects.length > 0) {
-    sections.push({
+    defs.projects = {
       title: 'Projects',
       body: (
         <div className="space-y-4">
@@ -139,11 +141,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
 
   if (data.showCertifications && data.certifications && data.certifications.length > 0) {
-    sections.push({
+    defs.certifications = {
       title: 'Certifications',
       body: (
         <div className="space-y-3">
@@ -164,11 +166,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
 
   if (data.showReferences && data.references && data.references.length > 0) {
-    sections.push({
+    defs.references = {
       title: 'References',
       body: (
         <div className="grid grid-cols-2 gap-4">
@@ -187,8 +189,14 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </div>
       ),
-    });
+    };
   }
+
+  // Assemble sections in the user's order; hidden sections are dropped by
+  // getOrderedSectionIds and the numbers below follow the rendered order.
+  const sections: { title: string; body: React.ReactNode }[] = getOrderedSectionIds(data)
+    .map((id) => defs[id])
+    .filter((s): s is { title: string; body: React.ReactNode } => !!s);
 
   if (data.customSections && data.customSections.length > 0) {
     data.customSections.forEach(section => {
@@ -231,6 +239,7 @@ export default function Draft({ data }: { data: ResumeData }) {
       }}
     >
       {/* Blueprint header */}
+      {isSectionVisible(data, 'personal') && (
       <header className="mb-12">
         {data.personalInfo.fullName && (
           <h1 className="font-mono text-4xl font-bold uppercase tracking-wide text-gray-900">
@@ -251,6 +260,7 @@ export default function Draft({ data }: { data: ResumeData }) {
           </div>
         )}
       </header>
+      )}
 
       {/* Numbered spec-sheet sections */}
       <div className="space-y-10">

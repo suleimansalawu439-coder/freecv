@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -13,6 +14,9 @@ export default function Whisper({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-800 font-sans px-[1.4in] pt-[1.3in] pb-[1.3in] mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-4">
         <h1 className="text-[22px] font-light tracking-wide">{info.fullName}</h1>
         {info.jobTitle && (
@@ -29,8 +33,10 @@ export default function Whisper({ data }: { data: ResumeData }) {
           <p className="text-[13.5px] font-light leading-[2] text-gray-600">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Experience" />
           <div className="space-y-10">
@@ -50,9 +56,9 @@ export default function Whisper({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" />
           <div className="space-y-8">
@@ -67,16 +73,16 @@ export default function Whisper({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Skills" />
           <p className="text-[13px] font-light leading-[2.2] text-gray-600">{data.skills.map(s => s.name).join('   ·   ')}</p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects" />
           <div className="space-y-8">
@@ -91,9 +97,9 @@ export default function Whisper({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Certifications" />
           <div className="space-y-4">
@@ -105,9 +111,9 @@ export default function Whisper({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <div className="space-y-8">
@@ -120,10 +126,11 @@ export default function Whisper({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id}>
             <SectionHeader title={section.title} />
             <div className="space-y-8">
@@ -139,8 +146,8 @@ export default function Whisper({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+          ))
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -155,6 +156,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={styles.name}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
@@ -167,8 +171,10 @@ export default function Satchel({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.card}>
             <CardHead title="Experience" />
             {data.experience.map((exp, i) => (
@@ -196,9 +202,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.card}>
             <CardHead title="Skills" />
             <View style={styles.chipsWrap}>
@@ -209,9 +215,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.card}>
             <CardHead title="Education" />
             {data.education.map((edu, i) => (
@@ -222,9 +228,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.card}>
             <CardHead title="Projects" />
             {data.projects.map((p, i) => (
@@ -237,9 +243,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.card}>
             <CardHead title="Certifications" />
             {data.certifications.map((c, i) => (
@@ -253,9 +259,9 @@ export default function Satchel({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.card}>
             <CardHead title="References" />
             {data.references.map((r, i) => (
@@ -268,12 +274,11 @@ export default function Satchel({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.card}>
                 <CardHead title={section.title} />
                 {section.items.map((item, i) => (
@@ -287,8 +292,8 @@ export default function Satchel({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

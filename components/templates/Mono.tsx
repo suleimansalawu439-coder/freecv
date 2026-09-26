@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const SERIF = 'Times-Roman';
 const SANS = 'Helvetica';
@@ -201,6 +202,9 @@ export default function Mono({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.masthead}>
           {data.personalInfo.fullName ? (
             <Text style={styles.name}>{data.personalInfo.fullName}</Text>
@@ -218,8 +222,10 @@ export default function Mono({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.skills && data.skills.length > 0 ? (
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Expertise</Text>
             <Text style={styles.skillsText}>
@@ -233,9 +239,9 @@ export default function Mono({ data }: { data: ResumeData }) {
               ))}
             </Text>
           </View>
-        ) : null}
+        ) : null,
 
-        {data.experience && data.experience.length > 0 ? (
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Experience</Text>
             {data.experience.map((exp) => (
@@ -263,9 +269,9 @@ export default function Mono({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.education && data.education.length > 0 ? (
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Education</Text>
             {data.education.map((edu) => (
@@ -280,9 +286,9 @@ export default function Mono({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Projects</Text>
             {data.projects.map((proj) => (
@@ -301,9 +307,9 @@ export default function Mono({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeading}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -316,9 +322,9 @@ export default function Mono({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionHeading}>References</Text>
             <View style={styles.refGrid}>
@@ -338,12 +344,11 @@ export default function Mono({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={styles.sectionHeading}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -361,8 +366,8 @@ export default function Mono({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

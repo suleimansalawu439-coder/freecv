@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Harbor({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
@@ -11,6 +12,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
         className="w-[30%] shrink-0 text-white px-8 py-10"
         style={{ backgroundColor: 'var(--theme-color)' }}
       >
+        {orderSections(data, {
+          personal: (
+            <>
         <h1 className="text-3xl font-bold leading-tight mb-2">{info.fullName}</h1>
         {info.jobTitle && <p className="text-sm font-medium text-white/85 mb-8">{info.jobTitle}</p>}
 
@@ -20,8 +24,10 @@ export default function Harbor({ data }: { data: ResumeData }) {
           {info.location && <p>{info.location}</p>}
           {info.website && <p>{info.website}</p>}
         </div>
+            </>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-10">
             <h2 className="text-xs font-bold uppercase tracking-widest text-white/70 mb-4">
               Skills
@@ -37,26 +43,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.customSections.map((section) => (
-          <div key={section.id} className="mb-10">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-white/70 mb-4">
-              {section.title}
-            </h2>
-            <div className="space-y-3">
-              {section.items.map((item) => (
-                <div key={item.id}>
-                  <p className="text-[13px] font-bold">{item.title}</p>
-                  {item.subtitle && <p className="text-xs text-white/80">{item.subtitle}</p>}
-                  {item.date && <p className="text-xs text-white/70">{item.date}</p>}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-white/70 mb-4">
               References
@@ -73,21 +62,42 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+          <div key={section.id} className="mb-10">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-white/70 mb-4">
+              {section.title}
+            </h2>
+            <div className="space-y-3">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <p className="text-[13px] font-bold">{item.title}</p>
+                  {item.subtitle && <p className="text-xs text-white/80">{item.subtitle}</p>}
+                  {item.date && <p className="text-xs text-white/70">{item.date}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+            ))
         )}
       </aside>
 
       {/* Main column — timeline experience */}
       <main className="flex-1 px-10 py-10 min-w-0">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Profile
             </h2>
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">
               Experience
@@ -127,9 +137,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Education
@@ -146,9 +156,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Projects
@@ -165,9 +175,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Certifications
@@ -184,7 +194,8 @@ export default function Harbor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
+        })}
       </main>
     </div>
   );

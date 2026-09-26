@@ -1,11 +1,15 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Elegant({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none p-[1.2in] flex flex-col font-serif mx-auto lg:mx-0 shrink-0 text-gray-800 tracking-wide">
       
-      <div className="text-center mb-8 border-y border-gray-300 py-6">
+      {orderSections(data, {
+        personal: (
+          <>
+            <div className="text-center mb-8 border-y border-gray-300 py-6">
         <h1 className="text-3xl font-light tracking-[0.2em] mb-3 uppercase text-black">{data.personalInfo.fullName}</h1>
         <p className="text-sm tracking-[0.1em] text-gray-500 uppercase">{data.personalInfo.jobTitle}</p>
       </div>
@@ -22,8 +26,10 @@ export default function Elegant({ data }: { data: ResumeData }) {
           <p className="text-sm leading-loose text-gray-600 text-center italic px-10">{data.summary}</p>
         </div>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-center text-gray-400 mb-6">Professional Experience</h2>
           <div className="space-y-8">
@@ -46,9 +52,9 @@ export default function Elegant({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-center text-gray-400 mb-6">Selected Projects</h2>
           <div className="space-y-6">
@@ -63,12 +69,15 @@ export default function Elegant({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
+      })}
 
       <div className="mt-auto grid grid-cols-3 gap-8">
-        <div className={data.showCertifications ? "col-span-1" : "col-span-2"}>
-          {data.education.length > 0 && (
-            <div>
+        {orderSections(data, {
+          education: (
+            <div className={data.showCertifications ? "col-span-1" : "col-span-2"}>
+              {data.education.length > 0 && (
+                <div>
               <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">Education</h2>
               <div className="space-y-5">
                 {data.education.map(edu => (
@@ -79,12 +88,13 @@ export default function Elegant({ data }: { data: ResumeData }) {
                   </div>
                 ))}
               </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
-          <div className="col-span-1">
+          certifications: data.showCertifications && data.certifications.length > 0 && (
+            <div className="col-span-1">
             <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">Certifications</h2>
             <div className="space-y-5">
               {data.certifications.map(cert => (
@@ -94,12 +104,12 @@ export default function Elegant({ data }: { data: ResumeData }) {
                   <p className="text-xs font-sans text-gray-400">{cert.date}</p>
                 </div>
               ))}
+              </div>
             </div>
-          </div>
-        )}
+          ),
 
-{data.showReferences && data.references.length > 0 && (
-          <div className="col-span-1">
+          references: data.showReferences && data.references.length > 0 && (
+            <div className="col-span-1">
             <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">References</h2>
             <div className="space-y-5">
               {data.references.map(ref => (
@@ -109,11 +119,28 @@ export default function Elegant({ data }: { data: ResumeData }) {
                   <p className="text-xs font-sans text-gray-400">{ref.contact}</p>
                 </div>
               ))}
+              </div>
             </div>
-          </div>
-        )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+          ),
+
+          skills: (
+            <div className="col-span-1">
+              {data.skills.length > 0 && (
+                <div>
+              <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">Skills</h2>
+              <div className="flex flex-col gap-2 font-sans text-xs text-gray-600 tracking-wider">
+                {data.skills.map(s => (
+                  <span key={s.id}>{s.name}</span>
+                ))}
+              </div>
+                </div>
+              )}
+            </div>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <div key={section.id} className="mb-6">
                 <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">{section.title}</h2>
                 <div className="space-y-3">
@@ -131,22 +158,8 @@ export default function Elegant({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
-
-
-        <div className="col-span-1">
-          {data.skills.length > 0 && (
-            <div>
-              <h2 className="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-6">Skills</h2>
-              <div className="flex flex-col gap-2 font-sans text-xs text-gray-600 tracking-wider">
-                {data.skills.map(s => (
-                  <span key={s.id}>{s.name}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            ))
+        )}
       </div>
 
     </div>

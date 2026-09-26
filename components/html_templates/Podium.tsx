@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds } from '@/lib/template-sections';
 
 function SectionHeader({ num, title }: { num: string; title: string }) {
   return (
@@ -15,41 +16,68 @@ export default function Podium({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
   const contact = [info.email, info.phone, info.location, info.website].filter(Boolean);
 
+  // Section numbers ("01", "02", …) follow the rendered display order, so they
+  // stay consecutive when the user reorders or hides sections. The identity
+  // header itself is unnumbered; only the Profile (summary) section takes a number.
+  const sectionNums: Record<string, string> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return data.experience.length > 0;
+        case 'education': return data.education.length > 0;
+        case 'skills': return data.skills.length > 0;
+        case 'projects': return data.showProjects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && data.certifications.length > 0;
+        case 'references': return data.showReferences && data.references.length > 0;
+        default: return false;
+      }
+    });
+    const map: Record<string, string> = {};
+    rendered.forEach((id, n) => { map[id] = String(n + 1).padStart(2, '0'); });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
+
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 font-sans px-[0.9in] pt-[0.75in] pb-[0.85in] mx-auto">
-      {/* Tiered centered header */}
-      <header className="text-center mb-4">
-        <h1 className="text-[44px] leading-tight font-black tracking-tight">{info.fullName}</h1>
-        {info.jobTitle && (
-          <div className="mt-4 mb-4">
-            <span
-              className="inline-block text-white text-[13px] font-bold uppercase tracking-[0.2em] px-6 py-2 rounded-full"
-              style={{ backgroundColor: 'var(--theme-color)' }}
-            >
-              {info.jobTitle}
-            </span>
-          </div>
-        )}
-        {contact.length > 0 && (
-          <p className="text-[13px] text-gray-600">{contact.join('  ·  ')}</p>
-        )}
-        <div className="flex justify-center gap-2 mt-6">
-          <div className="w-10 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-color)' }} />
-          <div className="w-10 h-2 rounded-full bg-gray-200" />
-          <div className="w-10 h-2 rounded-full bg-gray-200" />
-        </div>
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Tiered centered header */}
+            <header className="text-center mb-4">
+              <h1 className="text-[44px] leading-tight font-black tracking-tight">{info.fullName}</h1>
+              {info.jobTitle && (
+                <div className="mt-4 mb-4">
+                  <span
+                    className="inline-block text-white text-[13px] font-bold uppercase tracking-[0.2em] px-6 py-2 rounded-full"
+                    style={{ backgroundColor: 'var(--theme-color)' }}
+                  >
+                    {info.jobTitle}
+                  </span>
+                </div>
+              )}
+              {contact.length > 0 && (
+                <p className="text-[13px] text-gray-600">{contact.join('  ·  ')}</p>
+              )}
+              <div className="flex justify-center gap-2 mt-6">
+                <div className="w-10 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-color)' }} />
+                <div className="w-10 h-2 rounded-full bg-gray-200" />
+                <div className="w-10 h-2 rounded-full bg-gray-200" />
+              </div>
+            </header>
 
-      {data.summary && (
-        <section>
-          <SectionHeader num="01" title="Profile" />
-          <p className="text-[14px] leading-[1.8] text-gray-700 text-center max-w-[6in] mx-auto">{data.summary}</p>
-        </section>
-      )}
+            {data.summary && (
+              <section>
+                <SectionHeader num={sectionNums.personal} title="Profile" />
+                <p className="text-[14px] leading-[1.8] text-gray-700 text-center max-w-[6in] mx-auto">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
-        <section>
-          <SectionHeader num="02" title="Experience" />
+            experience: data.experience.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.experience} title="Experience" />
           <div className="space-y-6">
             {data.experience.map((exp, idx) => (
               <div
@@ -71,11 +99,11 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.education.length > 0 && (
-        <section>
-          <SectionHeader num="03" title="Education" />
+            education: data.education.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.education} title="Education" />
           <div className="space-y-4">
             {data.education.map(edu => (
               <div key={edu.id} className="flex justify-between items-baseline border border-gray-200 rounded-xl px-6 py-4">
@@ -88,11 +116,11 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.skills.length > 0 && (
-        <section>
-          <SectionHeader num="04" title="Skills" />
+            skills: data.skills.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.skills} title="Skills" />
           <div className="space-y-3">
             {data.skills.map((skill, i) => (
               <div key={skill.id}>
@@ -110,11 +138,11 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.showProjects && data.projects.length > 0 && (
-        <section>
-          <SectionHeader num="05" title="Projects" />
+            projects: data.showProjects && data.projects.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.projects} title="Projects" />
           <div className="space-y-5">
             {data.projects.map(proj => (
               <div key={proj.id} className="border border-gray-200 rounded-xl p-6">
@@ -127,11 +155,11 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
-        <section>
-          <SectionHeader num="06" title="Certifications" />
+            certifications: data.showCertifications && data.certifications.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.certifications} title="Certifications" />
           <div className="space-y-2">
             {data.certifications.map(cert => (
               <div key={cert.id} className="flex justify-between text-[13.5px] border border-gray-200 rounded-xl px-6 py-3">
@@ -141,11 +169,11 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.showReferences && data.references.length > 0 && (
-        <section>
-          <SectionHeader num="07" title="References" />
+            references: data.showReferences && data.references.length > 0 && (
+              <section>
+                <SectionHeader num={sectionNums.references} title="References" />
           <div className="grid grid-cols-2 gap-5">
             {data.references.map(ref => (
               <div key={ref.id} className="border border-gray-200 rounded-xl p-5">
@@ -156,12 +184,13 @@ export default function Podium({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+            ),
 
-      {data.customSections && data.customSections.map((section, si) => (
-        section.items && section.items.length > 0 && (
-          <section key={section.id}>
-            <SectionHeader num={String(si + 8).padStart(2, '0')} title={section.title} />
+        },
+          (data.customSections || []).map((section, si) =>
+            section.items && section.items.length > 0 && (
+              <section key={section.id}>
+                <SectionHeader num={String(customBase + si + 1).padStart(2, '0')} title={section.title} />
             <div className="space-y-5">
               {section.items.map(item => (
                 <div key={item.id} className="border border-gray-200 rounded-xl p-6">
@@ -174,9 +203,10 @@ export default function Podium({ data }: { data: ResumeData }) {
                 </div>
               ))}
             </div>
-          </section>
-        )
-      ))}
+              </section>
+            )
+          )
+      )}
     </div>
   );
 }

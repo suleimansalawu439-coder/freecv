@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -178,6 +179,9 @@ export default function Sovereign({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {hasPhoto ? (
           <View style={styles.photoHeader}>
             <Image src={pi.profilePicture as string} style={styles.photo} />
@@ -193,12 +197,19 @@ export default function Sovereign({ data }: TemplateProps) {
             {contactLine ? <Text style={styles.centeredContact}>{contactLine}</Text> : null}
           </View>
         )}
+            </>
+          ),
+          },
+        )}
 
         <View style={[styles.divider, { borderBottomColor: themeColor }]} />
 
         <View style={styles.columns}>
           {/* Main column */}
           <View style={styles.mainCol}>
+            {orderSections(data, {
+              personal: (
+                <>
             {data.summary ? (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
@@ -207,8 +218,10 @@ export default function Sovereign({ data }: TemplateProps) {
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             ) : null}
+                </>
+              ),
 
-            {data.experience && data.experience.length > 0 && (
+              experience: data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>Professional Experience</Text>
@@ -228,9 +241,9 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showProjects && data.projects && data.projects.length > 0 && (
+              projects: data.showProjects && data.projects && data.projects.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>Key Engagements</Text>
@@ -243,9 +256,9 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>References</Text>
@@ -262,11 +275,16 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
+            ),
+              },
             )}
           </View>
 
           {/* Rail */}
           <View style={styles.railCol}>
+            {orderSections(data, {
+              personal: (
+                <>
             {hasPhoto ? (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
@@ -278,8 +296,10 @@ export default function Sovereign({ data }: TemplateProps) {
                 {pi.website ? <Text style={styles.contactItem}>{pi.website}</Text> : null}
               </View>
             ) : null}
+                </>
+              ),
 
-            {data.skills && data.skills.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>Capabilities</Text>
@@ -291,9 +311,9 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.education && data.education.length > 0 && (
+              education: data.education && data.education.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>Education</Text>
@@ -306,9 +326,9 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                   <Text style={[styles.sectionTitleText, { color: themeColor }]}>Certifications</Text>
@@ -321,15 +341,16 @@ export default function Sovereign({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
+            ),
+              },
             )}
           </View>
         </View>
 
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        {orderSections(data, {},
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.fullSection}>
                   <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                     <Text style={[styles.sectionTitleText, { color: themeColor }]}>{section.title}</Text>
@@ -345,8 +366,8 @@ export default function Sovereign({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

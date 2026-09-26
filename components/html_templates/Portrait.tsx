@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,9 @@ export default function Portrait({ data }: { data: ResumeData }) {
     <div className="font-sans w-full max-w-[816px] mx-auto bg-white text-[#1a1a1a] min-h-[1056px] grid grid-cols-12">
       {/* Left rail */}
       <aside className="col-span-4 bg-[#f3f4f6] px-8 py-12 space-y-10">
+        {orderSections(data, {
+          personal: (
+            <>
         {p.profilePicture && (
           <img
             src={p.profilePicture}
@@ -33,8 +37,10 @@ export default function Portrait({ data }: { data: ResumeData }) {
             {p.website && <li className="break-all">{p.website}</li>}
           </ul>
         </section>
+            </>
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <section>
             <SectionTitle>Skills</SectionTitle>
             <ul className="space-y-2">
@@ -45,9 +51,9 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </ul>
           </section>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <section>
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-5">
@@ -62,11 +68,16 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
+
+        })}
       </aside>
 
       {/* Main column */}
       <div className="col-span-8 px-12 py-12 space-y-10">
+        {orderSections(data, {
+          personal: (
+            <>
         <header>
           <h1 className="text-5xl font-extrabold tracking-tight leading-none mb-2">{p.fullName}</h1>
           <p className="text-xl font-medium text-[var(--theme-color)]">{p.jobTitle}</p>
@@ -78,8 +89,10 @@ export default function Portrait({ data }: { data: ResumeData }) {
             <p className="text-base leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <section>
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-8">
@@ -99,9 +112,9 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionTitle>Projects</SectionTitle>
             <div className="space-y-6">
@@ -118,9 +131,9 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionTitle>Certifications</SectionTitle>
             <div className="space-y-4">
@@ -133,9 +146,9 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section>
             <SectionTitle>References</SectionTitle>
             <div className="grid grid-cols-2 gap-6">
@@ -150,11 +163,12 @@ export default function Portrait({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections && data.customSections.length > 0 && data.customSections.map(
-          (section) =>
-            section.items && section.items.length > 0 && (
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id}>
                 <SectionTitle>{section.title}</SectionTitle>
                 <div className="space-y-4">
@@ -174,7 +188,7 @@ export default function Portrait({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
+          ))
         )}
       </div>
     </div>

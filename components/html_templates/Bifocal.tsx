@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -17,6 +18,8 @@ export default function Bifocal({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto px-12 py-10">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-8">
         <div className="flex justify-between items-end">
           <div>
@@ -36,17 +39,20 @@ export default function Bifocal({ data }: { data: ResumeData }) {
           )}
         </div>
       </header>
+        ),
+      })}
 
       {/* Duo-top: summary + skills side by side */}
       {(data.summary || data.skills.length > 0) && (
         <div className="flex gap-8 mb-8">
-          {data.summary && (
+          {orderSections(data, {
+            personal: data.summary && (
             <section className={`flex-1 ${data.skills.length > 0 ? 'w-[58%]' : 'w-full'}`}>
               <SectionHeader title="Profile" />
               <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
             </section>
-          )}
-          {data.skills.length > 0 && (
+            ),
+            skills: data.skills.length > 0 && (
             <section className={data.summary ? 'w-[42%]' : 'w-full'}>
               <SectionHeader title="Skills" />
               <div className="flex flex-wrap gap-1.5">
@@ -61,12 +67,13 @@ export default function Bifocal({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
+          })}
         </div>
       )}
 
-      {/* Single column below */}
-      {data.experience.length > 0 && (
+      {orderSections(data, {
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           <div className="space-y-6">
@@ -90,9 +97,9 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           <div className="space-y-4">
@@ -109,9 +116,9 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -126,9 +133,9 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -140,9 +147,9 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -155,9 +162,11 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.map((section) => (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
         <section key={section.id} className="mb-8">
           <SectionHeader title={section.title} />
           <div className="space-y-4">
@@ -173,7 +182,9 @@ export default function Bifocal({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      ))}
+        ))
+      )}
+
     </div>
   );
 }

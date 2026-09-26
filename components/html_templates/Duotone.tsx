@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DARK = '#1e293b';
 
@@ -24,7 +25,10 @@ export default function Duotone({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-900 mx-auto px-14 py-12">
       {/* Duotone header: dark + theme */}
-      <header className="mb-2">
+      {orderSections(data, {
+        personal: (
+          <>
+            <header className="mb-2">
         <div className="flex items-stretch">
           <div className="px-8 py-8 flex-1" style={{ backgroundColor: DARK }}>
             <h1 className="text-4xl font-black tracking-tight text-white">{info.fullName}</h1>
@@ -53,8 +57,10 @@ export default function Duotone({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-slate-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <SectionHeader title="Experience" dark />
           <div className="space-y-6">
@@ -93,9 +99,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -110,9 +116,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <SectionHeader title="Education" dark />
           <div className="space-y-3">
@@ -129,9 +135,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -146,9 +152,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader title="Certifications" dark />
           <div className="space-y-2">
@@ -163,27 +169,9 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+      ),
 
-      {data.customSections.map((section, si) => (
-        <section key={section.id}>
-          <SectionHeader title={section.title} dark={si % 2 === 1} />
-          <div className="space-y-3">
-            {section.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between items-baseline">
-                  <p className="text-sm font-black">{item.title}</p>
-                  {item.date && <span className="text-xs font-black">{item.date}</span>}
-                </div>
-                {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
-                {item.description && <p className="text-sm text-slate-700 mt-1">{item.description}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section>
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -199,6 +187,25 @@ export default function Duotone({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
+      ),
+      },
+        (data.customSections || []).map((section, si) => (
+          <section key={section.id}>
+            <SectionHeader title={section.title} dark={si % 2 === 1} />
+            <div className="space-y-3">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <div className="flex justify-between items-baseline">
+                    <p className="text-sm font-black">{item.title}</p>
+                    {item.date && <span className="text-xs font-black">{item.date}</span>}
+                  </div>
+                  {item.subtitle && <p className="text-sm italic text-slate-600">{item.subtitle}</p>}
+                  {item.description && <p className="text-sm text-slate-700 mt-1">{item.description}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        ))
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MainTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -38,6 +39,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto flex">
       {/* Main (left) */}
       <main className="flex-1 px-10 py-10">
+        {orderSections(data, {
+          personal: (
+            <>
         <header className="mb-8">
           <h1 className="text-4xl font-black tracking-tight mb-2">{info.fullName}</h1>
           {info.jobTitle && (
@@ -61,8 +65,10 @@ export default function Breakwater({ data }: { data: ResumeData }) {
             <p className="text-sm leading-relaxed text-gray-600">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <MainTitle>Experience</MainTitle>
             <div className="space-y-6">
@@ -96,9 +102,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <MainTitle>Projects</MainTitle>
             <div className="space-y-4">
@@ -115,9 +121,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-8">
             <MainTitle>Education</MainTitle>
             <div className="space-y-3">
@@ -136,12 +142,11 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id} className="mb-8">
                 <MainTitle>{section.title}</MainTitle>
                 <div className="space-y-4">
@@ -167,8 +172,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
+          ))
         )}
+
       </main>
 
       {/* Wave divider */}
@@ -176,6 +182,8 @@ export default function Breakwater({ data }: { data: ResumeData }) {
 
       {/* Slate right sidebar */}
       <aside className="w-[30%] shrink-0 bg-[#334155] px-8 py-10 text-white">
+        {orderSections(data, {
+          personal: (
         <div className="mb-8">
           <SidebarTitle>Contact</SidebarTitle>
           <div className="space-y-2 text-[13px] text-white/85">
@@ -185,8 +193,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
             {info.website && <div className="break-words">{info.website}</div>}
           </div>
         </div>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-8">
             <SidebarTitle>Skills</SidebarTitle>
             <div className="flex flex-wrap gap-1.5">
@@ -200,9 +209,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <div className="mb-8">
             <SidebarTitle>Certifications</SidebarTitle>
             <div className="space-y-3">
@@ -215,9 +224,9 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <div className="mb-8">
             <SidebarTitle>References</SidebarTitle>
             <div className="space-y-4">
@@ -233,7 +242,8 @@ export default function Breakwater({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
+        })}
       </aside>
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function FolioHead({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,9 @@ export default function Folio({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 mx-auto flex flex-col">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Running head */}
       <div className="px-16 pt-8">
         <p
@@ -42,16 +46,20 @@ export default function Folio({ data }: { data: ResumeData }) {
           <p className="text-sm text-gray-500 mt-3">{contact.join('  |  ')}</p>
         )}
       </header>
+          </>
+        ),
+      })}
 
       <div className="px-16 flex-1">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <FolioHead>Profile</FolioHead>
             <p className="text-[15px] text-gray-800 leading-[1.9]">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <FolioHead>Experience</FolioHead>
             <div className="space-y-7">
@@ -75,9 +83,9 @@ export default function Folio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <FolioHead>Education</FolioHead>
             <div className="space-y-5">
@@ -94,18 +102,18 @@ export default function Folio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <FolioHead>Skills</FolioHead>
             <p className="font-serif text-[15px] text-gray-800 leading-[2]">
               {data.skills.map((s) => s.name).join('  ·  ')}
             </p>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <FolioHead>Projects</FolioHead>
             <div className="space-y-6">
@@ -122,9 +130,9 @@ export default function Folio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <FolioHead>Certifications</FolioHead>
             <div className="space-y-3">
@@ -137,10 +145,30 @@ export default function Folio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections.map((section) =>
-          section.items && section.items.length > 0 ? (
+          references: data.showReferences && data.references.length > 0 && (
+          <section>
+            <FolioHead>References</FolioHead>
+            <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+              {data.references.map((ref) => (
+                <div key={ref.id}>
+                  <p className="font-serif text-[15px] font-bold">{ref.name}</p>
+                  {(ref.title || ref.company) && (
+                    <p className="text-sm text-gray-600 italic">
+                      {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
+                    </p>
+                  )}
+                  {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <FolioHead>{section.title}</FolioHead>
               <div className="space-y-6">
@@ -158,35 +186,22 @@ export default function Folio({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          ) : null
-        )}
-
-        {data.showReferences && data.references.length > 0 && (
-          <section>
-            <FolioHead>References</FolioHead>
-            <div className="grid grid-cols-2 gap-x-10 gap-y-6">
-              {data.references.map((ref) => (
-                <div key={ref.id}>
-                  <p className="font-serif text-[15px] font-bold">{ref.name}</p>
-                  {(ref.title || ref.company) && (
-                    <p className="text-sm text-gray-600 italic">
-                      {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
-                    </p>
-                  )}
-                  {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
-                </div>
-              ))}
-            </div>
-          </section>
+            ))
         )}
       </div>
 
       {/* Folio footer */}
       <div className="px-16 pb-8 pt-10">
+        {orderSections(data, {
+          personal: (
+            <>
         <div className="h-px bg-gray-200 mb-3" />
         <p className="text-center text-[11px] uppercase tracking-[0.3em] text-gray-400">
           {info.fullName || 'Résumé'}  ·  Folio 1
         </p>
+            </>
+          ),
+        })}
       </div>
     </div>
   );

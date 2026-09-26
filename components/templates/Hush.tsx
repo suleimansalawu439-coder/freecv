@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -212,6 +213,9 @@ export default function Hush({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerRow}>
           <View>
             {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
@@ -234,8 +238,10 @@ export default function Hush({ data }: { data: ResumeData }) {
             </View>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View>
             <SectionHeader title="Experience" />
             {data.experience.map((exp) => (
@@ -257,9 +263,9 @@ export default function Hush({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View>
             <SectionHeader title="Education" />
             {data.education.map((edu) => (
@@ -272,9 +278,9 @@ export default function Hush({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View>
             <SectionHeader title="Skills" />
             <View style={styles.pillsRow}>
@@ -285,9 +291,9 @@ export default function Hush({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View>
             <SectionHeader title="Projects" />
             {data.projects.map((proj) => (
@@ -300,9 +306,9 @@ export default function Hush({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View>
             <SectionHeader title="Certifications" />
             {data.certifications.map((cert) => (
@@ -315,9 +321,9 @@ export default function Hush({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View>
             <SectionHeader title="References" />
             <View style={styles.refGrid}>
@@ -333,13 +339,11 @@ export default function Hush({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id}>
                   <SectionHeader title={section.title} />
                   {section.items.map((item) => (
@@ -353,8 +357,8 @@ export default function Hush({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -198,6 +199,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerRow}>
           <View>
             {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
@@ -218,8 +222,10 @@ export default function Clearance({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 ? (
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="Experience" />
             {data.experience.map((exp) => (
@@ -244,9 +250,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.education && data.education.length > 0 ? (
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="Education" />
             {data.education.map((edu) => (
@@ -259,9 +265,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.skills && data.skills.length > 0 ? (
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="Skills" />
             <View style={styles.skillPillRow}>
@@ -272,9 +278,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
+          ) : null,
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="Projects" />
             {data.projects.map((proj) => (
@@ -286,9 +292,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="Certifications" />
             <View style={styles.skillPillRow}>
@@ -301,9 +307,9 @@ export default function Clearance({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
+          ) : null,
 
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             <SectionPill title="References" />
             <View style={styles.refGrid}>
@@ -318,11 +324,11 @@ export default function Clearance({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+          ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <SectionPill title={section.title} />
                   {section.items.map((item) => (
@@ -336,9 +342,8 @@ export default function Clearance({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )
-          : null}
+            ))
+        )}
       </Page>
     </Document>
   );

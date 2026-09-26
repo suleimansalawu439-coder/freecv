@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -113,6 +114,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
       <Page size="A4" style={styles.page}>
         <View style={[styles.topBar, { backgroundColor: themeColor }]} />
 
+        {orderSections(data, {
+          personal: (
+            <>
         <Text style={styles.headerLine}>
           <Text style={styles.headerName}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={styles.headerMeta}> | {pi.jobTitle}</Text> : null}
@@ -125,8 +129,10 @@ export default function Squeeze({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
             {data.experience.map((exp) => (
@@ -156,9 +162,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
             {data.education.map((edu) => (
@@ -169,16 +175,16 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Skills</Text>
             <Text style={styles.inlineText}>{data.skills.map((s) => s.name).join(', ')}</Text>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Projects</Text>
             {data.projects.map((p) => (
@@ -189,9 +195,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Certifications</Text>
             {data.certifications.map((c) => (
@@ -200,9 +206,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
             {data.references.map((r) => (
@@ -215,12 +221,11 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id}>
                 <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -236,8 +241,8 @@ export default function Squeeze({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

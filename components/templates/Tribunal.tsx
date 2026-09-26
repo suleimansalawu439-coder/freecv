@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -160,14 +161,37 @@ const styles = StyleSheet.create({
 export default function Tribunal({ data }: { data: ResumeData }) {
   const themeColor = data.theme?.color || DEFAULT_THEME_COLOR;
 
-  let sectionNum = 0;
-  const nextNum = () => String(++sectionNum).padStart(2, '0');
+  // Section numbers ("01", "02", …) follow the rendered display order, so they
+  // stay consecutive when the user reorders or hides sections. The identity
+  // header itself is unnumbered; only the Profile (summary) section takes a
+  // number, mirroring the original behavior.
+  const sectionNums: Record<string, string> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return data.experience && data.experience.length > 0;
+        case 'education': return data.education && data.education.length > 0;
+        case 'skills': return data.skills && data.skills.length > 0;
+        case 'projects': return data.showProjects && data.projects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && data.certifications && data.certifications.length > 0;
+        case 'references': return data.showReferences && data.references && data.references.length > 0;
+        default: return false;
+      }
+    });
+    const map: Record<string, string> = {};
+    rendered.forEach((id, n) => { map[id] = String(n + 1).padStart(2, '0'); });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
 
   const contactBits = [data.personalInfo.email, data.personalInfo.phone, data.personalInfo.location, data.personalInfo.website].filter(Boolean);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.header}>
           {data.personalInfo.fullName ? (
@@ -189,18 +213,19 @@ export default function Tribunal({ data }: { data: ResumeData }) {
         {data.summary ? (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.personal}</Text>
               <Text style={styles.sectionTitle}>Profile</Text>
             </View>
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* 02 Experience */}
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.experience}</Text>
               <Text style={styles.sectionTitle}>Experience</Text>
             </View>
             {data.experience.map((exp) => (
@@ -230,13 +255,12 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 03 Education */}
-        {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.education}</Text>
               <Text style={styles.sectionTitle}>Education</Text>
             </View>
             {data.education.map((edu) => (
@@ -248,13 +272,12 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 04 Skills — dot leaders */}
-        {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.skills}</Text>
               <Text style={styles.sectionTitle}>Skills</Text>
             </View>
             {data.skills.map((skill) => (
@@ -264,13 +287,12 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 05 Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.projects}</Text>
               <Text style={styles.sectionTitle}>Projects</Text>
             </View>
             {data.projects.map((proj) => (
@@ -281,13 +303,12 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 06 Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.certifications}</Text>
               <Text style={styles.sectionTitle}>Certifications</Text>
             </View>
             {data.certifications.map((cert) => (
@@ -299,13 +320,12 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 07 References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionNum}>{nextNum()}</Text>
+              <Text style={styles.sectionNum}>{sectionNums.references}</Text>
               <Text style={styles.sectionTitle}>References</Text>
             </View>
             {data.references.map((ref) => (
@@ -318,31 +338,30 @@ export default function Tribunal({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* 08+ Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
-              <View key={section.id} style={styles.section}>
-                <View style={styles.sectionTitleRow}>
-                  <Text style={styles.sectionNum}>{nextNum()}</Text>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
-                </View>
-                {section.items.map((item) => (
-                  <View key={item.id} style={styles.educationItem}>
-                    <View style={styles.headerRow}>
-                      <Text style={styles.itemTitle}>{item.title}</Text>
-                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                    </View>
-                    {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
-                    {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
-                  </View>
-                ))}
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section, k) => (
+            <View key={section.id} style={styles.section}>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionNum}>{String(customBase + k + 1).padStart(2, '0')}</Text>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
               </View>
-            ) : null
-          )}
+              {section.items.map((item) => (
+                <View key={item.id} style={styles.educationItem}>
+                  <View style={styles.headerRow}>
+                    <Text style={styles.itemTitle}>{item.title}</Text>
+                    {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                  </View>
+                  {item.subtitle ? <Text style={styles.itemSub}>{item.subtitle}</Text> : null}
+                  {item.description ? <Text style={styles.itemDesc}>{item.description}</Text> : null}
+                </View>
+              ))}
+            </View>
+          ))
+        )}
       </Page>
     </Document>
   );

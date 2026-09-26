@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function Kicker({ children }: { children: React.ReactNode }) {
   return (
@@ -18,8 +19,11 @@ export default function Column({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 mx-auto flex flex-col">
-      {/* Feature header */}
-      <header className="px-14 pt-14 pb-10 border-b border-gray-200">
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Feature header */}
+            <header className="px-14 pt-14 pb-10 border-b border-gray-200">
         <Kicker>Résumé</Kicker>
         {info.fullName && (
           <h1 className="text-5xl font-normal tracking-tight leading-tight">{info.fullName}</h1>
@@ -30,19 +34,23 @@ export default function Column({ data }: { data: ResumeData }) {
         {contact.length > 0 && (
           <p className="text-sm text-gray-500 mt-4">{contact.join('   ·   ')}</p>
         )}
-      </header>
+            </header>
+          </>
+        ),
+      })}
 
       <div className="flex flex-1">
         {/* Main feature column */}
         <main className="w-[65%] px-14 py-10">
-          {data.summary && (
+          {orderSections(data, {
+            personal: data.summary && (
             <section className="mb-10">
               <Kicker>Standfirst</Kicker>
               <p className="text-[15px] text-gray-800 leading-[1.9]">{data.summary}</p>
             </section>
-          )}
+            ),
 
-          {data.experience.length > 0 && (
+            experience: data.experience.length > 0 && (
             <section className="mb-10">
               <Kicker>Feature</Kicker>
               <h2 className="font-serif text-2xl font-normal mb-6">Experience</h2>
@@ -67,9 +75,9 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+          ),
 
-          {data.showProjects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects.length > 0 && (
             <section className="mb-10">
               <Kicker>Portfolio</Kicker>
               <h2 className="font-serif text-2xl font-normal mb-6">Projects</h2>
@@ -87,10 +95,11 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
-
-          {data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <section key={section.id} className="mb-10">
                 <Kicker>More</Kicker>
                 <h2 className="font-serif text-2xl font-normal mb-6">{section.title}</h2>
@@ -110,13 +119,14 @@ export default function Column({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            ) : null
+            ))
           )}
         </main>
 
         {/* Side notes column */}
         <aside className="w-[35%] px-8 py-10 border-l border-gray-200 bg-gray-50/60">
-          {data.skills.length > 0 && (
+          {orderSections(data, {
+            skills: data.skills.length > 0 && (
             <section className="mb-10">
               <Kicker>Pull Skills</Kicker>
               <div className="space-y-3">
@@ -128,9 +138,9 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+          ),
 
-          {data.education.length > 0 && (
+            education: data.education.length > 0 && (
             <section className="mb-10">
               <Kicker>Schooling</Kicker>
               <div className="space-y-5">
@@ -143,9 +153,9 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <section className="mb-10">
               <Kicker>Credentials</Kicker>
               <div className="space-y-4">
@@ -158,9 +168,9 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+          ),
 
-          {data.showReferences && data.references.length > 0 && (
+            references: data.showReferences && data.references.length > 0 && (
             <section>
               <Kicker>Sources</Kicker>
               <div className="space-y-4">
@@ -177,7 +187,8 @@ export default function Column({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
+          })}
         </aside>
       </div>
     </div>

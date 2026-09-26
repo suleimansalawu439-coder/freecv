@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Forge({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -8,6 +9,8 @@ export default function Forge({ data }: { data: ResumeData }) {
   return (
     <div className="font-sans w-full max-w-[816px] mx-auto bg-white text-neutral-900 min-h-[1056px] p-12">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-8">
         <div className="w-24 border-t-8 border-[var(--theme-color)] mb-5" />
         <h1 className="text-5xl font-black uppercase tracking-tight leading-none">{pi.fullName}</h1>
@@ -21,9 +24,11 @@ export default function Forge({ data }: { data: ResumeData }) {
           </p>
         )}
       </header>
+        ),
+      })}
 
-      {/* Certifications & Licenses hero strip */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+      {orderSections(data, {
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section
           className="-mx-12 px-12 py-8 mb-10"
           style={{ backgroundColor: 'color-mix(in srgb, var(--theme-color) 10%, white)' }}
@@ -39,10 +44,9 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
             Work Experience
@@ -68,10 +72,9 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills as ticket tags */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
             Skills
@@ -88,10 +91,9 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
             Education
@@ -110,10 +112,9 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
             Projects
@@ -132,10 +133,9 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-10">
           <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
             References
@@ -154,39 +154,36 @@ export default function Forge({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          section =>
-            section.items &&
-            section.items.length > 0 && (
-              <section key={section.id} className="mb-10">
-                <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
-                  {section.title}
-                </h2>
-                <div className="space-y-4">
-                  {section.items.map(item => (
-                    <div key={item.id}>
-                      <div className="flex justify-between items-baseline gap-4">
-                        <div className="font-black uppercase tracking-tight">{item.title}</div>
-                        {item.date && (
-                          <div className="text-sm font-bold text-neutral-500 whitespace-nowrap">{item.date}</div>
-                        )}
-                      </div>
-                      {item.subtitle && <div className="text-sm text-neutral-600">{item.subtitle}</div>}
-                      {item.description && (
-                        <p className="mt-1 text-sm leading-relaxed text-neutral-700 whitespace-pre-line">
-                          {item.description}
-                        </p>
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+            <section key={section.id} className="mb-10">
+              <h2 className="text-2xl font-black uppercase tracking-tight border-b-4 border-[var(--theme-color)] pb-2 mb-6">
+                {section.title}
+              </h2>
+              <div className="space-y-4">
+                {section.items.map(item => (
+                  <div key={item.id}>
+                    <div className="flex justify-between items-baseline gap-4">
+                      <div className="font-black uppercase tracking-tight">{item.title}</div>
+                      {item.date && (
+                        <div className="text-sm font-bold text-neutral-500 whitespace-nowrap">{item.date}</div>
                       )}
                     </div>
-                  ))}
-                </div>
-              </section>
-            )
-        )}
+                    {item.subtitle && <div className="text-sm text-neutral-600">{item.subtitle}</div>}
+                    {item.description && (
+                      <p className="mt-1 text-sm leading-relaxed text-neutral-700 whitespace-pre-line">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))
+      )}
     </div>
   );
 }

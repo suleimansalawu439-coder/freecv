@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const INK = '#000000';
 const GRAY_700 = '#374151';
@@ -218,11 +219,15 @@ export default function Gallery({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+        {orderSections(data, {
+          /*Header */
+          personal: (
+            <>
         <View style={styles.headerBlock}>
           {personalInfo.fullName ? <Text style={styles.name}>{personalInfo.fullName}</Text> : null}
           {personalInfo.jobTitle ? <Text style={styles.jobTitle}>{personalInfo.jobTitle}</Text> : null}
         </View>
+
         {contacts.length > 0 && <Text style={styles.contactRow}>{contacts.join('  ·  ')}</Text>}
 
         {summary ? (
@@ -231,8 +236,10 @@ export default function Gallery({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {experience && experience.length > 0 && (
+          experience: experience && experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHead}>Experience</Text>
             {experience.map((exp) => (
@@ -260,9 +267,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHead}>Selected Work</Text>
             {data.projects.map((project) => (
@@ -277,9 +284,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {education && education.length > 0 && (
+          education: education && education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHead}>Education</Text>
             {education.map((edu) => (
@@ -290,9 +297,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {skills && skills.length > 0 && (
+          skills: skills && skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHead}>Capabilities</Text>
             <View style={styles.skillsGrid}>
@@ -303,9 +310,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHead}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -321,9 +328,9 @@ export default function Gallery({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionHead}>References</Text>
             <View style={styles.refGrid}>
@@ -340,12 +347,11 @@ export default function Gallery({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={styles.sectionHead}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -361,8 +367,8 @@ export default function Gallery({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

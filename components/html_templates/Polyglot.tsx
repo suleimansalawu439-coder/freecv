@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Polyglot({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -10,6 +11,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans w-full max-w-[816px] mx-auto bg-white text-neutral-900 min-h-[1056px] p-14 text-lg">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="mb-12">
         <h1 className="text-4xl font-bold leading-relaxed text-[var(--theme-color)]">{pi.fullName}</h1>
@@ -23,8 +27,10 @@ export default function Polyglot({ data }: { data: ResumeData }) {
           <p className="leading-[1.8] text-neutral-800">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>Work Experience</h2>
           <div className="space-y-10">
@@ -48,9 +54,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>Certifications &amp; Licenses</h2>
           <div className="space-y-6">
@@ -63,9 +69,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>Education</h2>
           <div className="space-y-8">
@@ -80,9 +86,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>Skills</h2>
           <div className="flex flex-wrap gap-4">
@@ -96,9 +102,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>Projects</h2>
           <div className="space-y-10">
@@ -117,9 +123,9 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-12">
           <h2 className={heading}>References</h2>
           <div className="space-y-8">
@@ -136,13 +142,12 @@ export default function Polyglot({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections &&
-        data.customSections.map(
-          section =>
-            section.items &&
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id} className="mb-12">
                 <h2 className={heading}>{section.title}</h2>
                 <div className="space-y-8">
@@ -164,8 +169,8 @@ export default function Polyglot({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

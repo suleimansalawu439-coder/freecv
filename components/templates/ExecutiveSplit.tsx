@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -231,6 +232,8 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header spanning full width */}
+        {orderSections(data, {
+          personal: (
         <View style={styles.header}>
           <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
@@ -251,18 +254,21 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
             )}
           </View>
         </View>
+          ),
+        })}
 
         <View style={styles.body}>
           {/* Left Column */}
           <View style={styles.leftColumn}>
-            {data.summary ? (
+            {orderSections(data, {
+              personal: data.summary ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Executive Profile</Text>
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
-            ) : null}
+            ) : null,
 
-            {data.experience && data.experience.length > 0 ? (
+              experience: data.experience && data.experience.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Professional Experience</Text>
                 {data.experience.map((exp) => (
@@ -284,9 +290,9 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showProjects && data.projects && data.projects.length > 0 ? (
+              projects: data.showProjects && data.projects && data.projects.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Strategic Initiatives</Text>
                 {data.projects.map((proj) => (
@@ -298,12 +304,14 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
+            })}
           </View>
 
           {/* Right Column */}
           <View style={styles.rightColumn}>
-            {data.education && data.education.length > 0 ? (
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Education</Text>
                 {data.education.map((edu) => (
@@ -314,9 +322,9 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>Credentials</Text>
                 {data.certifications.map((cert) => (
@@ -327,9 +335,9 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showReferences && data.references && data.references.length > 0 ? (
+              references: data.showReferences && data.references && data.references.length > 0 ? (
               <View style={styles.section}>
                 <Text style={styles.sectionHeading}>References</Text>
                 {data.references.map((ref) => (
@@ -340,13 +348,20 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.customSections &&
-              data.customSections.map(
-                (section) =>
-                  section.items &&
-                  section.items.length > 0 && (
+              skills: data.skills && data.skills.length > 0 ? (
+              <View style={styles.section}>
+                <Text style={styles.sectionHeading}>Skills</Text>
+                {data.skills.map((s) => (
+                  <Text key={s.id} style={styles.skillText}>{s.name}</Text>
+                ))}
+              </View>
+            ) : null,
+              },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                     <View key={section.id} style={styles.section}>
                       <Text style={styles.sectionHeading}>{section.title}</Text>
                       {section.items.map((item) => (
@@ -368,17 +383,8 @@ export default function ExecutiveSplit({ data }: TemplateProps) {
                         </View>
                       ))}
                     </View>
-                  )
-              )}
-
-            {data.skills && data.skills.length > 0 ? (
-              <View style={styles.section}>
-                <Text style={styles.sectionHeading}>Skills</Text>
-                {data.skills.map((s) => (
-                  <Text key={s.id} style={styles.skillText}>{s.name}</Text>
-                ))}
-              </View>
-            ) : null}
+                ))
+            )}
           </View>
         </View>
       </Page>

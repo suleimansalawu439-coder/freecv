@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -216,6 +217,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
       <Page size="A4" style={styles.page}>
         {/* Sidebar */}
         <View style={[styles.sidebar, { backgroundColor: themeColor }]}>
+          {orderSections(data, {
+            personal: (
+              <>
           <View>
             {initial ? (
               <View style={styles.avatarContainer}>
@@ -234,8 +238,10 @@ export default function Gauge({ data }: { data: ResumeData }) {
               <Link style={styles.contactItem} src={info.website}>{info.website}</Link>
             ) : null}
           </View>
+              </>
+            ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.sidebarBlock}>
               <Text style={styles.sidebarSectionTitle}>Skills</Text>
               {data.skills.map((skill, i) => {
@@ -250,12 +256,11 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 );
               })}
             </View>
-          )}
-
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                 <View key={section.id} style={styles.sidebarBlock}>
                   <Text style={styles.sidebarSectionTitle}>{section.title}</Text>
                   {section.items.map((item) => (
@@ -267,20 +272,21 @@ export default function Gauge({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )}
+              ))
+          )}
         </View>
 
         {/* Main column */}
         <View style={styles.mainContent}>
-          {data.summary ? (
+          {orderSections(data, {
+            personal: data.summary ? (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Profile</Text>
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Experience</Text>
               {data.experience.map((exp) => (
@@ -303,9 +309,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Education</Text>
               {data.education.map((edu) => (
@@ -320,9 +326,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Projects</Text>
               {data.projects.map((proj) => (
@@ -337,9 +343,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Certifications</Text>
               {data.certifications.map((cert) => (
@@ -354,9 +360,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View style={styles.section} wrap={false}>
               <Text style={styles.sectionTitle}>References</Text>
               <View style={styles.refGrid}>
@@ -369,7 +375,8 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
+          })}
         </View>
       </Page>
     </Document>

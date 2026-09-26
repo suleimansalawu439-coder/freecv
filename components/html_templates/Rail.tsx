@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -20,35 +21,39 @@ export default function Rail({ data }: { data: ResumeData }) {
       />
 
       <div className="pl-16 pr-12 py-12">
-        {/* Name + contact */}
-        <header className="mb-10">
-          <h1 className="text-5xl font-black tracking-tight leading-none mb-4">{info.fullName}</h1>
-          {info.jobTitle && (
-            <p className="text-xl font-medium text-gray-600 mb-4">{info.jobTitle}</p>
-          )}
-          {contactItems.length > 0 && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-              {contactItems.map((item, i) => (
-                <span key={i} className="flex items-center gap-4">
-                  {item}
-                  {i < contactItems.length - 1 && (
-                    <span className="inline-block w-1 h-1 rounded-full bg-gray-300" />
-                  )}
-                </span>
-              ))}
-            </div>
-          )}
-        </header>
-
         <main className="space-y-10">
-          {data.summary && (
+          {orderSections(data, {
+            personal: (
+            <>
+            {/* Name + contact (mb-10 dropped: main's space-y-10 now provides the gap) */}
+            <header>
+              <h1 className="text-5xl font-black tracking-tight leading-none mb-4">{info.fullName}</h1>
+              {info.jobTitle && (
+                <p className="text-xl font-medium text-gray-600 mb-4">{info.jobTitle}</p>
+              )}
+              {contactItems.length > 0 && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                  {contactItems.map((item, i) => (
+                    <span key={i} className="flex items-center gap-4">
+                      {item}
+                      {i < contactItems.length - 1 && (
+                        <span className="inline-block w-1 h-1 rounded-full bg-gray-300" />
+                      )}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </header>
+            {data.summary && data.summary.length > 0 && (
             <section>
               <SectionHeader title="Profile" />
               <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
             </section>
-          )}
+            )}
+            </>
+            ),
 
-          {data.experience.length > 0 && (
+            experience: data.experience.length > 0 && (
             <section>
               <SectionHeader title="Experience" />
               <div className="border-l-2 border-gray-200 ml-2 pl-8 space-y-8">
@@ -74,9 +79,9 @@ export default function Rail({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.education.length > 0 && (
+            education: data.education.length > 0 && (
             <section>
               <SectionHeader title="Education" />
               <div className="space-y-4">
@@ -91,9 +96,9 @@ export default function Rail({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.skills.length > 0 && (
+            skills: data.skills.length > 0 && (
             <section>
               <SectionHeader title="Skills" />
               <div className="flex flex-wrap gap-2">
@@ -107,9 +112,9 @@ export default function Rail({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showProjects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects.length > 0 && (
             <section>
               <SectionHeader title="Projects" />
               <div className="space-y-4">
@@ -124,9 +129,9 @@ export default function Rail({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <section>
               <SectionHeader title="Certifications" />
               <div className="space-y-3">
@@ -141,10 +146,27 @@ export default function Rail({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+
+            references: data.showReferences && data.references && data.references.length > 0 && (
+            <section>
+              <SectionHeader title="References" />
+              <div className="grid grid-cols-2 gap-6">
+                {data.references.map(ref => (
+                  <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
+                    <h3 className="font-bold text-gray-900">{ref.name}</h3>
+                    <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
+                    {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
+                  </div>
+                ))}
+              </div>
+            </section>
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <section key={section.id}>
                 <SectionHeader title={section.title} />
                 <div className="space-y-4">
@@ -160,22 +182,7 @@ export default function Rail({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-          ))}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
-            <section>
-              <SectionHeader title="References" />
-              <div className="grid grid-cols-2 gap-6">
-                {data.references.map(ref => (
-                  <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
-                    <h3 className="font-bold text-gray-900">{ref.name}</h3>
-                    <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
-                    {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
-                  </div>
-                ))}
-              </div>
-            </section>
+              ))
           )}
         </main>
       </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -199,6 +200,9 @@ export default function Deploy({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerRow}>
           <View style={styles.statusDot} />
           <Text style={styles.name}>{info.fullName}</Text>
@@ -217,8 +221,10 @@ export default function Deploy({ data }: { data: ResumeData }) {
             <Text style={styles.bodyText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 ? (
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             {header('Experience')}
             {data.experience.map((exp) => (
@@ -244,9 +250,9 @@ export default function Deploy({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.skills && data.skills.length > 0 ? (
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             {header('Skills')}
             <View style={styles.pillsWrap}>
@@ -257,9 +263,9 @@ export default function Deploy({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
+          ) : null,
 
-        {data.education && data.education.length > 0 ? (
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             {header('Education')}
             {data.education.map((edu) => (
@@ -272,9 +278,9 @@ export default function Deploy({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             {header('Projects')}
             {data.projects.map((proj) => (
@@ -285,9 +291,9 @@ export default function Deploy({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             {header('Certifications')}
             {data.certifications.map((cert) => (
@@ -302,10 +308,26 @@ export default function Deploy({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+          ) : null,
 
-        {data.customSections &&
-          data.customSections.map((section) => (
+          references: data.showReferences && data.references && data.references.length > 0 ? (
+          <View style={styles.section}>
+            {header('References')}
+            {data.references.map((ref) => (
+              <View key={ref.id} style={styles.refItem}>
+                <Text style={styles.refName}>{ref.name}</Text>
+                <Text style={styles.refDetail}>
+                  {ref.title}
+                  {ref.company ? `, ${ref.company}` : ''}
+                </Text>
+                {ref.contact ? <Text style={styles.refDetail}>{ref.contact}</Text> : null}
+              </View>
+            ))}
+          </View>
+          ) : null,
+        },
+          (data.customSections || [])
+            .map((section) => (
             <View key={section.id} style={styles.section}>
               {header(section.title)}
               {section.items.map((item) => (
@@ -321,23 +343,8 @@ export default function Deploy({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ))}
-
-        {data.showReferences && data.references && data.references.length > 0 ? (
-          <View style={styles.section}>
-            {header('References')}
-            {data.references.map((ref) => (
-              <View key={ref.id} style={styles.refItem}>
-                <Text style={styles.refName}>{ref.name}</Text>
-                <Text style={styles.refDetail}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.refDetail}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
-        ) : null}
+            ))
+        )}
       </Page>
     </Document>
   );

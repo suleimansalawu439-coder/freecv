@@ -1,6 +1,8 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { getOrderedSectionIds, isSectionVisible } from '@/lib/template-sections';
+import type { ResumeSectionId } from '@/store/types';
 
 const BLUE = '#1d4ed8';
 const MONO = 'Courier';
@@ -224,17 +226,17 @@ export default function Draft({ data }: { data: ResumeData }) {
     data.personalInfo.website,
   ].filter(Boolean) as string[];
 
-  const sections: { title: string; body: React.ReactNode }[] = [];
+  const defs: Partial<Record<ResumeSectionId, { title: string; body: React.ReactNode }>> = {};
 
   if (data.summary) {
-    sections.push({
+    defs.personal = {
       title: 'Summary',
       body: <Text style={styles.summaryText}>{data.summary}</Text>,
-    });
+    };
   }
 
   if (data.experience && data.experience.length > 0) {
-    sections.push({
+    defs.experience = {
       title: 'Experience',
       body: (
         <View>
@@ -264,11 +266,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
 
   if (data.education && data.education.length > 0) {
-    sections.push({
+    defs.education = {
       title: 'Education',
       body: (
         <View>
@@ -285,11 +287,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
 
   if (data.skills && data.skills.length > 0) {
-    sections.push({
+    defs.skills = {
       title: 'Skills',
       body: (
         <View style={styles.chipsWrap}>
@@ -300,11 +302,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
 
   if (data.showProjects && data.projects && data.projects.length > 0) {
-    sections.push({
+    defs.projects = {
       title: 'Projects',
       body: (
         <View>
@@ -321,11 +323,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
 
   if (data.showCertifications && data.certifications && data.certifications.length > 0) {
-    sections.push({
+    defs.certifications = {
       title: 'Certifications',
       body: (
         <View>
@@ -340,11 +342,11 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
 
   if (data.showReferences && data.references && data.references.length > 0) {
-    sections.push({
+    defs.references = {
       title: 'References',
       body: (
         <View style={styles.refGrid}>
@@ -359,8 +361,14 @@ export default function Draft({ data }: { data: ResumeData }) {
           ))}
         </View>
       ),
-    });
+    };
   }
+
+  // Assemble sections in the user's order; hidden sections are dropped by
+  // getOrderedSectionIds and the numbers below follow the rendered order.
+  const sections: { title: string; body: React.ReactNode }[] = getOrderedSectionIds(data)
+    .map((id) => defs[id])
+    .filter((s): s is { title: string; body: React.ReactNode } => !!s);
 
   if (data.customSections && data.customSections.length > 0) {
     data.customSections.forEach(section => {
@@ -394,6 +402,8 @@ export default function Draft({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Blueprint header */}
+        {isSectionVisible(data, 'personal') && (
+        <>
         {data.personalInfo.fullName ? (
           <Text style={styles.name}>{data.personalInfo.fullName}</Text>
         ) : null}
@@ -404,6 +414,8 @@ export default function Draft({ data }: { data: ResumeData }) {
         {contact.length > 0 ? (
           <Text style={styles.contactRow}>{contact.join('   |   ')}</Text>
         ) : null}
+        </>
+        )}
 
         {/* Numbered spec-sheet sections */}
         {sections.map((s, i) => (

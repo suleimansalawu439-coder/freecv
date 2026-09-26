@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -16,6 +17,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 px-[0.9in] py-[0.8in] mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header — name with theme period accent */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-1">
@@ -38,8 +42,10 @@ export default function Syntax({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Experience" />
           <div className="space-y-5">
@@ -70,9 +76,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -86,9 +92,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Education" />
           <div className="space-y-3">
@@ -103,9 +109,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -120,9 +126,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="Certifications" />
           <div className="space-y-2">
@@ -137,29 +143,9 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) => (
-        <section key={section.id} className="mb-7">
-          <SectionHeader title={section.title} />
-          <div className="space-y-4">
-            {section.items.map((item) => (
-              <div key={item.id}>
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
-                  {item.date && <span className="text-xs text-gray-500">{item.date}</span>}
-                </div>
-                {item.subtitle && <p className="text-sm text-gray-600 mb-1">{item.subtitle}</p>}
-                {item.description && (
-                  <p className="text-sm text-gray-700 leading-relaxed">{item.description}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="References" />
           <div className="space-y-3">
@@ -175,6 +161,29 @@ export default function Syntax({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
+        ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+          <section key={section.id} className="mb-7">
+            <SectionHeader title={section.title} />
+            <div className="space-y-4">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <div className="flex justify-between items-baseline mb-1">
+                    <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
+                    {item.date && <span className="text-xs text-gray-500">{item.date}</span>}
+                  </div>
+                  {item.subtitle && <p className="text-sm text-gray-600 mb-1">{item.subtitle}</p>}
+                  {item.description && (
+                    <p className="text-sm text-gray-700 leading-relaxed">{item.description}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+          ))
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -234,6 +235,9 @@ export default function Clarity({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           {personalInfo.profilePicture && (
             <Image src={personalInfo.profilePicture} style={styles.profilePicture} />
@@ -257,16 +261,25 @@ export default function Clarity({ data }: TemplateProps) {
             </Link>
           )}
         </View>
+            </>
+          ),
+        },
+        )}
 
         <View style={styles.body}>
+          {orderSections(data, {
+            personal: (
+              <>
           {data.summary && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Profile</SectionTitle>
               <Text style={styles.bodyText}>{data.summary}</Text>
             </View>
           )}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Experience</SectionTitle>
               {data.experience.map((exp) => (
@@ -283,9 +296,9 @@ export default function Clarity({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+            ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Skills</SectionTitle>
               <View style={styles.skillsContainer}>
@@ -296,9 +309,9 @@ export default function Clarity({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          )}
+            ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Projects</SectionTitle>
               {data.projects.map((project) => (
@@ -315,9 +328,9 @@ export default function Clarity({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+            ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Education</SectionTitle>
               {data.education.map((edu) => (
@@ -328,9 +341,9 @@ export default function Clarity({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>Certifications</SectionTitle>
               {data.certifications.map((cert) => (
@@ -343,9 +356,9 @@ export default function Clarity({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          )}
+            ),
 
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View style={styles.section}>
               <SectionTitle themeColor={themeColor}>References</SectionTitle>
               <View style={styles.refGrid}>
@@ -364,13 +377,11 @@ export default function Clarity({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          )}
-
-          {data.customSections &&
-            data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                   <View key={section.id} style={styles.section}>
                     <SectionTitle themeColor={themeColor}>{section.title}</SectionTitle>
                     {section.items.map((item) => (
@@ -386,8 +397,8 @@ export default function Clarity({ data }: TemplateProps) {
                       </View>
                     ))}
                   </View>
-                )
-            )}
+              ))
+          )}
         </View>
       </Page>
     </Document>

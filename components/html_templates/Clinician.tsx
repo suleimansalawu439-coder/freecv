@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const CLINICAL_BLUE = '#2563eb';
 const CLINICAL_BLUE_DARK = '#1d4ed8';
@@ -18,7 +19,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white shadow-[0_0_50px_rgba(0,0,0,0.05)] print:shadow-none border-t-8 border-blue-600 p-[0.85in] flex flex-col font-sans mx-auto lg:mx-0 shrink-0 text-slate-800 leading-relaxed">
 
-      {/* Header */}
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header */}
       <div className="mb-7">
         <h1 className="text-3xl font-bold text-slate-900 mb-1">{data.personalInfo.fullName}</h1>
         {data.personalInfo.jobTitle && (
@@ -44,9 +48,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
           <p className="text-sm text-slate-700 leading-relaxed">{data.summary}</p>
         </div>
       )}
+          </>
+        ),
 
-      {/* Certifications — credential-forward */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <div className="mb-6">
           <SectionHeader>Certifications & Licenses</SectionHeader>
           <div className="space-y-3">
@@ -63,10 +68,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <div className="mb-6">
           <SectionHeader>Clinical & Technical Skills</SectionHeader>
           <ul className="grid grid-cols-2 gap-x-6 gap-y-1.5">
@@ -78,10 +82,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </ul>
         </div>
-      )}
+      ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <div className="mb-6">
           <SectionHeader>Professional Experience</SectionHeader>
           <div className="space-y-5">
@@ -104,10 +107,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <div className="mb-6">
           <SectionHeader>Education</SectionHeader>
           <div className="space-y-3">
@@ -124,10 +126,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <div className="mb-6">
           <SectionHeader>Projects</SectionHeader>
           <div className="space-y-3">
@@ -146,10 +147,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
+      ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <div className="mb-6">
           <SectionHeader>References</SectionHeader>
           <div className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -162,11 +162,11 @@ export default function Clinician({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-        section.items.length > 0 && (
+      ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <div key={section.id} className="mb-6">
             <SectionHeader>{section.title}</SectionHeader>
             <div className="space-y-3">
@@ -184,8 +184,8 @@ export default function Clinician({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )
-      ))}
+          ))
+      )}
     </div>
   );
 }

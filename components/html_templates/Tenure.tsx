@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -15,6 +16,9 @@ export default function Tenure({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto px-[0.85in] py-[0.75in]">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="mb-6">
         <h1 className="text-[26px] font-bold mb-1">{info.fullName}</h1>
         {info.jobTitle && <p className="text-sm font-semibold text-gray-700 mb-2">{info.jobTitle}</p>}
@@ -29,8 +33,10 @@ export default function Tenure({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="Experience" />
           <div className="space-y-5">
@@ -55,9 +61,9 @@ export default function Tenure({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="Education" />
           <div className="space-y-4">
@@ -74,16 +80,16 @@ export default function Tenure({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="Skills" />
           <p className="text-sm leading-relaxed">{data.skills.map((s) => s.name).join(', ')}</p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="Projects" />
           <div className="space-y-4">
@@ -100,9 +106,9 @@ export default function Tenure({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="Certifications" />
           <div className="space-y-3">
@@ -118,9 +124,9 @@ export default function Tenure({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-6">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4">
@@ -133,10 +139,11 @@ export default function Tenure({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.map((section) =>
-        section.items.length > 0 ? (
+        ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-6">
             <SectionHeader title={section.title} />
             <div className="space-y-4">
@@ -154,7 +161,7 @@ export default function Tenure({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

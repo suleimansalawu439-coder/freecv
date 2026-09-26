@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const NAVY = '#1f2a44';
 const GOLD = '#c9a227';
@@ -21,6 +22,8 @@ export default function Flagship({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif mx-auto">
       {/* Navy band with gold rule */}
+      {orderSections(data, {
+        personal: (
       <header className="text-center px-[0.8in] pt-12 pb-10" style={{ backgroundColor: NAVY }}>
         <h1 className="text-[42px] leading-tight font-bold text-white tracking-wide">{info.fullName}</h1>
         {info.jobTitle && (
@@ -30,17 +33,20 @@ export default function Flagship({ data }: { data: ResumeData }) {
           <p className="text-[12px] text-white/85 mt-4 tracking-wide">{contact.join('  ·  ')}</p>
         )}
       </header>
+        ),
+      })}
       <div className="h-[3px]" style={{ backgroundColor: GOLD }} />
 
       <div className="px-[0.85in] pb-[0.8in] text-gray-900">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionHeader title="Profile" />
             <p className="text-[14px] leading-[1.8] text-justify italic border-l-2 pl-5" style={{ borderColor: GOLD }}>{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Professional Experience" />
             <div className="space-y-7">
@@ -60,9 +66,9 @@ export default function Flagship({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-4">
@@ -77,16 +83,16 @@ export default function Flagship({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Areas of Expertise" />
             <p className="text-[13.5px] leading-[1.9]">{data.skills.map(s => s.name).join('  ·  ')}</p>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Selected Projects" />
             <div className="space-y-5">
@@ -101,9 +107,9 @@ export default function Flagship({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-2">
@@ -115,9 +121,9 @@ export default function Flagship({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section>
             <SectionHeader title="References" />
             <div className="grid grid-cols-2 gap-6">
@@ -130,10 +136,11 @@ export default function Flagship({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections && data.customSections.map(section => (
-          section.items && section.items.length > 0 && (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <SectionHeader title={section.title} />
               <div className="space-y-5">
@@ -149,8 +156,8 @@ export default function Flagship({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
-        ))}
+            ))
+        )}
       </div>
     </div>
   );

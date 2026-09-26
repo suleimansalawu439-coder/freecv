@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -171,32 +172,38 @@ export default function Folio({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.runningHead}>
-          <Text style={[styles.runningHeadText, { color: themeColor }]}>
-            {info.fullName || 'Curriculum Vitae'}
-            {info.fullName ? '  ·  Résumé' : ''}
-          </Text>
-          <View style={styles.runningRule} />
-        </View>
-
-        <View style={styles.header}>
-          <View style={styles.headerRow}>
-            {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
-            <Text style={styles.folioLabel}>Curriculum Vitae</Text>
-          </View>
-          {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
-          {contact.length > 0 ? <Text style={styles.contact}>{contact.join('  |  ')}</Text> : null}
-        </View>
+        {orderSections(data, {
+          personal: (
+            <>
+              <View style={styles.runningHead}>
+                <Text style={[styles.runningHeadText, { color: themeColor }]}>
+                  {info.fullName || 'Curriculum Vitae'}
+                  {info.fullName ? '  ·  Résumé' : ''}
+                </Text>
+                <View style={styles.runningRule} />
+              </View>
+              <View style={styles.header}>
+                <View style={styles.headerRow}>
+                  {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
+                  <Text style={styles.folioLabel}>Curriculum Vitae</Text>
+                </View>
+                {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
+                {contact.length > 0 ? <Text style={styles.contact}>{contact.join('  |  ')}</Text> : null}
+              </View>
+            </>
+          ),
+        })}
 
         <View style={styles.body}>
-          {data.summary ? (
+          {orderSections(data, {
+            personal: data.summary ? (
             <View>
               <FolioHead>Profile</FolioHead>
               <Text style={styles.bodyText}>{data.summary}</Text>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View>
               <FolioHead>Experience</FolioHead>
               {data.experience.map((exp) => (
@@ -221,9 +228,9 @@ export default function Folio({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View>
               <FolioHead>Education</FolioHead>
               {data.education.map((edu) => (
@@ -236,16 +243,16 @@ export default function Folio({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View>
               <FolioHead>Skills</FolioHead>
               <Text style={styles.bodyText}>{data.skills.map((s) => s.name).join('  ·  ')}</Text>
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View>
               <FolioHead>Projects</FolioHead>
               {data.projects.map((proj) => (
@@ -258,9 +265,9 @@ export default function Folio({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View>
               <FolioHead>Certifications</FolioHead>
               {data.certifications.map((cert) => (
@@ -271,29 +278,9 @@ export default function Folio({ data }: { data: ResumeData }) {
                 </Text>
               ))}
             </View>
-          )}
+          ),
 
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
-                <View key={section.id}>
-                  <FolioHead>{section.title}</FolioHead>
-                  {section.items.map((item) => (
-                    <View key={item.id} style={{ marginBottom: 12 }}>
-                      <View style={styles.expHeaderRow}>
-                        {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
-                        {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                      </View>
-                      {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
-                      {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
-                    </View>
-                  ))}
-                </View>
-              ) : null
-            )}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View>
               <FolioHead>References</FolioHead>
               <View style={styles.refGrid}>
@@ -312,6 +299,25 @@ export default function Folio({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+                <View key={section.id}>
+                  <FolioHead>{section.title}</FolioHead>
+                  {section.items.map((item) => (
+                    <View key={item.id} style={{ marginBottom: 12 }}>
+                      <View style={styles.expHeaderRow}>
+                        {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
+                        {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                      </View>
+                      {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
+                      {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              ))
           )}
         </View>
 

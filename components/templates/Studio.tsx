@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -246,6 +247,9 @@ export default function Studio({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.headerBlock}>
           {personalInfo.fullName ? <Text style={styles.name}>{personalInfo.fullName}</Text> : null}
@@ -271,8 +275,10 @@ export default function Studio({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {experience && experience.length > 0 && (
+          experience: experience && experience.length > 0 && (
           <View style={styles.section}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -304,9 +310,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -327,9 +333,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {education && education.length > 0 && (
+          education: education && education.length > 0 && (
           <View style={styles.section}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -344,9 +350,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {skills && skills.length > 0 && (
+          skills: skills && skills.length > 0 && (
           <View style={styles.section}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -361,9 +367,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -386,9 +392,9 @@ export default function Studio({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section} wrap={false}>
             <View style={styles.pillWrap}>
               <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -409,12 +415,11 @@ export default function Studio({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <View style={styles.pillWrap}>
                   <View style={[styles.sectionPill, { backgroundColor: themeColor }]}>
@@ -434,8 +439,8 @@ export default function Studio({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

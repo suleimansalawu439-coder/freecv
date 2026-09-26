@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Rainmaker — sales metrics-forward resume.
 // Bold header with a "track record" strip (the summary as a lead paragraph),
@@ -55,59 +56,61 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-full max-w-[816px] mx-auto bg-white text-neutral-900 font-sans p-12 min-h-[1056px]">
-      <header>
-        <div className="flex items-start gap-8">
-          {personalInfo.profilePicture && (
-            <img
-              src={personalInfo.profilePicture}
-              alt={`Portrait of ${personalInfo.fullName}`}
-              className="w-28 h-28 rounded-full object-cover shrink-0"
-            />
-          )}
-          <div className="flex-1">
-            <h1 className="text-6xl font-black tracking-tight leading-none">
-              {personalInfo.fullName}
-            </h1>
-            {personalInfo.jobTitle && (
-              <p className="text-xl font-bold mt-3 text-neutral-700">{personalInfo.jobTitle}</p>
+      {orderSections(data, {
+        personal: (
+          <header>
+            <div className="flex items-start gap-8">
+              {personalInfo.profilePicture && (
+                <img
+                  src={personalInfo.profilePicture}
+                  alt={`Portrait of ${personalInfo.fullName}`}
+                  className="w-28 h-28 rounded-full object-cover shrink-0"
+                />
+              )}
+              <div className="flex-1">
+                <h1 className="text-6xl font-black tracking-tight leading-none">
+                  {personalInfo.fullName}
+                </h1>
+                {personalInfo.jobTitle && (
+                  <p className="text-xl font-bold mt-3 text-neutral-700">{personalInfo.jobTitle}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Thick accent header rule */}
+            <div className="h-1.5 mt-8 bg-[var(--theme-color)]" aria-hidden="true" />
+
+            <div className="text-sm font-medium text-neutral-600 flex flex-wrap gap-x-3 gap-y-1 mt-4">
+              {personalInfo.email && <span>{personalInfo.email}</span>}
+              {personalInfo.phone && <span>{personalInfo.phone}</span>}
+              {personalInfo.location && <span>{personalInfo.location}</span>}
+              {personalInfo.website && (
+                <a
+                  href={personalInfo.website}
+                  className="underline font-semibold"
+                  style={{ color: 'var(--theme-color)' }}
+                >
+                  {personalInfo.website}
+                </a>
+              )}
+            </div>
+
+            {data.summary && (
+              <div
+                className="mt-8 border-l-4 pl-6 py-1"
+                style={{ borderColor: 'var(--theme-color)' }}
+              >
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500 mb-2">
+                  Track Record
+                </p>
+                <p className="text-lg leading-relaxed font-medium">{data.summary}</p>
+              </div>
             )}
-          </div>
-        </div>
+          </header>
+        ),
 
-        {/* Thick accent header rule */}
-        <div className="h-1.5 mt-8 bg-[var(--theme-color)]" aria-hidden="true" />
-
-        <div className="text-sm font-medium text-neutral-600 flex flex-wrap gap-x-3 gap-y-1 mt-4">
-          {personalInfo.email && <span>{personalInfo.email}</span>}
-          {personalInfo.phone && <span>{personalInfo.phone}</span>}
-          {personalInfo.location && <span>{personalInfo.location}</span>}
-          {personalInfo.website && (
-            <a
-              href={personalInfo.website}
-              className="underline font-semibold"
-              style={{ color: 'var(--theme-color)' }}
-            >
-              {personalInfo.website}
-            </a>
-          )}
-        </div>
-
-        {data.summary && (
-          <div
-            className="mt-8 border-l-4 pl-6 py-1"
-            style={{ borderColor: 'var(--theme-color)' }}
-          >
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-neutral-500 mb-2">
-              Track Record
-            </p>
-            <p className="text-lg leading-relaxed font-medium">{data.summary}</p>
-          </div>
-        )}
-      </header>
-
-      <div className="space-y-12 mt-12">
-        {data.experience && data.experience.length > 0 && (
-          <section>
+        experience: data.experience && data.experience.length > 0 && (
+        <section className="mt-12">
             <SectionLabel>Experience</SectionLabel>
             <div className="space-y-9">
               {data.experience.map((exp) => (
@@ -132,10 +135,10 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
-          <section>
+          skills: data.skills && data.skills.length > 0 && (
+          <section className="mt-12">
             <SectionLabel>Core Competencies</SectionLabel>
             <div className="grid grid-cols-2 gap-x-8 gap-y-3">
               {data.skills.map((skill) => (
@@ -150,10 +153,10 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
-          <section>
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
+          <section className="mt-12">
             <SectionLabel>Projects</SectionLabel>
             <div className="space-y-6">
               {data.projects.map((project) => (
@@ -177,10 +180,10 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
-          <section>
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          <section className="mt-12">
             <SectionLabel>Certifications</SectionLabel>
             <div className="space-y-4">
               {data.certifications.map((cert) => (
@@ -196,10 +199,10 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
-          <section>
+          education: data.education && data.education.length > 0 && (
+          <section className="mt-12">
             <SectionLabel>Education</SectionLabel>
             <div className="space-y-5">
               {data.education.map((edu) => (
@@ -213,10 +216,10 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <section>
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <section className="mt-12">
             <SectionLabel>References</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {data.references.map((ref) => (
@@ -238,14 +241,12 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
-                <section key={section.id}>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+                <section key={section.id} className="mt-12">
                   <SectionLabel>{section.title}</SectionLabel>
                   <div className="space-y-4">
                     {section.items.map((item) => (
@@ -268,9 +269,8 @@ export default function Rainmaker({ data }: { data: ResumeData }) {
                     ))}
                   </div>
                 </section>
-              )
-          )}
-      </div>
+            ))
+        )}
     </div>
   );
 }

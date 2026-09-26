@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -226,7 +227,11 @@ export default function Founder({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+        {orderSections(data, {
+          /*Header */
+          /*Thesis */
+          personal: (
+            <>
         <View style={styles.header}>
           <View style={styles.headerRow}>
             <View>
@@ -249,16 +254,17 @@ export default function Founder({ data }: TemplateProps) {
           <View style={[styles.headerRule, { backgroundColor: themeColor }]} />
         </View>
 
-        {/* Thesis */}
         {data.summary ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Thesis</Text>
             <Text style={[styles.thesisText, { borderLeftColor: themeColor }]}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Ventures */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          /*Ventures */
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Ventures</Text>
             <View>
@@ -273,10 +279,10 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 ? (
+          /*Experience */
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
             <View>
@@ -296,10 +302,10 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Skills */}
-        {data.skills && data.skills.length > 0 ? (
+          /*Skills */
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Skills</Text>
             <View style={styles.skillsContainer}>
@@ -310,10 +316,10 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Education */}
-        {data.education && data.education.length > 0 ? (
+          /*Education */
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
             <View>
@@ -326,10 +332,10 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          /*Certifications */
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Certifications</Text>
             <View>
@@ -343,10 +349,10 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          /*References */
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
             <View style={styles.refGrid}>
@@ -361,11 +367,12 @@ export default function Founder({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {/* Custom sections */}
-        {data.customSections && data.customSections.map((section) => (
-          section.items && section.items.length > 0 ? (
+        ) : null,
+          /*Custom sections */
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <View key={section.id} style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
               <View>
@@ -383,8 +390,8 @@ export default function Founder({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          ) : null
-        ))}
+            ))
+        )}
       </Page>
     </Document>
   );

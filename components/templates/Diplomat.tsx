@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link, Image } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -227,6 +228,9 @@ export default function Diplomat({ data }: TemplateProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={[styles.header, { borderBottomColor: lightBorder }]}>
           {data.personalInfo.profilePicture && (
             // eslint-disable-next-line jsx-a11y/alt-text
@@ -268,9 +272,11 @@ export default function Diplomat({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         )}
+            </>
+          ),
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: c }]}>Professional Experience</Text>
             <View style={[styles.sectionDivider, { backgroundColor: c }]} />
@@ -293,10 +299,10 @@ export default function Diplomat({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: c }]}>Notable Projects</Text>
             <View style={[styles.sectionDivider, { backgroundColor: c }]} />
@@ -314,12 +320,15 @@ export default function Diplomat({ data }: TemplateProps) {
               </View>
             ))}
           </View>
+          ),
+        },
         )}
 
         {/* Bottom Grid: Education, Skills, Certifications / References / Custom */}
         <View style={[styles.bottomGrid, { borderTopColor: lightBorder }]}>
           {/* Education */}
-          {data.education && data.education.length > 0 && (
+          {orderSections(data, {
+            education: data.education && data.education.length > 0 && (
             <View style={styles.column}>
               <Text style={[styles.colTitle, { color: c }]}>Education</Text>
               {data.education.map(edu => (
@@ -330,10 +339,13 @@ export default function Diplomat({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
+            ),
+          },
           )}
 
           {/* Core Expertise / Skills */}
-          {data.skills && data.skills.length > 0 && (
+          {orderSections(data, {
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.column}>
               <Text style={[styles.colTitle, { color: c }]}>Skills</Text>
               <View style={styles.skillsWrap}>
@@ -348,11 +360,14 @@ export default function Diplomat({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
+            ),
+          },
           )}
 
           {/* Certifications / References / Custom Sections */}
           <View style={styles.column}>
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            {orderSections(data, {
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={{ marginBottom: 12 }}>
                 <Text style={[styles.colTitle, { color: c }]}>Certifications</Text>
                 {data.certifications.map(cert => (
@@ -362,9 +377,9 @@ export default function Diplomat({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={{ marginBottom: 12 }}>
                 <Text style={[styles.colTitle, { color: c }]}>References</Text>
                 {data.references.map(ref => (
@@ -375,10 +390,11 @@ export default function Diplomat({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
-
-            {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-              section.items && section.items.length > 0 && (
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                 <View key={section.id} style={{ marginBottom: 12 }}>
                   <Text style={[styles.colTitle, { color: c }]}>{section.title}</Text>
                   {section.items.map(item => (
@@ -394,8 +410,8 @@ export default function Diplomat({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-            ))}
+                ))
+            )}
           </View>
         </View>
       </Page>

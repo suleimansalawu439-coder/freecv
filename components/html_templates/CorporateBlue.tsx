@@ -1,10 +1,14 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function CorporateBlue({ data }: { data: ResumeData }) {
   return (
     <div className="bg-white text-[#1A2A3A] font-sans w-[8.5in] min-h-[11in] shadow-lg print:shadow-none p-[0.75in] flex flex-col mx-auto">
-      <div className="bg-[var(--theme-color)] text-white -mx-[0.75in] -mt-[0.75in] px-[0.75in] pt-[0.75in] pb-6 mb-8 print:mx-0 print:mt-0 print:px-[0.75in] print:pt-[0.75in]">
+      {orderSections(data, {
+        personal: (
+          <>
+            <div className="bg-[var(--theme-color)] text-white -mx-[0.75in] -mt-[0.75in] px-[0.75in] pt-[0.75in] pb-6 mb-8 print:mx-0 print:mt-0 print:px-[0.75in] print:pt-[0.75in]">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-[44px] font-bold tracking-tight leading-[0.9]">{data.personalInfo.fullName}</h1>
@@ -17,11 +21,13 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             {data.personalInfo.website && <div>{data.personalInfo.website}</div>}
           </div>
         </div>
-      </div>
-      
-      {data.summary && <p className="text-[14px] leading-relaxed text-[#3A4A5A] border-l-4 border-[#C8A86A] pl-5 mb-8">{data.summary}</p>}
-      
-      {data.experience.length > 0 && (
+            </div>
+
+            {data.summary && <p className="text-[14px] leading-relaxed text-[#3A4A5A] border-l-4 border-[#C8A86A] pl-5 mb-8">{data.summary}</p>}
+          </>
+        ),
+
+        experience: data.experience.length > 0 && (
         <div className="mb-8">
           <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-5 border-b border-[#E0E5EC] pb-2">Professional Experience</h2>
           <div className="space-y-6">
@@ -43,11 +49,13 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
-      
+      ),
+      })}
+
       <div className="grid grid-cols-2 gap-12 border-t border-[#E0E5EC] pt-8">
-        {data.education.length > 0 && (
-          <div>
+        {orderSections(data, {
+          education: data.education.length > 0 && (
+            <div>
             <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-4">Education</h2>
             {data.education.map(edu => (
               <div key={edu.id} className="mb-3">
@@ -55,11 +63,11 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
                 <p className="text-[10px] text-[#8A9AAB]">{edu.school}, {edu.graduationYear}</p>
               </div>
             ))}
-          </div>
-        )}
-        
-        {data.skills.length > 0 && (
-          <div>
+            </div>
+          ),
+
+          skills: data.skills.length > 0 && (
+            <div>
             <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-4">Core Skills</h2>
             <div className="flex flex-wrap gap-2">
               {data.skills.map(s => (
@@ -67,12 +75,14 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
                   {s.name}
                 </span>
               ))}
+              </div>
             </div>
-          </div>
-        )}
+          ),
+        })}
       </div>
-      
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+
+      {orderSections(data, {
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <div className="mt-8 border-t border-[#E0E5EC] pt-8">
           <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-5 border-b border-[#E0E5EC] pb-2">Projects</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -87,9 +97,9 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
-      
-      {data.showReferences && data.references && data.references.length > 0 && (
+      ),
+
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <div className="mt-8 border-t border-[#E0E5EC] pt-8">
           <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-5 border-b border-[#E0E5EC] pb-2">References</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -102,10 +112,12 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
             ))}
           </div>
         </div>
-      )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mt-8 border-t border-[#E0E5EC] pt-8">
+      ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+            <div key={section.id} className="mt-8 border-t border-[#E0E5EC] pt-8">
                 <h2 className="text-[9px] font-bold text-[#8A9AAB] uppercase tracking-[0.3em] mb-5 border-b border-[#E0E5EC] pb-2">{section.title}</h2>
                 <div className="space-y-3">
                   {section.items.map(item => (
@@ -122,8 +134,8 @@ export default function CorporateBlue({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
+            ))
+      )}
 
     </div>
   );

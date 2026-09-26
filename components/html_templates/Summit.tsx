@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -19,33 +20,38 @@ export default function Summit({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       {/* Dark header band */}
-      <header className="bg-[#1f2937] text-white px-12 py-12">
-        <div className="w-16 h-1.5 mb-6" style={{ backgroundColor: 'var(--theme-color)' }} />
-        <h1 className="text-5xl font-black tracking-tight leading-none mb-3">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-lg font-medium mb-4" style={{ color: 'var(--theme-color)' }}>
-            {info.jobTitle}
-          </p>
-        )}
-        {contactItems.length > 0 && (
-          <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-300">
-            {contactItems.map((item, i) => (
-              <span key={i}>{item}</span>
-            ))}
-          </div>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <header className="bg-[#1f2937] text-white px-12 py-12">
+            <div className="w-16 h-1.5 mb-6" style={{ backgroundColor: 'var(--theme-color)' }} />
+            <h1 className="text-5xl font-black tracking-tight leading-none mb-3">{info.fullName}</h1>
+            {info.jobTitle && (
+              <p className="text-lg font-medium mb-4" style={{ color: 'var(--theme-color)' }}>
+                {info.jobTitle}
+              </p>
+            )}
+            {contactItems.length > 0 && (
+              <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-300">
+                {contactItems.map((item, i) => (
+                  <span key={i}>{item}</span>
+                ))}
+              </div>
+            )}
+          </header>
+        ),
+      })}
 
       {/* Body */}
       <main className="px-12 py-10 space-y-9">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && data.summary.length > 0 && (
           <section>
             <SectionHeader title="Summary" />
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Experience" />
             <div className="space-y-7">
@@ -69,9 +75,9 @@ export default function Summit({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-4">
@@ -86,9 +92,9 @@ export default function Summit({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Skills" />
             <div className="flex flex-wrap gap-2">
@@ -102,9 +108,9 @@ export default function Summit({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Projects" />
             <div className="space-y-4">
@@ -119,9 +125,9 @@ export default function Summit({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-3">
@@ -136,10 +142,27 @@ export default function Summit({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-          section.items.length > 0 && (
+
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <section>
+            <SectionHeader title="References" />
+            <div className="grid grid-cols-2 gap-6">
+              {data.references.map(ref => (
+                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
+                  <h3 className="font-bold text-gray-900">{ref.name}</h3>
+                  <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
+                  {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <SectionHeader title={section.title} />
               <div className="space-y-4">
@@ -155,22 +178,7 @@ export default function Summit({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
-        ))}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <section>
-            <SectionHeader title="References" />
-            <div className="grid grid-cols-2 gap-6">
-              {data.references.map(ref => (
-                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
-                  <h3 className="font-bold text-gray-900">{ref.name}</h3>
-                  <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
-                  {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
-                </div>
-              ))}
-            </div>
-          </section>
+            ))
         )}
       </main>
     </div>

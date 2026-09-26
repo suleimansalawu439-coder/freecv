@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -216,6 +217,9 @@ export default function Covenant({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <View style={[styles.frame, { borderColor: themeColor }]}>
             {data.personalInfo.fullName ? (
@@ -236,8 +240,10 @@ export default function Covenant({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View>
             {sectionHead('Experience')}
             {data.experience.map((exp) => (
@@ -266,9 +272,9 @@ export default function Covenant({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View>
             {sectionHead('Education')}
             {data.education.map((edu) => (
@@ -281,18 +287,18 @@ export default function Covenant({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View>
             {sectionHead('Skills')}
             <Text style={styles.skillsParagraph}>
               {data.skills.map((s) => s.name).join('  ·  ')}
             </Text>
           </View>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View>
             {sectionHead('Projects')}
             {data.projects.map((proj) => (
@@ -311,9 +317,9 @@ export default function Covenant({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View>
             {sectionHead('Certifications')}
             {data.certifications.map((cert) => (
@@ -324,9 +330,9 @@ export default function Covenant({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View wrap={false}>
             {sectionHead('References')}
             {data.references.map((ref) => (
@@ -343,12 +349,11 @@ export default function Covenant({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id}>
                 {sectionHead(section.title)}
                 {section.items.map((item) => (
@@ -368,8 +373,8 @@ export default function Covenant({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

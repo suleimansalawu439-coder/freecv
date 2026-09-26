@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHead({ title }: { title: string }) {
   return (
@@ -25,6 +26,8 @@ export default function Palette({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 px-12 py-10">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-9">
         <h1 className="text-5xl font-extrabold tracking-tight leading-none">{personalInfo.fullName}</h1>
         {personalInfo.jobTitle && (
@@ -48,16 +51,19 @@ export default function Palette({ data }: { data: ResumeData }) {
 
         {contacts.length > 0 && <div className="text-sm text-gray-500 font-medium">{contacts.join('  •  ')}</div>}
       </header>
+        ),
+      })}
 
       <main className="space-y-8">
-        {summary && (
+        {orderSections(data, {
+          personal: summary && (
           <section>
             <SectionHead title="Profile" />
             <p className="text-sm leading-relaxed text-gray-700">{summary}</p>
           </section>
-        )}
+          ),
 
-        {experience.length > 0 && (
+          experience: experience.length > 0 && (
           <section>
             <SectionHead title="Experience" />
             <div className="space-y-7">
@@ -84,9 +90,9 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionHead title="Projects" />
             <div className="space-y-5">
@@ -105,9 +111,9 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {education.length > 0 && (
+          education: education.length > 0 && (
           <section>
             <SectionHead title="Education" />
             <div className="space-y-4">
@@ -120,9 +126,9 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {skills.length > 0 && (
+          skills: skills.length > 0 && (
           <section>
             <SectionHead title="Skills" />
             <div className="flex flex-wrap gap-2.5">
@@ -138,9 +144,9 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionHead title="Certifications" />
             <div className="space-y-2.5">
@@ -159,9 +165,9 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section className="break-inside-avoid">
             <SectionHead title="References" />
             <div className="grid grid-cols-2 gap-6">
@@ -178,13 +184,12 @@ export default function Palette({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(
-            (section) =>
-              section.items.length > 0 && (
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
                 <section key={section.id}>
                   <SectionHead title={section.title} />
                   <div className="space-y-4">
@@ -202,8 +207,8 @@ export default function Palette({ data }: { data: ResumeData }) {
                     ))}
                   </div>
                 </section>
-              )
-          )}
+          ))
+        )}
       </main>
     </div>
   );

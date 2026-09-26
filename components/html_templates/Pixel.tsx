@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MainSectionHeader({ title }: { title: string }) {
   return (
@@ -35,6 +36,8 @@ export default function Pixel({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto font-sans text-gray-900">
       {/* Full-width header */}
+      {orderSections(data, {
+        personal: (
       <header className="p-10 pb-6">
         <h1 className="text-3xl font-bold tracking-tight">{info.fullName}</h1>
         {info.jobTitle && <p className="text-base text-gray-600 mt-1.5">{info.jobTitle}</p>}
@@ -42,19 +45,22 @@ export default function Pixel({ data }: { data: ResumeData }) {
           <p className="text-sm text-gray-500 mt-2">{contactItems.join(' · ')}</p>
         )}
       </header>
+        ),
+      })}
 
       {/* Two-column body */}
       <div className="flex px-10 pb-10 items-stretch">
         {/* Left 70% */}
         <div className="w-[70%] pr-8">
-          {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
             <section className="mb-7">
               <MainSectionHeader title="Profile" />
               <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
             </section>
-          )}
+          ),
 
-          {data.experience.length > 0 && (
+            experience: data.experience.length > 0 && (
             <section className="mb-7">
               <MainSectionHeader title="Experience" />
               <div className="space-y-4">
@@ -93,9 +99,9 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showProjects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects.length > 0 && (
             <section className="mb-7">
               <MainSectionHeader title="Projects" />
               <div className="space-y-4">
@@ -118,12 +124,12 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {(data.customSections || []).map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
                 <section key={section.id} className="mb-7">
                   <MainSectionHeader title={section.title} />
                   <div className="space-y-3">
@@ -149,13 +155,14 @@ export default function Pixel({ data }: { data: ResumeData }) {
                     ))}
                   </div>
                 </section>
-              )
-          )}
+          ))
+        )}
         </div>
 
         {/* Right 30% rail */}
         <aside className="w-[30%] bg-gray-50 p-6">
-          {data.skills.length > 0 && (
+          {orderSections(data, {
+            skills: data.skills.length > 0 && (
             <section className="mb-6">
               <RailSectionHeader title="Skills" />
               <div className="space-y-3">
@@ -178,9 +185,9 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 })}
               </div>
             </section>
-          )}
+            ),
 
-          {data.education.length > 0 && (
+            education: data.education.length > 0 && (
             <section className="mb-6">
               <RailSectionHeader title="Education" />
               <div className="space-y-3">
@@ -195,9 +202,9 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showCertifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications.length > 0 && (
             <section className="mb-6">
               <RailSectionHeader title="Certifications" />
               <div className="space-y-2.5">
@@ -210,9 +217,9 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
 
-          {data.showReferences && data.references.length > 0 && (
+            references: data.showReferences && data.references.length > 0 && (
             <section className="mb-6">
               <RailSectionHeader title="References" />
               <div className="space-y-3">
@@ -228,7 +235,8 @@ export default function Pixel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
+          })}
         </aside>
       </div>
     </div>

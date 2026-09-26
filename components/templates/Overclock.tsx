@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -170,6 +171,9 @@ export default function Overclock({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <Text style={styles.name}>{info.fullName}</Text>
         {info.jobTitle ? (
           <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
@@ -184,8 +188,11 @@ export default function Overclock({ data }: { data: ResumeData }) {
             <Text style={styles.bodyText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 ? (
+          // Experience
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>Experience</Text>
             {data.experience.map((exp, ei) => (
@@ -211,9 +218,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.skills && data.skills.length > 0 ? (
+        // Skills
+        skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>Skills</Text>
             <View style={styles.pillsWrap}>
@@ -224,9 +232,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {data.education && data.education.length > 0 ? (
+        // Education
+        education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>Education</Text>
             {data.education.map((edu, ei) => (
@@ -239,9 +248,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>Projects</Text>
             {data.projects.map((proj, pi) => (
@@ -254,9 +264,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -269,28 +280,10 @@ export default function Overclock({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.customSections &&
-          data.customSections.map((section) => (
-            <View key={section.id} style={styles.section}>
-              <Text style={headerStyle}>{section.title}</Text>
-              {section.items.map((item, ii) => (
-                <View key={item.id} style={ii % 2 === 1 ? [styles.projectItem, styles.staggered] : styles.projectItem}>
-                  <View style={styles.itemHeaderRow}>
-                    <Text style={styles.roleTitle}>{item.title}</Text>
-                    {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
-                  </View>
-                  {item.subtitle ? <Text style={styles.schoolText}>{item.subtitle}</Text> : null}
-                  {item.description ? (
-                    <Text style={styles.bodyText}>{item.description}</Text>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ))}
-
-        {data.showReferences && data.references && data.references.length > 0 ? (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             <Text style={headerStyle}>References</Text>
             {data.references.map((ref) => (
@@ -304,7 +297,28 @@ export default function Overclock({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <Text style={headerStyle}>{section.title}</Text>
+                {section.items.map((item, ii) => (
+                  <View key={item.id} style={ii % 2 === 1 ? [styles.projectItem, styles.staggered] : styles.projectItem}>
+                    <View style={styles.itemHeaderRow}>
+                      <Text style={styles.roleTitle}>{item.title}</Text>
+                      {item.date ? <Text style={styles.dateText}>{item.date}</Text> : null}
+                    </View>
+                    {item.subtitle ? <Text style={styles.schoolText}>{item.subtitle}</Text> : null}
+                    {item.description ? (
+                      <Text style={styles.bodyText}>{item.description}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
@@ -39,11 +40,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
     );
   };
 
-  let chapterIndex = 0;
-  const nextNumeral = () => ROMAN[chapterIndex++] || '';
-
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto px-14 py-14 font-serif leading-loose text-gray-800">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Title page */}
       <header className="text-center mb-4">
         <h1 className="text-5xl font-bold text-gray-900 tracking-tight">{personalInfo.fullName}</h1>
@@ -62,11 +63,12 @@ export default function Quarto({ data }: { data: ResumeData }) {
           <DropCapSummary text={data.summary} />
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience — Chapter I */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="Experience" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="Experience" />
           <div className="space-y-7">
             {data.experience.map((exp) => (
               <div key={exp.id}>
@@ -90,12 +92,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Education — Chapter II */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="Education" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="Education" />
           <div className="space-y-5">
             {data.education.map((edu) => (
               <div key={edu.id}>
@@ -109,22 +110,20 @@ export default function Quarto({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Skills — Chapter III */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="Skills" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="Skills" />
           <p className="text-[14px] leading-loose text-gray-800">
             {data.skills.map((skill) => skill.name).join('  ·  ')}
           </p>
         </section>
-      )}
+        )),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="Projects" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="Projects" />
           <div className="space-y-5">
             {data.projects.map((project) => (
               <div key={project.id}>
@@ -139,12 +138,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="Certifications" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="Certifications" />
           <div className="space-y-4">
             {data.certifications.map((cert) => (
               <div key={cert.id}>
@@ -158,12 +156,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        )),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && ((i: number) => (
         <section>
-          <ChapterHead numeral={nextNumeral()} title="References" />
+          <ChapterHead numeral={ROMAN[i] || ''} title="References" />
           <div className="grid grid-cols-2 gap-6">
             {data.references.map((ref) => (
               <div key={ref.id}>
@@ -177,34 +174,31 @@ export default function Quarto({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
-              <section key={section.id}>
-                <ChapterHead numeral={nextNumeral()} title={section.title} />
-                <div className="space-y-5">
-                  {section.items.map((item) => (
-                    <div key={item.id}>
-                      <h3 className="text-[16px] font-bold text-gray-900">{item.title}</h3>
-                      <p className="text-[14px] text-gray-600">
-                        {item.subtitle && <span className="italic">{item.subtitle}</span>}
-                        {item.subtitle && item.date && <span className="mx-2 text-gray-400">|</span>}
-                        {item.date && <span className="text-[13px]">{item.date}</span>}
-                      </p>
-                      {item.description && (
-                        <p className="text-[14px] text-gray-800 leading-[1.8] mt-1">{item.description}</p>
-                      )}
-                    </div>
-                  ))}
+        )),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (i: number) => (
+          <section key={section.id}>
+            <ChapterHead numeral={ROMAN[i] || ''} title={section.title} />
+            <div className="space-y-5">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <h3 className="text-[16px] font-bold text-gray-900">{item.title}</h3>
+                  <p className="text-[14px] text-gray-600">
+                    {item.subtitle && <span className="italic">{item.subtitle}</span>}
+                    {item.subtitle && item.date && <span className="mx-2 text-gray-400">|</span>}
+                    {item.date && <span className="text-[13px]">{item.date}</span>}
+                  </p>
+                  {item.description && (
+                    <p className="text-[14px] text-gray-800 leading-[1.8] mt-1">{item.description}</p>
+                  )}
                 </div>
-              </section>
-            )
-        )}
+              ))}
+            </div>
+          </section>
+        )))
+      }
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -304,6 +305,9 @@ export default function Mosaic({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Full-width header */}
         <View style={styles.header}>
           <View>
@@ -332,9 +336,11 @@ export default function Mosaic({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Row 2: experience tile, full width */}
-        {data.experience && data.experience.length > 0 ? (
+        // Row 2: experience tile, full width
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={[styles.tile, tileAccent]}>
             {tileHeader('Experience')}
             {data.experience.map(exp => (
@@ -364,19 +370,28 @@ export default function Mosaic({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
+        })}
 
         {/* Row 3: education (55%) + skills (45%) */}
         {hasEducation || hasSkills ? (
           hasEducation && hasSkills ? (
             <View style={styles.tileRow}>
-              <View style={[styles.tile, tileAccent, styles.tileLeft, { flex: 55 }]}>{educationTile}</View>
-              <View style={[styles.tile, tileAccent, { flex: 45 }]}>{skillsTile}</View>
+              {orderSections(data, {
+                education: (
+                  <View style={[styles.tile, tileAccent, styles.tileLeft, { flex: 55 }]}>{educationTile}</View>
+                ),
+                skills: (
+                  <View style={[styles.tile, tileAccent, { flex: 45 }]}>{skillsTile}</View>
+                ),
+              })}
             </View>
           ) : (
             <View style={[styles.tile, tileAccent]}>
-              {educationTile}
-              {skillsTile}
+              {orderSections(data, {
+                education: educationTile,
+                skills: skillsTile,
+              })}
             </View>
           )
         ) : null}
@@ -385,19 +400,28 @@ export default function Mosaic({ data }: { data: ResumeData }) {
         {hasCerts || hasRefs ? (
           hasCerts && hasRefs ? (
             <View style={styles.tileRow}>
-              <View style={[styles.tile, tileAccent, styles.tileLeft, { flex: 1 }]}>{certsTile}</View>
-              <View style={[styles.tile, tileAccent, { flex: 1 }]}>{refsTile}</View>
+              {orderSections(data, {
+                certifications: (
+                  <View style={[styles.tile, tileAccent, styles.tileLeft, { flex: 1 }]}>{certsTile}</View>
+                ),
+                references: (
+                  <View style={[styles.tile, tileAccent, { flex: 1 }]}>{refsTile}</View>
+                ),
+              })}
             </View>
           ) : (
             <View style={[styles.tile, tileAccent]}>
-              {certsTile}
-              {refsTile}
+              {orderSections(data, {
+                certifications: certsTile,
+                references: refsTile,
+              })}
             </View>
           )
         ) : null}
 
         {/* Projects, full width */}
-        {hasProjects ? (
+        {orderSections(data, {
+          projects: hasProjects ? (
           <View style={[styles.tile, tileAccent]}>
             {tileHeader('Projects')}
             {data.projects.map(project => (
@@ -416,13 +440,11 @@ export default function Mosaic({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
-
-        {/* Custom sections, full width */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(section =>
-            section.items && section.items.length > 0 ? (
+        ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={[styles.tile, tileAccent]}>
                 {tileHeader(section.title)}
                 {section.items.map(item => (
@@ -440,8 +462,8 @@ export default function Mosaic({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

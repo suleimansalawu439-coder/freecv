@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -149,6 +150,9 @@ export default function Classic({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerContainer}>
           <Text style={styles.name}>{data.personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
@@ -162,8 +166,10 @@ export default function Classic({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitleText}>Professional Experience</Text>
@@ -187,9 +193,9 @@ export default function Classic({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionTitleContainer}>
               <Text style={styles.sectionTitleText}>Projects</Text>
@@ -208,11 +214,14 @@ export default function Classic({ data }: TemplateProps) {
               </View>
             ))}
           </View>
+          ),
+        },
         )}
 
         <View style={styles.columnsContainer}>
           <View style={styles.column}>
-            {data.education && data.education.length > 0 && (
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionTitleContainer}>
                   <Text style={styles.sectionTitleText}>Education</Text>
@@ -229,11 +238,14 @@ export default function Classic({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
+              ),
+            },
             )}
           </View>
 
           <View style={styles.column}>
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            {orderSections(data, {
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionTitleContainer}>
                   <Text style={styles.sectionTitleText}>Certifications</Text>
@@ -250,9 +262,9 @@ export default function Classic({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
                 <View style={styles.sectionTitleContainer}>
                   <Text style={styles.sectionTitleText}>References</Text>
@@ -269,13 +281,20 @@ export default function Classic({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.customSections &&
-              data.customSections.map(
-                (section) =>
-                  section.items &&
-                  section.items.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
+              <View style={styles.section}>
+                <View style={styles.sectionTitleContainer}>
+                  <Text style={styles.sectionTitleText}>Skills</Text>
+                </View>
+                <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join(' • ')}</Text>
+              </View>
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                     <View key={section.id} style={styles.section}>
                       <View style={styles.sectionTitleContainer}>
                         <Text style={styles.sectionTitleText}>{section.title}</Text>
@@ -299,16 +318,7 @@ export default function Classic({ data }: TemplateProps) {
                         </View>
                       ))}
                     </View>
-                  )
-              )}
-
-            {data.skills && data.skills.length > 0 && (
-              <View style={styles.section}>
-                <View style={styles.sectionTitleContainer}>
-                  <Text style={styles.sectionTitleText}>Skills</Text>
-                </View>
-                <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join(' • ')}</Text>
-              </View>
+                ))
             )}
           </View>
         </View>

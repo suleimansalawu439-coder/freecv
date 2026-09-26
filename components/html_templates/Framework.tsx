@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -31,6 +32,8 @@ export default function Framework({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       {/* Full-width header */}
+      {orderSections(data, {
+        personal: (
       <header className="bg-white border-b border-gray-200 px-[0.9in] py-10 mb-8">
         <h1 className="text-4xl font-bold tracking-tight mb-1">{info.fullName}</h1>
         {info.jobTitle && (
@@ -42,15 +45,18 @@ export default function Framework({ data }: { data: ResumeData }) {
           <p className="text-xs text-gray-500">{contactItems.join('  ·  ')}</p>
         )}
       </header>
+        ),
+      })}
 
       <div className="px-[0.9in] pb-[0.8in] grid grid-cols-2 gap-6 items-start">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <Card title="Profile">
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </Card>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <Card title="Skills">
             <div className="space-y-4">
               {skillGroups.map((group, gi) => (
@@ -72,9 +78,9 @@ export default function Framework({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Card>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <div className="col-span-2 grid grid-cols-2 gap-6 items-start">
             {data.experience.map((exp) => (
               <div
@@ -105,9 +111,9 @@ export default function Framework({ data }: { data: ResumeData }) {
               </div>
             ))}
           </div>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <Card title="Education">
             <div className="space-y-3">
               {data.education.map((edu) => (
@@ -119,9 +125,9 @@ export default function Framework({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Card>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <Card title="Projects">
             <div className="space-y-4">
               {data.projects.map((proj) => (
@@ -133,9 +139,9 @@ export default function Framework({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Card>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <Card title="Certifications">
             <div className="space-y-3">
               {data.certifications.map((cert) => (
@@ -149,9 +155,27 @@ export default function Framework({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Card>
-        )}
+          ),
 
-        {data.customSections.map((section) => (
+          references: data.showReferences && data.references.length > 0 && (
+          <Card title="References">
+            <div className="space-y-3">
+              {data.references.map((ref) => (
+                <div key={ref.id}>
+                  <p className="text-sm font-bold text-gray-900">{ref.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {ref.title}
+                    {ref.company && `, ${ref.company}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Card>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
           <Card key={section.id} title={section.title}>
             <div className="space-y-4">
               {section.items.map((item) => (
@@ -168,22 +192,7 @@ export default function Framework({ data }: { data: ResumeData }) {
               ))}
             </div>
           </Card>
-        ))}
-
-        {data.showReferences && data.references.length > 0 && (
-          <Card title="References">
-            <div className="space-y-3">
-              {data.references.map((ref) => (
-                <div key={ref.id}>
-                  <p className="text-sm font-bold text-gray-900">{ref.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {ref.title}
-                    {ref.company && `, ${ref.company}`}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
+            ))
         )}
       </div>
     </div>

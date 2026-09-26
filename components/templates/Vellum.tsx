@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const INK = '#111111';
 
@@ -283,142 +284,139 @@ export default function Vellum({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header — engraved title block */}
-        <View style={styles.header}>
-          <DoubleRule />
-          <View style={styles.headerInner}>
-            {data.personalInfo.fullName ? (
-              <Text style={styles.name}>{data.personalInfo.fullName}</Text>
-            ) : null}
-            {data.personalInfo.jobTitle ? (
-              <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
-            ) : null}
-            {contactParts.length > 0 ? (
-              <Text style={styles.contactLine}>{contactParts.join('  ·  ')}</Text>
-            ) : null}
-          </View>
-          <DoubleRule />
-        </View>
-
-        {/* Summary */}
-        {data.summary ? <Text style={styles.summary}>{data.summary}</Text> : null}
-
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
-          <View>
-            <SectionHeader title="Experience" />
-            {data.experience.map((exp, idx) => (
-              <View
-                key={exp.id}
-                style={[
-                  styles.experienceItem,
-                  idx === data.experience.length - 1 ? styles.experienceItemLast : {},
-                ]}
-              >
-                <View style={styles.itemHeaderRow}>
-                  <Text style={styles.roleTitle}>{exp.role}</Text>
-                  <Text style={styles.dateText}>
-                    {exp.startDate} — {exp.endDate}
-                  </Text>
+        {orderSections(data, {
+          personal: (
+            <>
+              {/* Header — engraved title block */}
+              <View style={styles.header}>
+                <DoubleRule />
+                <View style={styles.headerInner}>
+                  {data.personalInfo.fullName ? (
+                    <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+                  ) : null}
+                  {data.personalInfo.jobTitle ? (
+                    <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+                  ) : null}
+                  {contactParts.length > 0 ? (
+                    <Text style={styles.contactLine}>{contactParts.join('  ·  ')}</Text>
+                  ) : null}
                 </View>
-                <Text style={styles.companyName}>{exp.company}</Text>
-                {exp.description ? (
-                  <View style={styles.bulletList}>
-                    {lines(exp.description).map((line, i) => (
-                      <View key={i} style={styles.bulletRow}>
-                        <Text style={styles.bulletDot}>·</Text>
-                        <Text style={styles.bulletText}>{line.trim()}</Text>
-                      </View>
-                    ))}
+                <DoubleRule />
+              </View>
+
+              {/* Summary */}
+              {data.summary ? <Text style={styles.summary}>{data.summary}</Text> : null}
+            </>
+          ),
+
+          experience: data.experience && data.experience.length > 0 && (
+            <View>
+              <SectionHeader title="Experience" />
+              {data.experience.map((exp, idx) => (
+                <View
+                  key={exp.id}
+                  style={[
+                    styles.experienceItem,
+                    idx === data.experience.length - 1 ? styles.experienceItemLast : {},
+                  ]}
+                >
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={styles.roleTitle}>{exp.role}</Text>
+                    <Text style={styles.dateText}>
+                      {exp.startDate} — {exp.endDate}
+                    </Text>
                   </View>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Education */}
-        {data.education && data.education.length > 0 && (
-          <View>
-            <SectionHeader title="Education" />
-            {data.education.map((edu) => (
-              <View key={edu.id} style={styles.eduItem}>
-                <View style={styles.eduRow}>
-                  <Text style={styles.degreeText}>{edu.degree}</Text>
-                  {edu.graduationYear ? <Text style={styles.dateText}>{edu.graduationYear}</Text> : null}
-                </View>
-                <Text style={styles.schoolText}>{edu.school}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Skills — fine inline comma list */}
-        {data.skills && data.skills.length > 0 && (
-          <View>
-            <SectionHeader title="Skills" />
-            <Text style={styles.skillsText}>
-              {data.skills.map((skill) => skill.name).join(', ')}
-            </Text>
-          </View>
-        )}
-
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
-          <View>
-            <SectionHeader title="Projects" />
-            {data.projects.map((project) => (
-              <View key={project.id} style={styles.projectWrap}>
-                <Text style={styles.projectName}>{project.name}</Text>
-                {project.link ? <Text style={styles.projectLink}>{project.link}</Text> : null}
-                {project.description ? (
-                  <Text style={styles.projectDesc}>{project.description}</Text>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
-          <View>
-            <SectionHeader title="Certifications" />
-            {data.certifications.map((cert) => (
-              <View key={cert.id} style={styles.certItem}>
-                <View style={styles.eduRow}>
-                  <Text style={styles.certName}>{cert.name}</Text>
-                  {cert.date ? <Text style={styles.dateText}>{cert.date}</Text> : null}
-                </View>
-                {cert.issuer ? <Text style={styles.certIssuer}>{cert.issuer}</Text> : null}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View>
-            <SectionHeader title="References" />
-            <View style={styles.refGrid}>
-              {data.references.map((ref) => (
-                <View key={ref.id} style={styles.refCard}>
-                  <Text style={styles.refName}>{ref.name}</Text>
-                  <Text style={styles.refTitle}>
-                    {ref.title}
-                    {ref.company ? `, ${ref.company}` : ''}
-                  </Text>
-                  {ref.contact ? <Text style={styles.refContact}>{ref.contact}</Text> : null}
+                  <Text style={styles.companyName}>{exp.company}</Text>
+                  {exp.description ? (
+                    <View style={styles.bulletList}>
+                      {lines(exp.description).map((line, i) => (
+                        <View key={i} style={styles.bulletRow}>
+                          <Text style={styles.bulletDot}>·</Text>
+                          <Text style={styles.bulletText}>{line.trim()}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
-          </View>
-        )}
+          ),
 
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          education: data.education && data.education.length > 0 && (
+            <View>
+              <SectionHeader title="Education" />
+              {data.education.map((edu) => (
+                <View key={edu.id} style={styles.eduItem}>
+                  <View style={styles.eduRow}>
+                    <Text style={styles.degreeText}>{edu.degree}</Text>
+                    {edu.graduationYear ? <Text style={styles.dateText}>{edu.graduationYear}</Text> : null}
+                  </View>
+                  <Text style={styles.schoolText}>{edu.school}</Text>
+                </View>
+              ))}
+            </View>
+          ),
+
+          skills: data.skills && data.skills.length > 0 && (
+            <View>
+              <SectionHeader title="Skills" />
+              <Text style={styles.skillsText}>
+                {data.skills.map((skill) => skill.name).join(', ')}
+              </Text>
+            </View>
+          ),
+
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
+            <View>
+              <SectionHeader title="Projects" />
+              {data.projects.map((project) => (
+                <View key={project.id} style={styles.projectWrap}>
+                  <Text style={styles.projectName}>{project.name}</Text>
+                  {project.link ? <Text style={styles.projectLink}>{project.link}</Text> : null}
+                  {project.description ? (
+                    <Text style={styles.projectDesc}>{project.description}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          ),
+
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            <View>
+              <SectionHeader title="Certifications" />
+              {data.certifications.map((cert) => (
+                <View key={cert.id} style={styles.certItem}>
+                  <View style={styles.eduRow}>
+                    <Text style={styles.certName}>{cert.name}</Text>
+                    {cert.date ? <Text style={styles.dateText}>{cert.date}</Text> : null}
+                  </View>
+                  {cert.issuer ? <Text style={styles.certIssuer}>{cert.issuer}</Text> : null}
+                </View>
+              ))}
+            </View>
+          ),
+
+          references: data.showReferences && data.references && data.references.length > 0 && (
+            <View>
+              <SectionHeader title="References" />
+              <View style={styles.refGrid}>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={styles.refCard}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refTitle}>
+                      {ref.title}
+                      {ref.company ? `, ${ref.company}` : ''}
+                    </Text>
+                    {ref.contact ? <Text style={styles.refContact}>{ref.contact}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id}>
                 <SectionHeader title={section.title} />
                 {section.items.map((item) => (
@@ -434,8 +432,8 @@ export default function Vellum({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

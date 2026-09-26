@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const STONE = '#57534a';
 const STONE_LIGHT = '#8a857a';
@@ -213,8 +214,13 @@ export default function Inscription({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <Text style={styles.eyebrow}>Curriculum Vitae</Text>
+        {orderSections(data, {
+          personal: (
+            <>
         {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
+
         {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
+
         {contactItems.length > 0 ? (
           <Text style={styles.contactLine}>{contactItems.join('   ·   ')}</Text>
         ) : null}
@@ -225,8 +231,10 @@ export default function Inscription({ data }: { data: ResumeData }) {
             <Text style={styles.bodyCenter}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 ? (
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="Experience" />
             {data.experience.map((exp) => (
@@ -247,9 +255,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.education && data.education.length > 0 ? (
+          education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="Education" />
             {data.education.map((edu) => (
@@ -261,18 +269,18 @@ export default function Inscription({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.skills && data.skills.length > 0 ? (
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="Skills" />
             <Text style={styles.skillsText}>
               {data.skills.map((s) => s.name).join('   ·   ')}
             </Text>
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="Projects" />
             {data.projects.map((proj) => (
@@ -282,9 +290,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="Certifications" />
             {data.certifications.map((cert) => (
@@ -296,9 +304,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
               </Text>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             <SectionHeader title="References" />
             <View style={styles.refGrid}>
@@ -313,11 +321,11 @@ export default function Inscription({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+        ) : null,
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <SectionHeader title={section.title} />
                   {section.items.map((item) => (
@@ -329,9 +337,8 @@ export default function Inscription({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )
-          : null}
+            ))
+        )}
       </Page>
     </Document>
   );

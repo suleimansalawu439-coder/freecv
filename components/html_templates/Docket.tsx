@@ -1,11 +1,34 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds } from '@/lib/template-sections';
 
 const num = (i: number) => String(i + 1).padStart(2, '0');
 
 export default function Docket({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
   const contacts = [pi.email, pi.phone, pi.location, pi.website].filter(Boolean);
+
+  // Section numbers follow the rendered display order, so they stay consecutive
+  // when the user reorders or hides sections. The identity header itself is
+  // unnumbered; only the Profile (summary) section takes a number.
+  const sectionNums: Record<string, number> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return data.experience.length > 0;
+        case 'education': return data.education.length > 0;
+        case 'skills': return data.skills.length > 0;
+        case 'projects': return data.showProjects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && data.certifications.length > 0;
+        case 'references': return data.showReferences && data.references.length > 0;
+        default: return false;
+      }
+    });
+    const map: Record<string, number> = {};
+    rendered.forEach((id, n) => { map[id] = n; });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
 
   const DocketHead = ({ index, title }: { index: number; title: string }) => (
     <h2 className="text-xs font-bold uppercase tracking-widest text-gray-900 mb-3">
@@ -26,25 +49,30 @@ export default function Docket({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto px-10 py-8">
-      {/* Docket header */}
-      <header className="mb-2">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">{pi.fullName}</h1>
-        {pi.jobTitle && <p className="text-sm text-gray-600 mt-0.5">{pi.jobTitle}</p>}
-        {contacts.length > 0 && (
-          <p className="text-xs text-gray-500 mt-1 font-mono">{contacts.join(' · ')}</p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Docket header */}
+            <header className="mb-2">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">{pi.fullName}</h1>
+              {pi.jobTitle && <p className="text-sm text-gray-600 mt-0.5">{pi.jobTitle}</p>}
+              {contacts.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1 font-mono">{contacts.join(' · ')}</p>
+              )}
+            </header>
 
-      {data.summary && (
-        <section className="mt-6">
-          <DocketHead index={0} title="Profile" />
-          <p className="text-[13px] leading-relaxed text-gray-700">{data.summary}</p>
-        </section>
-      )}
+            {data.summary && (
+              <section className="mt-6">
+                <DocketHead index={sectionNums.personal} title="Profile" />
+                <p className="text-[13px] leading-relaxed text-gray-700">{data.summary}</p>
+              </section>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={1} title="Experience" />
+        experience: data.experience.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.experience} title="Experience" />
           <div className="space-y-4">
             {data.experience.map((exp, i) => (
               <NumberedRow key={exp.id} index={i}>
@@ -66,85 +94,86 @@ export default function Docket({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={2} title="Education" />
-          <div className="space-y-3">
-            {data.education.map((edu, i) => (
-              <NumberedRow key={edu.id} index={i}>
-                <p className="text-sm font-bold text-gray-900">{edu.degree}</p>
-                {edu.school && <p className="text-[13px] text-gray-700">{edu.school}</p>}
-                {edu.graduationYear && <p className="text-xs text-gray-500 font-mono mt-0.5">{edu.graduationYear}</p>}
-              </NumberedRow>
-            ))}
-          </div>
-        </section>
-      )}
+        education: data.education.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.education} title="Education" />
+            <div className="space-y-3">
+              {data.education.map((edu, i) => (
+                <NumberedRow key={edu.id} index={i}>
+                  <p className="text-sm font-bold text-gray-900">{edu.degree}</p>
+                  {edu.school && <p className="text-[13px] text-gray-700">{edu.school}</p>}
+                  {edu.graduationYear && <p className="text-xs text-gray-500 font-mono mt-0.5">{edu.graduationYear}</p>}
+                </NumberedRow>
+              ))}
+            </div>
+          </section>
+        ),
 
-      {data.skills.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={3} title="Skills" />
-          <p className="text-[13px] text-gray-700">{data.skills.map(s => s.name).join(', ')}</p>
-        </section>
-      )}
+        skills: data.skills.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.skills} title="Skills" />
+            <p className="text-[13px] text-gray-700">{data.skills.map(s => s.name).join(', ')}</p>
+          </section>
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={4} title="Projects" />
-          <div className="space-y-3">
-            {data.projects.map((p, i) => (
-              <NumberedRow key={p.id} index={i}>
-                <p className="text-sm font-bold text-gray-900">
-                  {p.name}
-                  {p.link && <span className="font-normal text-xs text-gray-500 font-mono"> — {p.link}</span>}
-                </p>
-                {p.description && <p className="text-[13px] text-gray-700 mt-0.5">{p.description}</p>}
-              </NumberedRow>
-            ))}
-          </div>
-        </section>
-      )}
+        projects: data.showProjects && data.projects.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.projects} title="Projects" />
+            <div className="space-y-3">
+              {data.projects.map((p, i) => (
+                <NumberedRow key={p.id} index={i}>
+                  <p className="text-sm font-bold text-gray-900">
+                    {p.name}
+                    {p.link && <span className="font-normal text-xs text-gray-500 font-mono"> — {p.link}</span>}
+                  </p>
+                  {p.description && <p className="text-[13px] text-gray-700 mt-0.5">{p.description}</p>}
+                </NumberedRow>
+              ))}
+            </div>
+          </section>
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={5} title="Certifications" />
-          <div className="space-y-2.5">
-            {data.certifications.map((c, i) => (
-              <NumberedRow key={c.id} index={i}>
-                <p className="text-[13px] text-gray-700">
-                  <span className="font-bold text-gray-900">{c.name}</span>
-                  {c.issuer && <span> — {c.issuer}</span>}
-                  {c.date && <span className="text-gray-500 font-mono">, {c.date}</span>}
-                </p>
-              </NumberedRow>
-            ))}
-          </div>
-        </section>
-      )}
+        certifications: data.showCertifications && data.certifications.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.certifications} title="Certifications" />
+            <div className="space-y-2.5">
+              {data.certifications.map((c, i) => (
+                <NumberedRow key={c.id} index={i}>
+                  <p className="text-[13px] text-gray-700">
+                    <span className="font-bold text-gray-900">{c.name}</span>
+                    {c.issuer && <span> — {c.issuer}</span>}
+                    {c.date && <span className="text-gray-500 font-mono">, {c.date}</span>}
+                  </p>
+                </NumberedRow>
+              ))}
+            </div>
+          </section>
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
-        <section className="mt-6">
-          <DocketHead index={6} title="References" />
-          <div className="space-y-2.5">
-            {data.references.map(r => (
-              <div key={r.id}>
-                <p className="text-sm font-bold text-gray-900">{r.name}</p>
-                {(r.title || r.company) && (
-                  <p className="text-[13px] text-gray-700">{r.title}{r.title && r.company ? ' @ ' : ''}{r.company}</p>
-                )}
-                {r.contact && <p className="text-xs text-gray-500 font-mono mt-0.5">{r.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {data.customSections.length > 0 && data.customSections.map((section, si) =>
-        section.items && section.items.length > 0 ? (
-          <section key={section.id} className="mt-6">
-            <DocketHead index={7 + si} title={section.title} />
+        references: data.showReferences && data.references.length > 0 && (
+          <section className="mt-6">
+            <DocketHead index={sectionNums.references} title="References" />
+            <div className="space-y-2.5">
+              {data.references.map(r => (
+                <div key={r.id}>
+                  <p className="text-sm font-bold text-gray-900">{r.name}</p>
+                  {(r.title || r.company) && (
+                    <p className="text-[13px] text-gray-700">{r.title}{r.title && r.company ? ' @ ' : ''}{r.company}</p>
+                  )}
+                  {r.contact && <p className="text-xs text-gray-500 font-mono mt-0.5">{r.contact}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section, si) => (
+            <section key={section.id} className="mt-6">
+              <DocketHead index={customBase + si} title={section.title} />
             <div className="space-y-3">
               {section.items.map((item, i) => (
                 <NumberedRow key={item.id} index={i}>
@@ -157,8 +186,8 @@ export default function Docket({ data }: { data: ResumeData }) {
                 </NumberedRow>
               ))}
             </div>
-          </section>
-        ) : null
+            </section>
+          ))
       )}
     </div>
   );

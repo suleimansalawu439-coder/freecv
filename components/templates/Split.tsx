@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -191,6 +192,9 @@ export default function Split({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={[styles.header, { borderBottomColor: themeColor }]}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? (
@@ -201,10 +205,15 @@ export default function Split({ data }: { data: ResumeData }) {
           ) : null}
           {data.summary ? <Text style={styles.summaryText}>{data.summary}</Text> : null}
         </View>
+            </>
+          ),
+          },
+        )}
 
         <View style={styles.body}>
           <View style={[styles.column, styles.columnLeft]}>
-            {data.experience && data.experience.length > 0 ? (
+            {orderSections(data, {
+              experience: data.experience && data.experience.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>Experience</Text>
                 {data.experience.map((exp) => (
@@ -226,9 +235,9 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showProjects && data.projects.length > 0 ? (
+              projects: data.showProjects && data.projects.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>Projects</Text>
                 {data.projects.map((proj) => (
@@ -240,11 +249,14 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
+              },
+            )}
           </View>
 
           <View style={[styles.column, styles.columnRight]}>
-            {data.skills && data.skills.length > 0 ? (
+            {orderSections(data, {
+              skills: data.skills && data.skills.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>Skills</Text>
                 <View style={styles.skillsRow}>
@@ -255,9 +267,9 @@ export default function Split({ data }: { data: ResumeData }) {
                   ))}
                 </View>
               </View>
-            ) : null}
+            ) : null,
 
-            {data.education && data.education.length > 0 ? (
+              education: data.education && data.education.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>Education</Text>
                 {data.education.map((edu) => (
@@ -268,9 +280,9 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showCertifications && data.certifications.length > 0 ? (
+              certifications: data.showCertifications && data.certifications.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>Certifications</Text>
                 {data.certifications.map((cert) => (
@@ -280,9 +292,9 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
 
-            {data.showReferences && data.references.length > 0 ? (
+              references: data.showReferences && data.references.length > 0 ? (
               <View style={styles.section}>
                 <Text style={titleStyle}>References</Text>
                 {data.references.map((ref) => (
@@ -295,13 +307,16 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null}
+            ) : null,
+              },
+            )}
           </View>
         </View>
 
         {data.customSections.length > 0 ? (
           <View style={styles.customSection}>
-            {data.customSections.map((section) => (
+            {orderSections(data, {},
+              (data.customSections || []).map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={titleStyle}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -315,7 +330,8 @@ export default function Split({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ))}
+              ))
+            )}
           </View>
         ) : null}
       </Page>

@@ -1,29 +1,36 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function SwissDesign({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#dc2626'; // default red-600
   return (
     <div className="w-[8.5in] min-h-[11in] bg-white p-[0.75in] font-sans mx-auto shadow-xl print:shadow-none print:border-none border border-gray-200">
       <div className="grid grid-cols-12 gap-6 h-full">
-        <div className="col-span-12 border-b-2 border-gray-900 pb-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-6xl font-black uppercase tracking-tight leading-none mb-4">
-                {data.personalInfo.fullName}
-              </h1>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-1" style={{ backgroundColor: c }} />
-                <p className="text-lg font-medium uppercase tracking-wider">{data.personalInfo.jobTitle}</p>
+        {orderSections(data, {
+          personal: (
+            <div className="col-span-12 border-b-2 border-gray-900 pb-8 mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-6xl font-black uppercase tracking-tight leading-none mb-4">
+                    {data.personalInfo.fullName}
+                  </h1>
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-1" style={{ backgroundColor: c }} />
+                    <p className="text-lg font-medium uppercase tracking-wider">{data.personalInfo.jobTitle}</p>
+                  </div>
+                </div>
+                {data.personalInfo.profilePicture && (
+                  <img src={data.personalInfo.profilePicture} alt="Profile" className="w-28 h-28 object-cover grayscale" />
+                )}
               </div>
             </div>
-            {data.personalInfo.profilePicture && (
-              <img src={data.personalInfo.profilePicture} alt="Profile" className="w-28 h-28 object-cover grayscale" />
-            )}
-          </div>
-        </div>
+          ),
+        })}
 
         <div className="col-span-4 space-y-8">
+          {orderSections(data, {
+            personal: (<>
           <div>
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">01. Contact</h2>
             <div className="space-y-4 text-sm">
@@ -53,36 +60,41 @@ export default function SwissDesign({ data }: { data: ResumeData }) {
               )}
             </div>
           </div>
+              </>),
 
-          {data.skills.length > 0 && (
-            <div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">02. Skills</h2>
-              <div className="space-y-3">
-                {data.skills.map(s => (
-                  <div key={s.id} className="flex items-center gap-3">
-                    <div className="w-2 h-2" style={{ backgroundColor: c }} />
-                    <span className="text-sm font-medium">{s.name}</span>
+            skills: data.skills.length > 0 && (
+              <div>
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">02. Skills</h2>
+                <div className="space-y-3">
+                  {data.skills.map(s => (
+                    <div key={s.id} className="flex items-center gap-3">
+                      <div className="w-2 h-2" style={{ backgroundColor: c }} />
+                      <span className="text-sm font-medium">{s.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ),
+
+            education: data.education.length > 0 && (
+              <div>
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">03. Education</h2>
+                {data.education.map(edu => (
+                  <div key={edu.id} className="mb-4">
+                    <p className="text-sm font-bold uppercase">{edu.degree}</p>
+                    <p className="text-xs text-gray-600 mt-1">{edu.school}</p>
+                    <p className="text-xs font-bold mt-1" style={{ color: c }}>{edu.graduationYear}</p>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {data.education.length > 0 && (
-            <div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-6">03. Education</h2>
-              {data.education.map(edu => (
-                <div key={edu.id} className="mb-4">
-                  <p className="text-sm font-bold uppercase">{edu.degree}</p>
-                  <p className="text-xs text-gray-600 mt-1">{edu.school}</p>
-                  <p className="text-xs font-bold mt-1" style={{ color: c }}>{edu.graduationYear}</p>
-                </div>
-              ))}
-            </div>
-          )}
+            ),
+          })}
         </div>
 
         <div className="col-span-8">
+          {orderSections(data, {
+            experience: (
+              <>
           <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8">04. Experience</h2>
           <div className="space-y-10">
             {data.experience.map((exp) => (
@@ -105,16 +117,19 @@ export default function SwissDesign({ data }: { data: ResumeData }) {
               </div>
             ))}
           </div>
+              </>
+            ),
 
-          {data.summary && (
-            <div className="mt-12 p-8 bg-gray-50">
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-4">Profile</h2>
-              <p className="text-sm leading-relaxed">{data.summary}</p>
-            </div>
-          )}
-
-          {data.customSections && data.customSections.length > 0 && data.customSections.map((section, idx) => (
-            section.items.length > 0 && (
+            personal: data.summary && data.summary.length > 0 && (
+              <div className="mt-12 p-8 bg-gray-50">
+                <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-4">Profile</h2>
+                <p className="text-sm leading-relaxed">{data.summary}</p>
+              </div>
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <div key={section.id} className="mt-12">
                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8">{section.title}</h2>
                 <div className="space-y-10">
@@ -131,8 +146,9 @@ export default function SwissDesign({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
+              ))
+          )}
+
         </div>
       </div>
     </div>

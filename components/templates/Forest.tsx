@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const FOREST = '#1D4A2C';
 const FOREST_DEEP = '#122E1C';
@@ -198,6 +199,8 @@ export default function Forest({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
         <View style={styles.header}>
           <Text style={styles.eyebrow}>Professional Résumé</Text>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
@@ -206,18 +209,21 @@ export default function Forest({ data }: { data: ResumeData }) {
             <Text style={styles.contactLine}>{contactItems.join('   ·   ')}</Text>
           ) : null}
         </View>
+          ),
+        })}
 
         <View style={styles.body}>
-          {data.summary ? (
+          {orderSections(data, {
+            personal: data.summary ? (
             <View style={styles.section}>
               <SectionHead title="Profile" />
               <View style={styles.summaryBox}>
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Experience" />
               {data.experience.map((exp) => (
@@ -243,9 +249,9 @@ export default function Forest({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Skills" />
               <View style={styles.skillsWrap}>
@@ -256,9 +262,9 @@ export default function Forest({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Education" />
               {data.education.map((edu) => (
@@ -275,9 +281,9 @@ export default function Forest({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Projects" />
               {data.projects.map((proj) => (
@@ -290,9 +296,9 @@ export default function Forest({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               <SectionHead title="Certifications" />
               {data.certifications.map((cert) => (
@@ -305,11 +311,27 @@ export default function Forest({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.customSections &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 && (
+            <View style={styles.section}>
+              <SectionHead title="References" />
+              {data.references.map((ref) => (
+                <View key={ref.id} style={styles.refCard}>
+                  <Text style={styles.degreeText}>{ref.name}</Text>
+                  <Text style={styles.schoolItalic}>
+                    {ref.title}
+                    {ref.company ? `, ${ref.company}` : ''}
+                  </Text>
+                  {ref.contact ? <Text style={styles.summaryText}>{ref.contact}</Text> : null}
+                </View>
+              ))}
+            </View>
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <SectionHead title={section.title} />
                   {section.items.map((item) => (
@@ -329,23 +351,7 @@ export default function Forest({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
-            <View style={styles.section}>
-              <SectionHead title="References" />
-              {data.references.map((ref) => (
-                <View key={ref.id} style={styles.refCard}>
-                  <Text style={styles.degreeText}>{ref.name}</Text>
-                  <Text style={styles.schoolItalic}>
-                    {ref.title}
-                    {ref.company ? `, ${ref.company}` : ''}
-                  </Text>
-                  {ref.contact ? <Text style={styles.summaryText}>{ref.contact}</Text> : null}
-                </View>
-              ))}
-            </View>
+              ))
           )}
         </View>
       </Page>

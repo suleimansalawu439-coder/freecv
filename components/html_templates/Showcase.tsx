@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Asymmetric offset label: accent dash + uppercase label sitting left of the content flow
 function OffsetLabel({ children }: { children: React.ReactNode }) {
@@ -19,27 +20,34 @@ export default function Showcase({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans w-full max-w-[816px] mx-auto bg-white text-[#1a1a1a] min-h-[1056px] px-16 py-14">
-      <header className="mb-12">
-        <div className="flex items-start justify-between gap-8">
-          <div>
-            <h1 className="text-7xl font-black tracking-tighter leading-[0.95] mb-3">{p.fullName}</h1>
-            <p className="text-2xl font-medium text-gray-600">{p.jobTitle}</p>
-          </div>
-          {p.profilePicture && (
-            <img
-              src={p.profilePicture}
-              alt=""
-              className="w-32 h-32 rounded-2xl object-cover shrink-0"
-            />
-          )}
-        </div>
-        {contactLine && <p className="text-sm font-medium text-gray-500 mt-5">{contactLine}</p>}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            <header className="mb-12">
+              <div className="flex items-start justify-between gap-8">
+                <div>
+                  <h1 className="text-7xl font-black tracking-tighter leading-[0.95] mb-3">{p.fullName}</h1>
+                  <p className="text-2xl font-medium text-gray-600">{p.jobTitle}</p>
+                </div>
+                {p.profilePicture && (
+                  <img
+                    src={p.profilePicture}
+                    alt=""
+                    className="w-32 h-32 rounded-2xl object-cover shrink-0"
+                  />
+                )}
+              </div>
+              {contactLine && <p className="text-sm font-medium text-gray-500 mt-5">{contactLine}</p>}
+            </header>
 
-      <div className="w-16 h-[3px] bg-[var(--theme-color)] mb-12" />
+            <div className="w-16 h-[3px] bg-[var(--theme-color)] mb-12" />
+          </>
+        ),
+      })}
 
       {/* Projects FIRST */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+      {orderSections(data, {
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Selected Work</OffsetLabel>
           <div className="space-y-8">
@@ -62,16 +70,16 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.summary && (
+        personal: data.summary && data.summary.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Profile</OffsetLabel>
           <p className="text-lg leading-relaxed text-gray-800 max-w-[60ch]">{data.summary}</p>
         </section>
-      )}
+        ),
 
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Experience</OffsetLabel>
           <div className="space-y-8">
@@ -93,9 +101,9 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Skills</OffsetLabel>
           <div className="flex flex-wrap gap-2">
@@ -109,9 +117,9 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Education</OffsetLabel>
           <div className="space-y-5">
@@ -126,9 +134,9 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>Certifications</OffsetLabel>
           <div className="space-y-4">
@@ -141,9 +149,9 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-14">
           <OffsetLabel>References</OffsetLabel>
           <div className="grid grid-cols-2 gap-6">
@@ -158,11 +166,11 @@ export default function Showcase({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections && data.customSections.length > 0 && data.customSections.map(
-        (section) =>
-          section.items && section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
             <section key={section.id} className="mb-14">
               <OffsetLabel>{section.title}</OffsetLabel>
               <div className="space-y-4">
@@ -182,8 +190,9 @@ export default function Showcase({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
+          ))
       )}
+
     </div>
   );
 }

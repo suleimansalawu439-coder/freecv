@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -14,6 +15,9 @@ export default function Warden({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-[0.85in] font-sans text-slate-800">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header — name left, bordered contact card right */}
       <header className="flex justify-between items-start gap-8 mb-10">
         <div>
@@ -41,9 +45,11 @@ export default function Warden({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-slate-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience — role left, dates right; company below */}
-      {data.experience.length > 0 && (
+        // Experience — role left, dates right; company below
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           {data.experience.map((exp) => (
@@ -70,10 +76,10 @@ export default function Warden({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        // Education
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           {data.education.map((edu) => (
@@ -86,10 +92,10 @@ export default function Warden({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+        ),
 
-      {/* Skills — outlined pills */}
-      {data.skills.length > 0 && (
+        // Skills — outlined pills
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <div className="flex flex-wrap gap-2">
@@ -100,10 +106,10 @@ export default function Warden({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           {data.projects.map((proj) => (
@@ -114,10 +120,10 @@ export default function Warden({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           {data.certifications.map((cert) => (
@@ -130,10 +136,10 @@ export default function Warden({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           {data.references.map((ref) => (
@@ -146,11 +152,12 @@ export default function Warden({ data }: { data: ResumeData }) {
             </div>
           ))}
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+        ),
+        },
+        // Custom sections
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-8">
             <SectionHeader title={section.title} />
             {section.items.map((item) => (
@@ -164,7 +171,7 @@ export default function Warden({ data }: { data: ResumeData }) {
               </div>
             ))}
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

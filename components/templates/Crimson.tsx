@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -215,6 +216,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
       <Page size="A4" style={styles.page}>
         <View style={[styles.topBand, { backgroundColor: themeColor }]} />
         <View style={styles.container}>
+          {orderSections(data, {
+            personal: (
+              <>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? (
             <Text style={[styles.jobTitle, { color: themeColor }]}>{info.jobTitle}</Text>
@@ -229,8 +233,10 @@ export default function Crimson({ data }: { data: ResumeData }) {
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 ? (
+            experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>Experience</Text>
               {data.experience.map((exp) => (
@@ -255,9 +261,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+            ) : null,
 
-          {data.skills && data.skills.length > 0 ? (
+            skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>Skills</Text>
               <View style={styles.skillsRow}>
@@ -268,9 +274,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
+            ) : null,
 
-          {data.education && data.education.length > 0 ? (
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>Education</Text>
               {data.education.map((edu) => (
@@ -283,9 +289,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+            ) : null,
 
-          {data.showProjects && data.projects.length > 0 ? (
+            projects: data.showProjects && data.projects.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>Projects</Text>
               {data.projects.map((proj) => (
@@ -298,9 +304,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+            ) : null,
 
-          {data.showCertifications && data.certifications.length > 0 ? (
+            certifications: data.showCertifications && data.certifications.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>Certifications</Text>
               {data.certifications.map((cert) => (
@@ -312,9 +318,9 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+            ) : null,
 
-          {data.showReferences && data.references.length > 0 ? (
+            references: data.showReferences && data.references.length > 0 ? (
             <View style={styles.section}>
               <Text style={sectionTitleStyle}>References</Text>
               <View style={styles.refGrid}>
@@ -329,9 +335,10 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
-
-          {data.customSections.map((section) => (
+            ) : null,
+          },
+            (data.customSections || [])
+              .map((section) => (
             <View key={section.id} style={styles.section}>
               <Text style={sectionTitleStyle}>{section.title}</Text>
               {section.items.map((item) => (
@@ -347,7 +354,8 @@ export default function Crimson({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ))}
+              ))
+          )}
         </View>
       </Page>
     </Document>

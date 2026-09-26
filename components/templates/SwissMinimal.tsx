@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -229,6 +230,9 @@ export default function SwissMinimal({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
           {data.personalInfo.jobTitle ? (
@@ -255,8 +259,10 @@ export default function SwissMinimal({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         )}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 ? (
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <Text style={styles.sectionHeader}>Experience</Text>
             {data.experience.map((exp) => (
@@ -282,10 +288,13 @@ export default function SwissMinimal({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
+          },
+        )}
 
         <View style={styles.gridTwoCol}>
-          {data.education && data.education.length > 0 ? (
+          {orderSections(data, {
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.col}>
               <Text style={styles.sectionHeader}>Education</Text>
               {data.education.map((edu) => (
@@ -295,9 +304,9 @@ export default function SwissMinimal({ data }: TemplateProps) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.skills && data.skills.length > 0 ? (
+            skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.col}>
               <Text style={styles.sectionHeader}>Skills</Text>
               <View style={styles.skillsWrap}>
@@ -306,10 +315,13 @@ export default function SwissMinimal({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
+            },
+          )}
         </View>
 
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+        {orderSections(data, {
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.dividerSection}>
             <Text style={styles.sectionHeader}>Projects</Text>
             <View style={styles.cardsGrid}>
@@ -328,9 +340,9 @@ export default function SwissMinimal({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {data.showReferences && data.references && data.references.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.dividerSection}>
             <Text style={styles.sectionHeader}>References</Text>
             <View style={styles.cardsGrid}>
@@ -343,11 +355,11 @@ export default function SwissMinimal({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+        ) : null,
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.dividerSection}>
                   <Text style={styles.sectionHeader}>{section.title}</Text>
                   <View>
@@ -371,9 +383,8 @@ export default function SwissMinimal({ data }: TemplateProps) {
                     ))}
                   </View>
                 </View>
-              ) : null
-            )
-          : null}
+            ))
+        )}
       </Page>
     </Document>
   );

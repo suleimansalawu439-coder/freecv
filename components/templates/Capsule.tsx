@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -174,63 +175,67 @@ export default function Capsule({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.name}>{pi.fullName}</Text>
-          {pi.jobTitle ? <Text style={[styles.jobTitle, { color: themeColor }]}>{pi.jobTitle}</Text> : null}
-          {contacts.length > 0 ? <Text style={styles.contactRow}>{contacts.join(' · ')}</Text> : null}
-        </View>
+        {orderSections(data, {
+          personal: (
+            <View style={styles.header}>
+              <Text style={styles.name}>{pi.fullName}</Text>
+              {pi.jobTitle ? <Text style={[styles.jobTitle, { color: themeColor }]}>{pi.jobTitle}</Text> : null}
+              {contacts.length > 0 ? <Text style={styles.contactRow}>{contacts.join(' · ')}</Text> : null}
+            </View>
+          ),
+        })}
 
         <View style={styles.body}>
           <View style={styles.colLeft}>
-            {data.experience && data.experience.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="Experience" />
-                {data.experience.map((exp) => (
-                  <View key={exp.id} style={styles.expItem}>
-                    <View style={styles.itemHeaderRow}>
-                      <Text style={styles.roleTitle}>{exp.role}</Text>
-                      {(exp.startDate || exp.endDate) ? (
-                        <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
+            {orderSections(data, {
+              experience: data.experience && data.experience.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="Experience" />
+                  {data.experience.map((exp) => (
+                    <View key={exp.id} style={styles.expItem}>
+                      <View style={styles.itemHeaderRow}>
+                        <Text style={styles.roleTitle}>{exp.role}</Text>
+                        {(exp.startDate || exp.endDate) ? (
+                          <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
+                        ) : null}
+                      </View>
+                      {exp.company ? (
+                        <Text style={[styles.companyName, { color: themeColor }]}>{exp.company}</Text>
+                      ) : null}
+                      {exp.description ? (
+                        <View>
+                          {exp.description
+                            .split(/\n|\r\n/)
+                            .filter((l) => l.trim())
+                            .map((line, i) => (
+                              <View key={i} style={styles.bulletRow}>
+                                <Text style={styles.bulletDot}>•</Text>
+                                <Text style={styles.bulletText}>{line}</Text>
+                              </View>
+                            ))}
+                        </View>
                       ) : null}
                     </View>
-                    {exp.company ? (
-                      <Text style={[styles.companyName, { color: themeColor }]}>{exp.company}</Text>
-                    ) : null}
-                    {exp.description ? (
-                      <View>
-                        {exp.description
-                          .split(/\n|\r\n/)
-                          .filter((l) => l.trim())
-                          .map((line, i) => (
-                            <View key={i} style={styles.bulletRow}>
-                              <Text style={styles.bulletDot}>•</Text>
-                              <Text style={styles.bulletText}>{line}</Text>
-                            </View>
-                          ))}
-                      </View>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            )}
+                  ))}
+                </View>
+              ),
 
-            {data.showProjects && data.projects && data.projects.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="Projects" />
-                {data.projects.map((p) => (
-                  <View key={p.id} style={styles.eduItem}>
-                    <Text style={styles.projectName}>{p.name}</Text>
-                    {p.link ? <Text style={styles.projectLink}>{p.link}</Text> : null}
-                    {p.description ? <Text style={styles.projectDesc}>{p.description}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {data.customSections &&
-              data.customSections.length > 0 &&
-              data.customSections.map((section) =>
-                section.items && section.items.length > 0 ? (
+              projects: data.showProjects && data.projects && data.projects.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="Projects" />
+                  {data.projects.map((p) => (
+                    <View key={p.id} style={styles.eduItem}>
+                      <Text style={styles.projectName}>{p.name}</Text>
+                      {p.link ? <Text style={styles.projectLink}>{p.link}</Text> : null}
+                      {p.description ? <Text style={styles.projectDesc}>{p.description}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                   <View key={section.id} style={styles.section}>
                     <SectionHead title={section.title} />
                     {section.items.map((item) => (
@@ -244,73 +249,75 @@ export default function Capsule({ data }: { data: ResumeData }) {
                       </View>
                     ))}
                   </View>
-                ) : null
-              )}
+                ))
+            )}
           </View>
 
           <View style={styles.colRight}>
-            {data.summary ? (
-              <View style={styles.section}>
-                <SectionHead title="Summary" />
-                <Text style={styles.summaryText}>{data.summary}</Text>
-              </View>
-            ) : null}
+            {orderSections(data, {
+              personal: data.summary ? (
+                <View style={styles.section}>
+                  <SectionHead title="Summary" />
+                  <Text style={styles.summaryText}>{data.summary}</Text>
+                </View>
+              ) : null,
 
-            {data.skills && data.skills.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="Skills" />
-                <View style={styles.skillsGrid}>
-                  {data.skills.map((s) => (
-                    <View key={s.id} style={styles.skillCell}>
-                      <Text style={[styles.skillDot, { color: themeColor }]}>•</Text>
-                      <Text style={styles.skillText}>{s.name}</Text>
+              skills: data.skills && data.skills.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="Skills" />
+                  <View style={styles.skillsGrid}>
+                    {data.skills.map((s) => (
+                      <View key={s.id} style={styles.skillCell}>
+                        <Text style={[styles.skillDot, { color: themeColor }]}>•</Text>
+                        <Text style={styles.skillText}>{s.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ),
+
+              education: data.education && data.education.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="Education" />
+                  {data.education.map((edu) => (
+                    <View key={edu.id} style={styles.eduItem}>
+                      <Text style={styles.degreeText}>{edu.degree}</Text>
+                      {edu.school ? <Text style={styles.schoolText}>{edu.school}</Text> : null}
+                      {edu.graduationYear ? <Text style={styles.metaText}>{edu.graduationYear}</Text> : null}
                     </View>
                   ))}
                 </View>
-              </View>
-            )}
+              ),
 
-            {data.education && data.education.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="Education" />
-                {data.education.map((edu) => (
-                  <View key={edu.id} style={styles.eduItem}>
-                    <Text style={styles.degreeText}>{edu.degree}</Text>
-                    {edu.school ? <Text style={styles.schoolText}>{edu.school}</Text> : null}
-                    {edu.graduationYear ? <Text style={styles.metaText}>{edu.graduationYear}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            )}
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="Certifications" />
+                  {data.certifications.map((c) => (
+                    <View key={c.id} style={styles.eduItem}>
+                      <Text style={styles.degreeText}>{c.name}</Text>
+                      {(c.issuer || c.date) ? (
+                        <Text style={styles.metaText}>{[c.issuer, c.date].filter(Boolean).join(' · ')}</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              ),
 
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="Certifications" />
-                {data.certifications.map((c) => (
-                  <View key={c.id} style={styles.eduItem}>
-                    <Text style={styles.degreeText}>{c.name}</Text>
-                    {(c.issuer || c.date) ? (
-                      <Text style={styles.metaText}>{[c.issuer, c.date].filter(Boolean).join(' · ')}</Text>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {data.showReferences && data.references && data.references.length > 0 && (
-              <View style={styles.section}>
-                <SectionHead title="References" />
-                {data.references.map((r) => (
-                  <View key={r.id} style={styles.eduItem}>
-                    <Text style={styles.degreeText}>{r.name}</Text>
-                    {(r.title || r.company) ? (
-                      <Text style={styles.schoolText}>{r.title}{r.title && r.company ? ' @ ' : ''}{r.company}</Text>
-                    ) : null}
-                    {r.contact ? <Text style={styles.metaText}>{r.contact}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            )}
+              references: data.showReferences && data.references && data.references.length > 0 && (
+                <View style={styles.section}>
+                  <SectionHead title="References" />
+                  {data.references.map((r) => (
+                    <View key={r.id} style={styles.eduItem}>
+                      <Text style={styles.degreeText}>{r.name}</Text>
+                      {(r.title || r.company) ? (
+                        <Text style={styles.schoolText}>{r.title}{r.title && r.company ? ' @ ' : ''}{r.company}</Text>
+                      ) : null}
+                      {r.contact ? <Text style={styles.metaText}>{r.contact}</Text> : null}
+                    </View>
+                  ))}
+                </View>
+              ),
+            })}
           </View>
         </View>
       </Page>

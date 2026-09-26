@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -237,61 +238,67 @@ export default function TypographyFirst({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.name}>{data.personalInfo.fullName}</Text>
-          <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
-          <View style={styles.contactRow}>
-            {data.personalInfo.email && <Text style={styles.contactText}>{data.personalInfo.email}</Text>}
-            {data.personalInfo.phone && <Text style={styles.contactText}>{data.personalInfo.phone}</Text>}
-            {data.personalInfo.location && <Text style={styles.contactText}>{data.personalInfo.location}</Text>}
-            {data.personalInfo.website && <Text style={styles.contactText}>{data.personalInfo.website}</Text>}
-          </View>
-        </View>
-
-        {data.summary && (
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryText}>{data.summary}</Text>
-          </View>
-        )}
-
-        {data.experience.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Experience.</Text>
-            {data.experience.map(exp => (
-              <View key={exp.id} style={styles.grid2Col}>
-                <View style={styles.colLeft}>
-                  <Text style={styles.companyName}>{exp.company}</Text>
-                  <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
+        {orderSections(data, {
+          personal: (
+            <>
+              <View style={styles.header}>
+                <Text style={styles.name}>{data.personalInfo.fullName}</Text>
+                <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
+                <View style={styles.contactRow}>
+                  {data.personalInfo.email && <Text style={styles.contactText}>{data.personalInfo.email}</Text>}
+                  {data.personalInfo.phone && <Text style={styles.contactText}>{data.personalInfo.phone}</Text>}
+                  {data.personalInfo.location && <Text style={styles.contactText}>{data.personalInfo.location}</Text>}
+                  {data.personalInfo.website && <Text style={styles.contactText}>{data.personalInfo.website}</Text>}
                 </View>
-                <View style={styles.colRight}>
-                  <Text style={styles.roleTitle}>{exp.role}</Text>
-                  <View style={styles.bulletList}>
-                    {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
-                      <Text key={i} style={styles.bulletItem}>{line}</Text>
-                    ))}
+              </View>
+
+              {data.summary && (
+                <View style={styles.summaryContainer}>
+                  <Text style={styles.summaryText}>{data.summary}</Text>
+                </View>
+              )}
+            </>
+          ),
+
+          experience: data.experience.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Experience.</Text>
+              {data.experience.map(exp => (
+                <View key={exp.id} style={styles.grid2Col}>
+                  <View style={styles.colLeft}>
+                    <Text style={styles.companyName}>{exp.company}</Text>
+                    <Text style={styles.dateText}>{exp.startDate} - {exp.endDate}</Text>
+                  </View>
+                  <View style={styles.colRight}>
+                    <Text style={styles.roleTitle}>{exp.role}</Text>
+                    <View style={styles.bulletList}>
+                      {exp.description.split(/\\n|\r?\n/).filter(l => l.trim()).map((line, i) => (
+                        <Text key={i} style={styles.bulletItem}>{line}</Text>
+                      ))}
+                    </View>
                   </View>
                 </View>
-              </View>
-            ))}
-          </View>
-        )}
+              ))}
+            </View>
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Projects.</Text>
-            {data.projects.map(proj => (
-              <View key={proj.id} style={styles.grid2Col}>
-                <View style={styles.colLeft}>
-                  <Text style={styles.projectName}>{proj.name}</Text>
-                  {proj.link && <Text style={styles.projectLink}>{proj.link}</Text>}
+          projects: data.showProjects && data.projects.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Projects.</Text>
+              {data.projects.map(proj => (
+                <View key={proj.id} style={styles.grid2Col}>
+                  <View style={styles.colLeft}>
+                    <Text style={styles.projectName}>{proj.name}</Text>
+                    {proj.link && <Text style={styles.projectLink}>{proj.link}</Text>}
+                  </View>
+                  <View style={styles.colRight}>
+                    <Text style={styles.projectDesc}>{proj.description}</Text>
+                  </View>
                 </View>
-                <View style={styles.colRight}>
-                  <Text style={styles.projectDesc}>{proj.description}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
+              ))}
+            </View>
+          ),
+        })}
 
         <View style={styles.detailsContainer}>
           <View style={styles.detailsTitleCol}>
@@ -299,70 +306,74 @@ export default function TypographyFirst({ data }: TemplateProps) {
           </View>
           <View style={styles.detailsSubGrid}>
             <View style={styles.detailsSubCol}>
-              {data.education.length > 0 && (
-                <View style={styles.subColBlock}>
-                  <Text style={styles.subSectionTitle}>Education</Text>
-                  {data.education.map(edu => (
-                    <View key={edu.id} style={styles.eduItem}>
-                      <Text style={styles.eduDegree}>{edu.degree}</Text>
-                      <Text style={styles.eduSchool}>{edu.school}</Text>
-                      <Text style={styles.eduYear}>{edu.graduationYear}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-
-            <View style={styles.detailsSubCol}>
-              {data.showCertifications && data.certifications.length > 0 && (
-                <View style={styles.subColBlock}>
-                  <Text style={styles.subSectionTitle}>Certifications</Text>
-                  {data.certifications.map(cert => (
-                    <View key={cert.id} style={styles.certItem}>
-                      <Text style={styles.certName}>{cert.name}</Text>
-                      <Text style={styles.certInfo}>{cert.issuer} ({cert.date})</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {data.showReferences && data.references.length > 0 && (
-                <View style={styles.subColBlock}>
-                  <Text style={styles.subSectionTitle}>References</Text>
-                  {data.references.map(ref => (
-                    <View key={ref.id} style={styles.refItem}>
-                      <Text style={styles.refName}>{ref.name}</Text>
-                      <Text style={styles.refInfo}>{ref.title} at {ref.company} ({ref.contact})</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-                section.items.length > 0 && (
-                  <View key={section.id} style={styles.subColBlock}>
-                    <Text style={styles.customSectionTitle}>{section.title}</Text>
-                    {section.items.map(item => (
-                      <View key={item.id} style={styles.customItem}>
-                        <View style={styles.customItemHeader}>
-                          <View>
-                            <Text style={styles.customItemTitle}>{item.title}</Text>
-                            {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
-                          </View>
-                          {item.date && <Text style={styles.customItemDate}>{item.date}</Text>}
-                        </View>
-                        {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
+              {orderSections(data, {
+                education: data.education.length > 0 && (
+                  <View style={styles.subColBlock}>
+                    <Text style={styles.subSectionTitle}>Education</Text>
+                    {data.education.map(edu => (
+                      <View key={edu.id} style={styles.eduItem}>
+                        <Text style={styles.eduDegree}>{edu.degree}</Text>
+                        <Text style={styles.eduSchool}>{edu.school}</Text>
+                        <Text style={styles.eduYear}>{edu.graduationYear}</Text>
                       </View>
                     ))}
                   </View>
-                )
-              ))}
+                ),
+              })}
+            </View>
 
-              {data.skills.length > 0 && (
-                <View style={styles.subColBlock}>
-                  <Text style={styles.subSectionTitle}>Skills</Text>
-                  <Text style={styles.skillsText}>{data.skills.map(s => s.name).join(' • ')}</Text>
-                </View>
+            <View style={styles.detailsSubCol}>
+              {orderSections(data, {
+                certifications: data.showCertifications && data.certifications.length > 0 && (
+                  <View style={styles.subColBlock}>
+                    <Text style={styles.subSectionTitle}>Certifications</Text>
+                    {data.certifications.map(cert => (
+                      <View key={cert.id} style={styles.certItem}>
+                        <Text style={styles.certName}>{cert.name}</Text>
+                        <Text style={styles.certInfo}>{cert.issuer} ({cert.date})</Text>
+                      </View>
+                    ))}
+                  </View>
+                ),
+
+                references: data.showReferences && data.references.length > 0 && (
+                  <View style={styles.subColBlock}>
+                    <Text style={styles.subSectionTitle}>References</Text>
+                    {data.references.map(ref => (
+                      <View key={ref.id} style={styles.refItem}>
+                        <Text style={styles.refName}>{ref.name}</Text>
+                        <Text style={styles.refInfo}>{ref.title} at {ref.company} ({ref.contact})</Text>
+                      </View>
+                    ))}
+                  </View>
+                ),
+
+                skills: data.skills.length > 0 && (
+                  <View style={styles.subColBlock}>
+                    <Text style={styles.subSectionTitle}>Skills</Text>
+                    <Text style={styles.skillsText}>{data.skills.map(s => s.name).join(' • ')}</Text>
+                  </View>
+                ),
+              },
+                (data.customSections || [])
+                  .filter((section) => section.items && section.items.length > 0)
+                  .map((section) => (
+                    <View key={section.id} style={styles.subColBlock}>
+                      <Text style={styles.customSectionTitle}>{section.title}</Text>
+                      {section.items.map(item => (
+                        <View key={item.id} style={styles.customItem}>
+                          <View style={styles.customItemHeader}>
+                            <View>
+                              <Text style={styles.customItemTitle}>{item.title}</Text>
+                              {item.subtitle && <Text style={styles.customItemSubtitle}>{item.subtitle}</Text>}
+                            </View>
+                            {item.date && <Text style={styles.customItemDate}>{item.date}</Text>}
+                          </View>
+                          {item.description && <Text style={styles.customItemDesc}>{item.description}</Text>}
+                        </View>
+                      ))}
+                    </View>
+                  ))
               )}
             </View>
           </View>

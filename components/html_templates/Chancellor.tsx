@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const NAVY = '#1e3a5f';
 
@@ -20,6 +21,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-[0.85in] font-serif text-gray-900">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="flex justify-between items-start">
         <div>
           {data.personalInfo.fullName && (
@@ -46,9 +50,10 @@ export default function Chancellor({ data }: { data: ResumeData }) {
           <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Experience</SectionTitle>
           <div className="space-y-6">
@@ -74,10 +79,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Education</SectionTitle>
           <div className="space-y-4">
@@ -92,10 +96,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Skills</SectionTitle>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
@@ -106,10 +109,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Projects</SectionTitle>
           <div className="space-y-4">
@@ -128,10 +130,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mt-8">
           <SectionTitle>Certifications</SectionTitle>
           <ul className="space-y-2 text-sm text-gray-700">
@@ -144,10 +145,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </ul>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mt-8">
           <SectionTitle>References</SectionTitle>
           <div className="space-y-4">
@@ -164,11 +164,11 @@ export default function Chancellor({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom Sections */}
-      {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mt-8">
             <SectionTitle>{section.title}</SectionTitle>
             <div className="space-y-4">
@@ -186,8 +186,9 @@ export default function Chancellor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+        ))
+      )}
+
     </div>
   );
 }

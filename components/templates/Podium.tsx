@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, getOrderedSectionIds } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -253,10 +254,35 @@ export default function Podium({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
   const contact = [info.email, info.phone, info.location, info.website].filter(Boolean).join('  ·  ');
 
+  // Section numbers ("01", "02", …) follow the rendered display order, so they
+  // stay consecutive when the user reorders or hides sections. The identity
+  // header itself is unnumbered; only the Profile (summary) section takes a number.
+  const sectionNums: Record<string, string> = (() => {
+    const rendered = getOrderedSectionIds(data).filter((id) => {
+      switch (id) {
+        case 'personal': return !!data.summary;
+        case 'experience': return !!data.experience && data.experience.length > 0;
+        case 'education': return !!data.education && data.education.length > 0;
+        case 'skills': return !!data.skills && data.skills.length > 0;
+        case 'projects': return data.showProjects && !!data.projects && data.projects.length > 0;
+        case 'certifications': return data.showCertifications && !!data.certifications && data.certifications.length > 0;
+        case 'references': return data.showReferences && !!data.references && data.references.length > 0;
+        default: return false;
+      }
+    });
+    const map: Record<string, string> = {};
+    rendered.forEach((id, n) => { map[id] = String(n + 1).padStart(2, '0'); });
+    return map;
+  })();
+  const customBase = Object.keys(sectionNums).length;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.headerBlock}>
+        {orderSections(data, {
+          personal: (
+            <>
+              <View style={styles.headerBlock}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? (
             <View style={[styles.titlePill, { backgroundColor: themeColor }]}>
@@ -273,14 +299,16 @@ export default function Podium({ data }: { data: ResumeData }) {
 
         {data.summary ? (
           <View>
-            <SectionHeader num="01" title="Profile" themeColor={themeColor} />
+            <SectionHeader num={sectionNums.personal} title="Profile" themeColor={themeColor} />
             <Text style={styles.summary}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
-          <View>
-            <SectionHeader num="02" title="Experience" themeColor={themeColor} />
+          experience: data.experience && data.experience.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.experience} title="Experience" themeColor={themeColor} />
             {data.experience.map((exp, idx) => (
               <View
                 key={exp.id}
@@ -303,11 +331,11 @@ export default function Podium({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.education && data.education.length > 0 && (
-          <View>
-            <SectionHeader num="03" title="Education" themeColor={themeColor} />
+          education: data.education && data.education.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.education} title="Education" themeColor={themeColor} />
             {data.education.map((edu) => (
               <View key={edu.id} style={styles.eduCard}>
                 <View>
@@ -318,11 +346,11 @@ export default function Podium({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.skills && data.skills.length > 0 && (
-          <View>
-            <SectionHeader num="04" title="Skills" themeColor={themeColor} />
+          skills: data.skills && data.skills.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.skills} title="Skills" themeColor={themeColor} />
             {data.skills.map((skill, i) => (
               <View key={skill.id} style={styles.skillRow}>
                 <View style={styles.skillLabelRow}>
@@ -337,11 +365,11 @@ export default function Podium({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
-          <View>
-            <SectionHeader num="05" title="Projects" themeColor={themeColor} />
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.projects} title="Projects" themeColor={themeColor} />
             {data.projects.map((proj) => (
               <View key={proj.id} style={styles.expCard}>
                 <View style={styles.expHeaderRow}>
@@ -352,11 +380,11 @@ export default function Podium({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
-          <View>
-            <SectionHeader num="06" title="Certifications" themeColor={themeColor} />
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.certifications} title="Certifications" themeColor={themeColor} />
             {data.certifications.map((cert) => (
               <View key={cert.id} style={styles.certCard}>
                 <Text style={styles.certText}>
@@ -367,11 +395,11 @@ export default function Podium({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+            ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View>
-            <SectionHeader num="07" title="References" themeColor={themeColor} />
+          references: data.showReferences && data.references && data.references.length > 0 && (
+            <View>
+              <SectionHeader num={sectionNums.references} title="References" themeColor={themeColor} />
             <View style={styles.refGrid}>
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.refCard}>
@@ -385,19 +413,18 @@ export default function Podium({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+            ),
 
-        {data.customSections &&
-          data.customSections.map(
-            (section, si) =>
-              section.items &&
-              section.items.length > 0 && (
-                <View key={section.id}>
-                  <SectionHeader
-                    num={String(si + 8).padStart(2, '0')}
-                    title={section.title}
-                    themeColor={themeColor}
-                  />
+        },
+          (data.customSections || []).map((section, si) =>
+            section.items &&
+            section.items.length > 0 && (
+              <View key={section.id}>
+                <SectionHeader
+                  num={String(customBase + si + 1).padStart(2, '0')}
+                  title={section.title}
+                  themeColor={themeColor}
+                />
                   {section.items.map((item) => (
                     <View key={item.id} style={styles.expCard}>
                       <View style={styles.expHeaderRow}>
@@ -410,7 +437,8 @@ export default function Podium({ data }: { data: ResumeData }) {
                   ))}
                 </View>
               )
-          )}
+          )
+      )}
       </Page>
     </Document>
   );

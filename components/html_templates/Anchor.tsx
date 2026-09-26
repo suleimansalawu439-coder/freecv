@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -36,6 +37,9 @@ export default function Anchor({ data }: { data: ResumeData }) {
         className="w-[35%] shrink-0 px-9 py-12 border-r-2"
         style={{ borderColor: 'var(--theme-color)' }}
       >
+        {orderSections(data, {
+          personal: (
+            <>
         {initials ? (
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center mb-10 border-2"
@@ -56,8 +60,10 @@ export default function Anchor({ data }: { data: ResumeData }) {
             {info.website && <div className="break-words">{info.website}</div>}
           </div>
         </div>
+            </>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-10">
             <SidebarTitle>Skills</SidebarTitle>
             <ul className="divide-y divide-gray-200">
@@ -68,9 +74,9 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </ul>
           </div>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <div className="mb-10">
             <SidebarTitle>Education</SidebarTitle>
             <div className="space-y-5">
@@ -85,9 +91,9 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <div className="mb-10">
             <SidebarTitle>Certifications</SidebarTitle>
             <div className="space-y-4">
@@ -100,11 +106,15 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
+        })}
       </aside>
 
       {/* Generous main column */}
       <main className="w-[65%] px-12 py-12">
+        {orderSections(data, {
+          personal: (
+            <>
         <header className="mb-10">
           <h1 className="text-5xl font-bold leading-tight mb-3 text-gray-900">
             {info.fullName}
@@ -120,8 +130,10 @@ export default function Anchor({ data }: { data: ResumeData }) {
             <p className="text-[15px] leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-10">
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-7">
@@ -150,9 +162,9 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-10">
             <SectionTitle>Projects</SectionTitle>
             <div className="space-y-5">
@@ -169,9 +181,9 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section className="mb-10">
             <SectionTitle>References</SectionTitle>
             <div className="grid grid-cols-2 gap-6">
@@ -187,38 +199,37 @@ export default function Anchor({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
-              <section key={section.id} className="mb-10">
-                <SectionTitle>{section.title}</SectionTitle>
-                <div className="space-y-5">
-                  {section.items.map((item) => (
-                    <div key={item.id}>
-                      <div className="flex justify-between items-baseline mb-1">
-                        <h3 className="text-base font-bold text-gray-900">{item.title}</h3>
-                        {item.date && (
-                          <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
-                            {item.date}
-                          </span>
-                        )}
-                      </div>
-                      {item.subtitle && (
-                        <p className="text-sm italic text-gray-600 mb-1">{item.subtitle}</p>
-                      )}
-                      {item.description && (
-                        <p className="text-[15px] leading-relaxed text-gray-700">
-                          {item.description}
-                        </p>
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+            <section key={section.id} className="mb-10">
+              <SectionTitle>{section.title}</SectionTitle>
+              <div className="space-y-5">
+                {section.items.map((item) => (
+                  <div key={item.id}>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-base font-bold text-gray-900">{item.title}</h3>
+                      {item.date && (
+                        <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
+                          {item.date}
+                        </span>
                       )}
                     </div>
-                  ))}
-                </div>
-              </section>
-            )
+                    {item.subtitle && (
+                      <p className="text-sm italic text-gray-600 mb-1">{item.subtitle}</p>
+                    )}
+                    {item.description && (
+                      <p className="text-[15px] leading-relaxed text-gray-700">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))
         )}
       </main>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Gigfolio — gig / freelance hybrid resume.
 // Order: header, Profile, Client Engagements (experience framed as client
@@ -28,6 +29,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
       {/* Accent top bar */}
       <div className="h-2 mb-10 bg-[var(--theme-color)]" aria-hidden="true" />
 
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="flex items-start gap-8 mb-4">
         {personalInfo.profilePicture && (
           <img
@@ -60,16 +64,20 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
           </a>
         )}
       </div>
+          </>
+        ),
+      })}
 
       <div className="space-y-12 mt-12">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionTitle>Profile</SectionTitle>
             <p className="text-base leading-relaxed">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <section>
             <SectionTitle>Client Engagements</SectionTitle>
             <div className="space-y-8">
@@ -97,9 +105,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionTitle>Selected Work</SectionTitle>
             <div className="space-y-8">
@@ -124,9 +132,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <section>
             <SectionTitle>Services</SectionTitle>
             <div className="flex flex-wrap gap-2">
@@ -141,9 +149,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <section>
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-5">
@@ -158,9 +166,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionTitle>Certifications</SectionTitle>
             <div className="space-y-4">
@@ -177,9 +185,9 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section>
             <SectionTitle>References</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -198,38 +206,36 @@ export default function Gigfolio({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
-                <section key={section.id}>
-                  <SectionTitle>{section.title}</SectionTitle>
-                  <div className="space-y-4">
-                    {section.items.map((item) => (
-                      <div key={item.id}>
-                        <div className="flex justify-between items-baseline gap-4">
-                          <h3 className="text-base font-bold">{item.title}</h3>
-                          {item.date && (
-                            <p className="text-sm font-bold text-neutral-500 shrink-0">{item.date}</p>
-                          )}
-                        </div>
-                        {item.subtitle && (
-                          <p className="text-sm italic text-neutral-600">{item.subtitle}</p>
-                        )}
-                        {item.description && (
-                          <p className="text-sm text-neutral-700 whitespace-pre-line mt-1">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+            <section key={section.id}>
+              <SectionTitle>{section.title}</SectionTitle>
+              <div className="space-y-4">
+                {section.items.map((item) => (
+                  <div key={item.id}>
+                    <div className="flex justify-between items-baseline gap-4">
+                      <h3 className="text-base font-bold">{item.title}</h3>
+                      {item.date && (
+                        <p className="text-sm font-bold text-neutral-500 shrink-0">{item.date}</p>
+                      )}
+                    </div>
+                    {item.subtitle && (
+                      <p className="text-sm italic text-neutral-600">{item.subtitle}</p>
+                    )}
+                    {item.description && (
+                      <p className="text-sm text-neutral-700 whitespace-pre-line mt-1">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
-                </section>
-              )
-          )}
+                ))}
+              </div>
+            </section>
+            ))
+        )}
       </div>
     </div>
   );

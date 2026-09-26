@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
@@ -194,9 +195,6 @@ export default function Quarto({ data }: { data: ResumeData }) {
   const lines = (description: string) =>
     description ? description.split(/\n|\r\n/).filter((l) => l.trim()) : [];
 
-  let chapterIndex = 0;
-  const nextNumeral = () => ROMAN[chapterIndex++] || '';
-
   const ChapterHead = ({ numeral, title }: { numeral: string; title: string }) => (
     <View style={styles.chapterHead}>
       <Text style={styles.chapterTitle}>
@@ -210,6 +208,9 @@ export default function Quarto({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Title page */}
         <View style={styles.header}>
           {data.personalInfo.fullName ? (
@@ -231,11 +232,12 @@ export default function Quarto({ data }: { data: ResumeData }) {
             {data.summary.slice(1)}
           </Text>
         ) : null}
+            </>
+          ),
 
-        {/* Experience — Chapter I */}
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="Experience" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="Experience" />
             {data.experience.map((exp) => (
               <View key={exp.id} style={styles.experienceItem}>
                 <Text style={styles.roleTitle}>{exp.role}</Text>
@@ -257,12 +259,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          )),
 
-        {/* Education — Chapter II */}
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="Education" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="Education" />
             {data.education.map((edu) => (
               <View key={edu.id} style={styles.eduItem}>
                 <Text style={styles.degreeText}>{edu.degree}</Text>
@@ -273,22 +274,20 @@ export default function Quarto({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          )),
 
-        {/* Skills — Chapter III */}
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="Skills" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="Skills" />
             <Text style={styles.skillsText}>
               {data.skills.map((skill) => skill.name).join('   ·   ')}
             </Text>
           </View>
-        )}
+          )),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="Projects" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="Projects" />
             {data.projects.map((project) => (
               <View key={project.id} style={styles.projectItem}>
                 <Text style={styles.projectName}>
@@ -301,12 +300,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          )),
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="Certifications" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="Certifications" />
             {data.certifications.map((cert) => (
               <View key={cert.id} style={styles.certItem}>
                 <Text style={styles.degreeText}>{cert.name}</Text>
@@ -318,12 +316,11 @@ export default function Quarto({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          )),
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && ((i: number) => (
           <View>
-            <ChapterHead numeral={nextNumeral()} title="References" />
+            <ChapterHead numeral={ROMAN[i] || ''} title="References" />
             <View style={styles.refGrid}>
               {data.references.map((ref) => (
                 <View key={ref.id} style={styles.refCard}>
@@ -337,31 +334,30 @@ export default function Quarto({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+          )),
 
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
-              <View key={section.id}>
-                <ChapterHead numeral={nextNumeral()} title={section.title} />
-                {section.items.map((item) => (
-                  <View key={item.id} style={styles.customItem}>
-                    <Text style={styles.customTitle}>{item.title}</Text>
-                    <Text style={styles.subLine}>
-                      {item.subtitle ? <Text style={styles.companyItalic}>{item.subtitle}</Text> : null}
-                      {item.subtitle && item.date ? '  |  ' : ''}
-                      {item.date ? item.date : ''}
-                    </Text>
-                    {item.description ? (
-                      <Text style={styles.customDesc}>{item.description}</Text>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            ) : null
-          )}
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (i: number) => (
+            <View key={section.id}>
+              <ChapterHead numeral={ROMAN[i] || ''} title={section.title} />
+              {section.items.map((item) => (
+                <View key={item.id} style={styles.customItem}>
+                  <Text style={styles.customTitle}>{item.title}</Text>
+                  <Text style={styles.subLine}>
+                    {item.subtitle ? <Text style={styles.companyItalic}>{item.subtitle}</Text> : null}
+                    {item.subtitle && item.date ? '  |  ' : ''}
+                    {item.date ? item.date : ''}
+                  </Text>
+                  {item.description ? (
+                    <Text style={styles.customDesc}>{item.description}</Text>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )))
+        }
       </Page>
     </Document>
   );

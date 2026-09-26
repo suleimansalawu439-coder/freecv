@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const REMOTE_HINT = /remote|distributed|wfh|work from home|telecommut|work-from-anywhere/i;
 
@@ -16,6 +17,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans p-16 bg-white text-[#1e293b] min-h-[1056px] w-full max-w-[816px] mx-auto">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header */}
       <header className="text-center mb-16">
         {data.personalInfo.profilePicture && (
@@ -49,9 +53,10 @@ export default function Nomad({ data }: { data: ResumeData }) {
           <p className="text-base leading-loose text-center max-w-2xl mx-auto">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Remote Stack */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-6">Remote Stack</h2>
           <div className="flex flex-wrap justify-center gap-3">
@@ -65,10 +70,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">Experience</h2>
           <div className="space-y-10 max-w-2xl mx-auto">
@@ -91,10 +95,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">Projects</h2>
           <div className="space-y-6 max-w-2xl mx-auto">
@@ -111,10 +114,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">Education</h2>
           <div className="space-y-5 max-w-2xl mx-auto text-center">
@@ -127,10 +129,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">Certifications</h2>
           <div className="space-y-4 max-w-2xl mx-auto text-center">
@@ -144,10 +145,9 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-14">
           <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">References</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -164,11 +164,12 @@ export default function Nomad({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
           <section key={section.id} className="mb-14">
             <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-[var(--theme-color)] text-center mb-8">{section.title}</h2>
             <div className="space-y-5 max-w-2xl mx-auto">
@@ -184,8 +185,8 @@ export default function Nomad({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+        ))
+      )}
     </div>
   );
 }

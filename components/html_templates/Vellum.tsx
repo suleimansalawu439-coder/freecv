@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Vellum({ data }: { data: ResumeData }) {
   const { personalInfo } = data;
@@ -30,6 +31,9 @@ export default function Vellum({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto px-16 py-14 font-serif text-[#111] leading-relaxed">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Header — engraved title block */}
       <header className="text-center">
         <DoubleRule />
@@ -55,9 +59,11 @@ export default function Vellum({ data }: { data: ResumeData }) {
           <p className="text-[15px] leading-[1.9] text-[#111]/90 text-center italic">{data.summary}</p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        // Experience
+        experience: data.experience && data.experience.length > 0 && (
         <section>
           <SectionHeader>Experience</SectionHeader>
           <div>
@@ -85,10 +91,10 @@ export default function Vellum({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
         <section>
           <SectionHeader>Education</SectionHeader>
           <div className="space-y-5">
@@ -107,20 +113,20 @@ export default function Vellum({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills — fine inline comma list */}
-      {data.skills && data.skills.length > 0 && (
+        // Skills — fine inline comma list
+        skills: data.skills && data.skills.length > 0 && (
         <section>
           <SectionHeader>Skills</SectionHeader>
           <p className="text-center text-[14px] tracking-[0.1em] text-[#111]/90 leading-loose">
             {data.skills.map((skill) => skill.name).join(', ')}
           </p>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section>
           <SectionHeader>Projects</SectionHeader>
           <div className="space-y-5">
@@ -135,10 +141,10 @@ export default function Vellum({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section>
           <SectionHeader>Certifications</SectionHeader>
           <div className="space-y-4">
@@ -157,10 +163,10 @@ export default function Vellum({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section>
           <SectionHeader>References</SectionHeader>
           <div className="grid grid-cols-2 gap-8">
@@ -176,37 +182,35 @@ export default function Vellum({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          (section) =>
-            section.items &&
-            section.items.length > 0 && (
-              <section key={section.id}>
-                <SectionHeader>{section.title}</SectionHeader>
-                <div className="space-y-5">
-                  {section.items.map((item) => (
-                    <div key={item.id}>
-                      <div className="flex items-baseline justify-between gap-4">
-                        <h3 className="text-[15px] font-bold text-[#111]">{item.title}</h3>
-                        {item.date && (
-                          <span className="text-[12px] tracking-[0.15em] uppercase text-[#111]/70 whitespace-nowrap">
-                            {item.date}
-                          </span>
-                        )}
-                      </div>
-                      {item.subtitle && <p className="text-[14px] italic text-[#111]/80">{item.subtitle}</p>}
-                      {item.description && (
-                        <p className="text-[14px] text-[#111]/85 leading-[1.75] mt-1">{item.description}</p>
-                      )}
-                    </div>
-                  ))}
+        ),
+        },
+        // Custom sections
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
+          <section key={section.id}>
+            <SectionHeader>{section.title}</SectionHeader>
+            <div className="space-y-5">
+              {section.items.map((item) => (
+                <div key={item.id}>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <h3 className="text-[15px] font-bold text-[#111]">{item.title}</h3>
+                    {item.date && (
+                      <span className="text-[12px] tracking-[0.15em] uppercase text-[#111]/70 whitespace-nowrap">
+                        {item.date}
+                      </span>
+                    )}
+                  </div>
+                  {item.subtitle && <p className="text-[14px] italic text-[#111]/80">{item.subtitle}</p>}
+                  {item.description && (
+                    <p className="text-[14px] text-[#111]/85 leading-[1.75] mt-1">{item.description}</p>
+                  )}
                 </div>
-              </section>
-            )
-        )}
+              ))}
+            </div>
+          </section>
+          ))
+      )}
     </div>
   );
 }

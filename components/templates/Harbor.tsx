@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -203,7 +204,11 @@ export default function Harbor({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={[styles.sidebar, { backgroundColor: themeColor }]}>
+          {orderSections(data, {
+            personal: (
+              <>
           <Text style={styles.name}>{info.fullName}</Text>
+
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
 
           <View style={styles.contactGroup}>
@@ -212,8 +217,10 @@ export default function Harbor({ data }: { data: ResumeData }) {
             {info.location ? <Text style={styles.contactItem}>{info.location}</Text> : null}
             {info.website ? <Text style={styles.contactItem}>{info.website}</Text> : null}
           </View>
+              </>
+            ),
 
-          {data.skills && data.skills.length > 0 ? (
+            skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarTitle}>Skills</Text>
               <View style={styles.pillsWrap}>
@@ -224,25 +231,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.customSections &&
-            data.customSections.map((section) => (
-              <View key={section.id} style={styles.sidebarSection}>
-                <Text style={styles.sidebarTitle}>{section.title}</Text>
-                {section.items.map((item) => (
-                  <View key={item.id}>
-                    <Text style={styles.customTitle}>{item.title}</Text>
-                    <Text style={styles.customMeta}>
-                      {item.subtitle}
-                      {item.date ? ` · ${item.date}` : ''}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            ))}
-
-          {data.showReferences && data.references && data.references.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 ? (
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarTitle}>References</Text>
               {data.references.map((ref) => (
@@ -255,18 +246,36 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
+            },
+            (data.customSections || [])
+              .map((section) => (
+              <View key={section.id} style={styles.sidebarSection}>
+                <Text style={styles.sidebarTitle}>{section.title}</Text>
+                {section.items.map((item) => (
+                  <View key={item.id}>
+                    <Text style={styles.customTitle}>{item.title}</Text>
+                    <Text style={styles.customMeta}>
+                      {item.subtitle}
+                      {item.date ? ` · ${item.date}` : ''}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              ))
+          )}
         </View>
 
         <View style={styles.main}>
-          {data.summary ? (
+          {orderSections(data, {
+            personal: data.summary ? (
             <View style={styles.section}>
               <Text style={styles.mainSectionTitle}>Profile</Text>
               <Text style={styles.bodyText}>{data.summary}</Text>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.experience && data.experience.length > 0 ? (
+            experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.mainSectionTitle}>Experience</Text>
               <View style={styles.timeline}>
@@ -295,9 +304,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.education && data.education.length > 0 ? (
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.mainSectionTitle}>Education</Text>
               {data.education.map((edu) => (
@@ -310,9 +319,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects && data.projects.length > 0 ? (
+            projects: data.showProjects && data.projects && data.projects.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.mainSectionTitle}>Projects</Text>
               {data.projects.map((proj) => (
@@ -325,9 +334,9 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
             <View style={styles.section}>
               <Text style={styles.mainSectionTitle}>Certifications</Text>
               {data.certifications.map((cert) => (
@@ -340,7 +349,8 @@ export default function Harbor({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
+          })}
         </View>
       </Page>
     </Document>

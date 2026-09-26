@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -243,6 +244,9 @@ export default function Reentry({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.header}>
           {data.personalInfo.profilePicture ? (
@@ -267,9 +271,11 @@ export default function Reentry({ data }: TemplateProps) {
             <View style={[styles.profileRule, { backgroundColor: themeColor }]} />
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Strengths */}
-        {data.skills && data.skills.length > 0 ? (
+        // Strengths
+          skills: data.skills && data.skills.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Strengths</Text>
             <View style={styles.strengthContainer}>
@@ -278,10 +284,10 @@ export default function Reentry({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 ? (
+        // Experience
+          experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Experience</Text>
             <View>
@@ -301,10 +307,10 @@ export default function Reentry({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+        // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Projects</Text>
             <View>
@@ -319,10 +325,10 @@ export default function Reentry({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Education & Certifications */}
-        {hasEducation || hasCertifications ? (
+        // Education & Certifications
+          education: hasEducation || hasCertifications ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Education & Certifications</Text>
             <View style={styles.twoColGrid}>
@@ -357,10 +363,10 @@ export default function Reentry({ data }: TemplateProps) {
               ) : null}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 ? (
+        // References
+          references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
             <View style={styles.refGrid}>
@@ -375,11 +381,12 @@ export default function Reentry({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
-
-        {/* Custom sections */}
-        {data.customSections && data.customSections.map((section) => (
-          section.items && section.items.length > 0 ? (
+        ) : null,
+          },
+          // Custom sections
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <View key={section.id} style={styles.section}>
               <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
               <View>
@@ -397,8 +404,8 @@ export default function Reentry({ data }: TemplateProps) {
                 ))}
               </View>
             </View>
-          ) : null
-        ))}
+            ))
+        )}
       </Page>
     </Document>
   );

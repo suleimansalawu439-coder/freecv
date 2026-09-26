@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -129,23 +130,33 @@ export default function Column({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
         <View style={styles.header}>
           <Text style={[styles.kicker, { color: themeColor }]}>Résumé</Text>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
           {contact.length > 0 ? <Text style={styles.contact}>{contact.join('   ·   ')}</Text> : null}
         </View>
+          ),
+        },
+        )}
 
         <View style={styles.body}>
           <View style={styles.main}>
+            {orderSections(data, {
+              personal: (
+                <>
             {data.summary ? (
               <View style={styles.section}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Standfirst</Text>
                 <Text style={styles.bodyText}>{data.summary}</Text>
               </View>
             ) : null}
+                </>
+              ),
 
-            {data.experience && data.experience.length > 0 && (
+              experience: data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Feature</Text>
                 <Text style={styles.sectionTitle}>Experience</Text>
@@ -167,9 +178,9 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.showProjects && data.projects && data.projects.length > 0 && (
+              projects: data.showProjects && data.projects && data.projects.length > 0 && (
               <View style={styles.section}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Portfolio</Text>
                 <Text style={styles.sectionTitle}>Projects</Text>
@@ -183,12 +194,11 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
-
-            {data.customSections &&
-              data.customSections.length > 0 &&
-              data.customSections.map((section) =>
-                section.items && section.items.length > 0 ? (
+              ),
+            },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                   <View key={section.id} style={styles.section}>
                     <Text style={[styles.kicker, { color: themeColor }]}>More</Text>
                     <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -206,12 +216,13 @@ export default function Column({ data }: { data: ResumeData }) {
                       </View>
                     ))}
                   </View>
-                ) : null
-              )}
+                ))
+            )}
           </View>
 
           <View style={styles.side}>
-            {data.skills && data.skills.length > 0 && (
+            {orderSections(data, {
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.sideSection}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Pull Skills</Text>
                 {data.skills.map((skill) => (
@@ -220,9 +231,9 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.education && data.education.length > 0 && (
+              education: data.education && data.education.length > 0 && (
               <View style={styles.sideSection}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Schooling</Text>
                 {data.education.map((edu) => (
@@ -233,9 +244,9 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.sideSection}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Credentials</Text>
                 {data.certifications.map((cert) => (
@@ -246,9 +257,9 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            )}
+              ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.sideSection}>
                 <Text style={[styles.kicker, { color: themeColor }]}>Sources</Text>
                 {data.references.map((ref) => (
@@ -265,6 +276,8 @@ export default function Column({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
+              ),
+            },
             )}
           </View>
         </View>

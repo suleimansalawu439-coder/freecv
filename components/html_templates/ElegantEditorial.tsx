@@ -1,11 +1,14 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function ElegantEditorial({ data }: { data: ResumeData }) {
   const c = data.theme.color || '#b45309'; // default amber-700
   return (
     <div className="w-[8.5in] min-h-[11in] bg-[#FDFBF7] p-[0.75in] font-serif mx-auto shadow-xl print:shadow-none print:border-none border border-gray-200">
-      <div className="text-center mb-12">
+      {orderSections(data, {
+        personal: (
+          <div className="text-center mb-12">
         {data.personalInfo.profilePicture && (
           <img src={data.personalInfo.profilePicture} alt="Profile" className="w-24 h-24 rounded-full object-cover mx-auto mb-6 shadow-md" style={{ border: `2px solid ${c}` }} />
         )}
@@ -20,11 +23,15 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
         <p className="text-sm uppercase tracking-[0.3em] font-medium" style={{ color: c }}>
           {data.personalInfo.jobTitle}
         </p>
-      </div>
+          </div>
+        ),
+      })}
 
       <div className="grid grid-cols-[1fr_2.5fr] gap-12">
         <div className="border-r pr-8" style={{ borderColor: `${c}33` }}>
-          <div className="mb-10">
+          {orderSections(data, {
+            personal: (
+              <div className="mb-10">
             <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
               Contact
             </h3>
@@ -33,11 +40,12 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
               <p className="leading-relaxed">{data.personalInfo.phone}</p>
               <p className="leading-relaxed">{data.personalInfo.location}</p>
               <p className="leading-relaxed">{data.personalInfo.website}</p>
+              </div>
             </div>
-          </div>
+            ),
 
-          {data.skills.length > 0 && (
-            <div className="mb-10">
+            skills: data.skills.length > 0 && (
+              <div className="mb-10">
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
                 Skills
               </h3>
@@ -49,11 +57,11 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+              </div>
+            ),
 
-          {data.education.length > 0 && (
-            <div>
+            education: data.education.length > 0 && (
+              <div>
               <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
                 Education
               </h3>
@@ -64,41 +72,44 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   <p className="text-xs font-bold mt-1" style={{ color: c }}>{edu.graduationYear}</p>
                 </div>
               ))}
-            </div>
-          )}
-
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
-              <div key={section.id} className="mt-8">
-                <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
-                  {section.title}
-                </h3>
-                {section.items.map(item => (
-                  <div key={item.id} className="mb-4">
-                    <p className="text-xs font-bold italic">{item.title}</p>
-                    {item.subtitle && <p className="text-xs text-gray-600 mt-1">{item.subtitle}</p>}
-                    {item.date && <p className="text-xs font-bold mt-1" style={{ color: c }}>{item.date}</p>}
-                    {item.description && <p className="text-xs mt-1 text-gray-700 whitespace-pre-wrap">{item.description}</p>}
-                  </div>
-                ))}
               </div>
-            )
-          ))}
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+                <div key={section.id} className="mt-8">
+                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-4 border-b pb-2" style={{ color: c, borderColor: `${c}4D` }}>
+                    {section.title}
+                  </h3>
+                  {section.items.map(item => (
+                    <div key={item.id} className="mb-4">
+                      <p className="text-xs font-bold italic">{item.title}</p>
+                      {item.subtitle && <p className="text-xs text-gray-600 mt-1">{item.subtitle}</p>}
+                      {item.date && <p className="text-xs font-bold mt-1" style={{ color: c }}>{item.date}</p>}
+                      {item.description && <p className="text-xs mt-1 text-gray-700 whitespace-pre-wrap">{item.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              ))
+          )}
         </div>
 
         <div>
-          {data.summary && (
+          {orderSections(data, {
+            personal: data.summary && (
             <div className="mb-12 pl-6 border-l-2" style={{ borderColor: c }}>
               <p className="text-sm leading-relaxed italic text-gray-700">
                 {data.summary}
               </p>
-            </div>
-          )}
+              </div>
+            ),
 
-          <div>
-            <h2 className="text-2xl font-light italic text-gray-900 mb-8">
-              Professional Experience
-            </h2>
+            experience: (
+              <div>
+                <h2 className="text-2xl font-light italic text-gray-900 mb-8">
+                  Professional Experience
+                </h2>
             {data.experience.map((exp) => (
               <div key={exp.id} className="mb-10">
                 <div className="flex justify-between items-baseline mb-3">
@@ -119,8 +130,10 @@ export default function ElegantEditorial({ data }: { data: ResumeData }) {
                   ))}
                 </ul>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            ),
+          })}
         </div>
       </div>
 

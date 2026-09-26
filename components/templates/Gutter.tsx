@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -132,6 +133,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerBlock}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.deck}>{info.jobTitle}</Text> : null}
@@ -146,8 +150,10 @@ export default function Gutter({ data }: { data: ResumeData }) {
             </MarginRow>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Experience</Text>
             {data.experience.map((exp) => (
@@ -172,9 +178,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
               </MarginRow>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
             {data.education.map((edu) => (
@@ -184,18 +190,18 @@ export default function Gutter({ data }: { data: ResumeData }) {
               </MarginRow>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Skills</Text>
             <MarginRow margin={`${data.skills.length} areas`}>
               <Text style={styles.bodyText}>{data.skills.map((s) => s.name).join('  ·  ')}</Text>
             </MarginRow>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Projects</Text>
             {data.projects.map((proj) => (
@@ -205,9 +211,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
               </MarginRow>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Certifications</Text>
             {data.certifications.map((cert) => (
@@ -219,26 +225,9 @@ export default function Gutter({ data }: { data: ResumeData }) {
               </MarginRow>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
-              <View key={section.id} style={styles.section}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
-                {section.items.map((item) => (
-                  <MarginRow key={item.id} margin={item.date || undefined}>
-                    {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
-                    {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
-                    {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
-                  </MarginRow>
-                ))}
-              </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>References</Text>
             <MarginRow>
@@ -259,6 +248,22 @@ export default function Gutter({ data }: { data: ResumeData }) {
               </View>
             </MarginRow>
           </View>
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+                {section.items.map((item) => (
+                  <MarginRow key={item.id} margin={item.date || undefined}>
+                    {item.title ? <Text style={styles.roleTitle}>{item.title}</Text> : null}
+                    {item.subtitle ? <Text style={styles.metaItalic}>{item.subtitle}</Text> : null}
+                    {item.description ? <Text style={[styles.bodyText, { marginTop: 4 }]}>{item.description}</Text> : null}
+                  </MarginRow>
+                ))}
+              </View>
+            ))
         )}
       </Page>
     </Document>

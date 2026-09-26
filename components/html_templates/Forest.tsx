@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const FOREST = '#1d4a2c';
 const FOREST_DEEP = '#122e1c';
@@ -28,6 +29,8 @@ export default function Forest({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-slate-800 mx-auto">
       {/* Deep green header */}
+      {orderSections(data, {
+        personal: (
       <header className="px-14 pt-12 pb-10 text-white" style={{ backgroundColor: FOREST_DEEP }}>
         <p
           className="font-serif text-xs uppercase tracking-[0.35em] mb-3"
@@ -45,9 +48,12 @@ export default function Forest({ data }: { data: ResumeData }) {
           <p className="text-xs mt-4 text-white/80">{contactItems.join('   ·   ')}</p>
         )}
       </header>
+        ),
+      })}
 
       <div className="px-14 py-8">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionHeader title="Profile" />
             <p
@@ -57,9 +63,9 @@ export default function Forest({ data }: { data: ResumeData }) {
               {data.summary}
             </p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Experience" />
             <div className="space-y-6">
@@ -91,9 +97,9 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHeader title="Skills" />
             <div className="flex flex-wrap gap-2">
@@ -108,9 +114,9 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-3">
@@ -131,9 +137,9 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Projects" />
             <div className="space-y-4">
@@ -150,9 +156,9 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-2">
@@ -171,9 +177,35 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections.map((section) => (
+          references: data.showReferences && data.references.length > 0 && (
+          <section>
+            <SectionHeader title="References" />
+            <div className="grid grid-cols-2 gap-4">
+              {data.references.map((ref) => (
+                <div
+                  key={ref.id}
+                  className="rounded-lg px-4 py-3"
+                  style={{ backgroundColor: FOREST_SOFT }}
+                >
+                  <p className="text-sm font-bold" style={{ color: FOREST_DEEP }}>
+                    {ref.name}
+                  </p>
+                  <p className="text-xs" style={{ color: FOREST }}>
+                    {ref.title}
+                    {ref.company && `, ${ref.company}`}
+                  </p>
+                  {ref.contact && <p className="text-xs text-slate-600 mt-1">{ref.contact}</p>}
+                </div>
+              ))}
+            </div>
+          </section>
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
           <section key={section.id}>
             <SectionHeader title={section.title} />
             <div className="space-y-3">
@@ -199,30 +231,7 @@ export default function Forest({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ))}
-
-        {data.showReferences && data.references.length > 0 && (
-          <section>
-            <SectionHeader title="References" />
-            <div className="grid grid-cols-2 gap-4">
-              {data.references.map((ref) => (
-                <div
-                  key={ref.id}
-                  className="rounded-lg px-4 py-3"
-                  style={{ backgroundColor: FOREST_SOFT }}
-                >
-                  <p className="text-sm font-bold" style={{ color: FOREST_DEEP }}>
-                    {ref.name}
-                  </p>
-                  <p className="text-xs" style={{ color: FOREST }}>
-                    {ref.title}
-                    {ref.company && `, ${ref.company}`}
-                  </p>
-                  {ref.contact && <p className="text-xs text-slate-600 mt-1">{ref.contact}</p>}
-                </div>
-              ))}
-            </div>
-          </section>
+            ))
         )}
       </div>
     </div>

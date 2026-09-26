@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionLabel({ title }: { title: string }) {
   return (
@@ -15,6 +16,9 @@ export default function Noir({ data }: { data: ResumeData }) {
 
   return (
     <div className="font-sans bg-[#111111] text-[#f5f5f5] min-h-[1056px] w-full max-w-[816px] mx-auto px-16 py-16">
+      {orderSections(data, {
+        personal: (
+          <>
       {/* Editorial header */}
       <header className="mb-14">
         <h1 className="text-6xl font-light tracking-tight leading-[1.05]">{info.fullName}</h1>
@@ -34,9 +38,10 @@ export default function Noir({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
 
-      {/* Experience */}
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="Experience" />
           <div className="space-y-8">
@@ -58,10 +63,9 @@ export default function Noir({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="Education" />
           <div className="space-y-6">
@@ -78,20 +82,18 @@ export default function Noir({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills */}
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="Skills" />
           <p className="text-base font-light leading-loose text-[#e5e5e5]">
             {data.skills.map((s) => s.name).join('  ·  ')}
           </p>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="Projects" />
           <div className="space-y-6">
@@ -112,10 +114,9 @@ export default function Noir({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Certifications */}
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="Certifications" />
           <div className="space-y-4">
@@ -133,10 +134,9 @@ export default function Noir({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-12">
           <SectionLabel title="References" />
           <div className="space-y-4">
@@ -155,14 +155,12 @@ export default function Noir({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.length > 0 &&
-        data.customSections.map(
-          (section) =>
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id} className="mb-12">
                 <SectionLabel title={section.title} />
                 <div className="space-y-5">
@@ -188,8 +186,8 @@ export default function Noir({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

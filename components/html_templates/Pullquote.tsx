@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function QuoteHead({ children }: { children: React.ReactNode }) {
   return (
@@ -16,31 +17,36 @@ export default function Pullquote({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif text-gray-900 px-16 py-14 mx-auto">
-      <header className="text-center mb-4">
-        {info.fullName && (
-          <h1 className="text-4xl font-normal tracking-tight">{info.fullName}</h1>
-        )}
-        {info.jobTitle && (
-          <p className="text-lg italic text-gray-600 mt-2">{info.jobTitle}</p>
-        )}
-        {contact.length > 0 && (
-          <p className="text-sm text-gray-500 mt-3">{contact.join('   ·   ')}</p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <>
+            <header className="text-center mb-4">
+              {info.fullName && (
+                <h1 className="text-4xl font-normal tracking-tight">{info.fullName}</h1>
+              )}
+              {info.jobTitle && (
+                <p className="text-lg italic text-gray-600 mt-2">{info.jobTitle}</p>
+              )}
+              {contact.length > 0 && (
+                <p className="text-sm text-gray-500 mt-3">{contact.join('   ·   ')}</p>
+              )}
+            </header>
 
-      {data.summary && (
-        <figure className="my-10 px-8 text-center">
-          <div className="font-serif text-6xl leading-none" style={{ color: 'var(--theme-color)' }}>
-            &ldquo;
-          </div>
-          <blockquote className="font-serif text-2xl italic leading-[1.6] text-gray-800 -mt-4">
-            {data.summary}
-          </blockquote>
-          <div className="w-16 h-0.5 mx-auto mt-6" style={{ backgroundColor: 'var(--theme-color)' }} />
-        </figure>
-      )}
+            {data.summary && (
+              <figure className="my-10 px-8 text-center">
+                <div className="font-serif text-6xl leading-none" style={{ color: 'var(--theme-color)' }}>
+                  &ldquo;
+                </div>
+                <blockquote className="font-serif text-2xl italic leading-[1.6] text-gray-800 -mt-4">
+                  {data.summary}
+                </blockquote>
+                <div className="w-16 h-0.5 mx-auto mt-6" style={{ backgroundColor: 'var(--theme-color)' }} />
+              </figure>
+            )}
+          </>
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section>
           <QuoteHead>Experience</QuoteHead>
           <div className="space-y-8">
@@ -64,9 +70,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section>
           <QuoteHead>Skills</QuoteHead>
           <div className="flex flex-wrap gap-2.5">
@@ -80,9 +86,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section>
           <QuoteHead>Education</QuoteHead>
           <div className="space-y-5">
@@ -99,9 +105,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section>
           <QuoteHead>Projects</QuoteHead>
           <div className="space-y-6">
@@ -118,9 +124,9 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section>
           <QuoteHead>Certifications</QuoteHead>
           <div className="space-y-3">
@@ -133,10 +139,31 @@ export default function Pullquote({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.customSections.map((section) =>
-        section.items && section.items.length > 0 ? (
+
+        references: data.showReferences && data.references.length > 0 && (
+        <section>
+          <QuoteHead>References</QuoteHead>
+          <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+            {data.references.map((ref) => (
+              <div key={ref.id}>
+                <p className="font-serif text-[15px] font-bold">{ref.name}</p>
+                {(ref.title || ref.company) && (
+                  <p className="text-sm text-gray-600 italic">
+                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
+                  </p>
+                )}
+                {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id}>
             <QuoteHead>{section.title}</QuoteHead>
             <div className="space-y-6">
@@ -154,26 +181,7 @@ export default function Pullquote({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
-      )}
-
-      {data.showReferences && data.references.length > 0 && (
-        <section>
-          <QuoteHead>References</QuoteHead>
-          <div className="grid grid-cols-2 gap-x-10 gap-y-6">
-            {data.references.map((ref) => (
-              <div key={ref.id}>
-                <p className="font-serif text-[15px] font-bold">{ref.name}</p>
-                {(ref.title || ref.company) && (
-                  <p className="text-sm text-gray-600 italic">
-                    {ref.title}{ref.title && ref.company ? ', ' : ''}{ref.company}
-                  </p>
-                )}
-                {ref.contact && <p className="text-sm text-gray-400">{ref.contact}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
+          ))
       )}
     </div>
   );

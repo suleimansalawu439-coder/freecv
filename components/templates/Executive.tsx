@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -207,6 +208,9 @@ export default function Executive({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.fullName}>{data.personalInfo.fullName}</Text>
@@ -237,8 +241,10 @@ export default function Executive({ data }: TemplateProps) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional History</Text>
             {data.experience.map((exp) => (
@@ -266,9 +272,9 @@ export default function Executive({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Projects</Text>
             {data.projects.map((proj) => (
@@ -287,11 +293,13 @@ export default function Executive({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
+        })}
 
         <View style={styles.grid}>
           <View style={styles.gridCol}>
-            {data.education && data.education.length > 0 && (
+            {orderSections(data, {
+              education: data.education && data.education.length > 0 && (
               <View style={styles.subSection}>
                 <Text style={styles.sectionTitle}>Formation</Text>
                 {data.education.map((edu) => (
@@ -305,11 +313,13 @@ export default function Executive({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
+            })}
           </View>
 
           <View style={styles.gridCol}>
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            {orderSections(data, {
+              certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
               <View style={styles.subSection}>
                 <Text style={styles.sectionTitle}>Certifications</Text>
                 {data.certifications.map((cert) => (
@@ -319,9 +329,9 @@ export default function Executive({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.subSection}>
                 <Text style={styles.sectionTitle}>References</Text>
                 {data.references.map((ref) => (
@@ -331,13 +341,22 @@ export default function Executive({ data }: TemplateProps) {
                   </View>
                 ))}
               </View>
-            )}
+            ),
 
-            {data.customSections &&
-              data.customSections.map(
-                (section) =>
-                  section.items &&
-                  section.items.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
+              <View style={styles.subSection}>
+                <Text style={styles.sectionTitle}>Skills</Text>
+                <View style={styles.skillsContainer}>
+                  {data.skills.map((s) => (
+                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
+                  ))}
+                </View>
+              </View>
+            ),
+              },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                     <View key={section.id} style={styles.subSection}>
                       <Text style={styles.sectionTitle}>{section.title}</Text>
                       {section.items.map((item) => (
@@ -359,18 +378,7 @@ export default function Executive({ data }: TemplateProps) {
                         </View>
                       ))}
                     </View>
-                  )
-              )}
-
-            {data.skills && data.skills.length > 0 && (
-              <View style={styles.subSection}>
-                <Text style={styles.sectionTitle}>Skills</Text>
-                <View style={styles.skillsContainer}>
-                  {data.skills.map((s) => (
-                    <Text key={s.id} style={styles.skillText}>{s.name}</Text>
-                  ))}
-                </View>
-              </View>
+                ))
             )}
           </View>
         </View>

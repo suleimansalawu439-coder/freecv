@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -237,6 +238,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.container}>
+          {orderSections(data, {
+          personal: (
+            <>
           <View style={styles.header}>
             {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
             {info.jobTitle ? (
@@ -256,8 +260,11 @@ export default function Ochre({ data }: { data: ResumeData }) {
               </View>
             </View>
           ) : null}
+            </>
+          ),
 
-          {data.experience && data.experience.length > 0 ? (
+          // Experience
+          experience: data.experience && data.experience.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="Work Experience" />
               {data.experience.map((exp) => (
@@ -280,9 +287,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.skills && data.skills.length > 0 ? (
+          // Skills
+          skills: data.skills && data.skills.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="Skills" />
               <View style={styles.skillsRow}>
@@ -296,9 +304,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null,
 
-          {data.education && data.education.length > 0 ? (
+          // Education
+          education: data.education && data.education.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="Education" />
               {data.education.map((edu) => (
@@ -314,9 +323,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects.length > 0 ? (
+          // Projects
+          projects: data.showProjects && data.projects.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="Projects" />
               {data.projects.map((proj) => (
@@ -328,9 +338,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications.length > 0 ? (
+          // Certifications
+          certifications: data.showCertifications && data.certifications.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="Certifications" />
               {data.certifications.map((cert) => (
@@ -342,9 +353,10 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showReferences && data.references.length > 0 ? (
+          // References
+          references: data.showReferences && data.references.length > 0 ? (
             <View style={styles.section}>
               <SectionHeader title="References" />
               <View style={styles.refRow}>
@@ -359,9 +371,9 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          ) : null}
-
-          {data.customSections.map((section) => (
+          ) : null,
+        },
+          (data.customSections || []).map((section) => (
             <View key={section.id} style={styles.section}>
               <SectionHeader title={section.title} />
               {section.items.map((item) => (
@@ -375,7 +387,8 @@ export default function Ochre({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ))}
+          ))
+        )}
         </View>
       </Page>
     </Document>

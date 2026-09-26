@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Beacon({ data }: { data: ResumeData }) {
   const info = data.personalInfo;
@@ -8,6 +9,9 @@ export default function Beacon({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 flex mx-auto font-sans">
       {/* Main column — left */}
       <main className="flex-1 px-10 py-10 min-w-0">
+        {orderSections(data, {
+          personal: (
+            <>
         <header className="mb-8">
           <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-1">
             {info.fullName}
@@ -27,8 +31,10 @@ export default function Beacon({ data }: { data: ResumeData }) {
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
         )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section className="mb-8">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-5">
               Experience
@@ -64,9 +70,9 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section className="mb-8">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4">
               Education
@@ -83,9 +89,9 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section className="mb-8">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4">
               Projects
@@ -102,9 +108,9 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section className="mb-8">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4">
               Certifications
@@ -121,9 +127,11 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.map((section) => (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-8">
             <h2 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4">
               {section.title}
@@ -145,11 +153,16 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ))}
+          ))
+        )}
+
       </main>
 
       {/* Right sidebar — light gray */}
       <aside className="w-[30%] shrink-0 bg-gray-100 px-8 py-10">
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Contact card */}
         <div className="bg-white rounded-lg p-5 shadow-sm mb-8">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
@@ -162,8 +175,10 @@ export default function Beacon({ data }: { data: ResumeData }) {
             {info.website && <p>{info.website}</p>}
           </div>
         </div>
+            </>
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               Skills
@@ -179,9 +194,9 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <div>
             <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
               References
@@ -199,7 +214,8 @@ export default function Beacon({ data }: { data: ResumeData }) {
               ))}
             </div>
           </div>
-        )}
+          ),
+        })}
       </aside>
     </div>
   );

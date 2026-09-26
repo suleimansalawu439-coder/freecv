@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const INK = '#1a1a1a';
@@ -234,6 +235,9 @@ export default function OpEd({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Masthead */}
         <View style={styles.header}>
           {data.personalInfo.jobTitle ? (
@@ -250,9 +254,11 @@ export default function OpEd({ data }: { data: ResumeData }) {
 
         {/* Summary — the lede */}
         {data.summary ? <Text style={styles.lede}>{data.summary}</Text> : null}
+            </>
+          ),
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Experience" />
             {data.experience.map((exp) => (
@@ -277,10 +283,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Education */}
-        {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Education" />
             {data.education.map((edu) => (
@@ -293,10 +299,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Skills — inline, semicolon separated */}
-        {data.skills && data.skills.length > 0 && (
+        // Skills — inline, semicolon separated
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Skills" />
             <Text style={styles.skillsText}>
@@ -308,10 +314,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
               ))}
             </Text>
           </View>
-        )}
+        ),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Projects" />
             {data.projects.map((project) => (
@@ -326,10 +332,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Certifications" />
             {data.certifications.map((cert) => (
@@ -342,10 +348,10 @@ export default function OpEd({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="References" />
             <View style={styles.refGrid}>
@@ -361,13 +367,11 @@ export default function OpEd({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <SectionHeader title={section.title} />
                 {section.items.map((item) => (
@@ -383,8 +387,8 @@ export default function OpEd({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

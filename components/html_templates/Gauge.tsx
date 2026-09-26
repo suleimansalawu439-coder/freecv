@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -20,6 +21,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
           style={{ backgroundColor: 'var(--theme-color)', filter: 'brightness(0.68)' }}
         />
         <div className="relative text-white p-8 space-y-8">
+          {orderSections(data, {
+            personal: (
+              <>
           <div>
             <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-5">
               <span className="text-2xl font-black">{initial}</span>
@@ -34,8 +38,10 @@ export default function Gauge({ data }: { data: ResumeData }) {
             {info.location && <div>{info.location}</div>}
             {info.website && <div className="break-all">{info.website}</div>}
           </div>
+              </>
+            ),
 
-          {data.skills.length > 0 && (
+            skills: data.skills.length > 0 && (
             <div>
               <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-70">Skills</h2>
               <div className="space-y-3">
@@ -52,10 +58,11 @@ export default function Gauge({ data }: { data: ResumeData }) {
                 })}
               </div>
             </div>
-          )}
-
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+            ),
+          },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
               <div key={section.id}>
                 <h2 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-70">{section.title}</h2>
                 <div className="space-y-2 text-sm font-medium opacity-90">
@@ -67,21 +74,22 @@ export default function Gauge({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
+              ))
+          )}
         </div>
       </aside>
 
       {/* Main column */}
       <main className="flex-1 p-10 space-y-8">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionHeader title="Profile" />
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHeader title="Experience" />
             <div className="space-y-7">
@@ -105,9 +113,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHeader title="Education" />
             <div className="space-y-4">
@@ -122,9 +130,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHeader title="Projects" />
             <div className="space-y-4">
@@ -139,9 +147,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHeader title="Certifications" />
             <div className="space-y-3">
@@ -156,9 +164,9 @@ export default function Gauge({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section>
             <SectionHeader title="References" />
             <div className="grid grid-cols-2 gap-6">
@@ -171,7 +179,8 @@ export default function Gauge({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
+        })}
       </main>
     </div>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#0d9488';
 
@@ -164,6 +165,9 @@ export default function Practitioner({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {initial ? (
           <View style={[styles.avatar, { backgroundColor: themeColor }]}>
             <Text style={styles.avatarText}>{initial}</Text>
@@ -185,8 +189,11 @@ export default function Practitioner({ data }: { data: ResumeData }) {
             </View>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          // Clinical Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Clinical Experience" />
             {data.experience.map((exp) => (
@@ -210,9 +217,10 @@ export default function Practitioner({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          // Clinical Skills
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Clinical Skills" />
             <View style={styles.skillsWrap}>
@@ -223,9 +231,10 @@ export default function Practitioner({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          // Education
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Education" />
             {data.education.map((edu) => (
@@ -240,9 +249,10 @@ export default function Practitioner({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          // Licenses & Certifications
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Licenses & Certifications" />
             {data.certifications.map((cert) => (
@@ -255,9 +265,10 @@ export default function Practitioner({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects & Initiatives
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Projects & Initiatives" />
             {data.projects.map((proj) => (
@@ -270,11 +281,28 @@ export default function Practitioner({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          // References
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <View style={styles.section}>
+            <SectionHead title="References" />
+            {data.references.map((ref) => (
+              <View key={ref.id} style={{ marginBottom: 6 }}>
+                <Text style={styles.degreeText}>{ref.name}</Text>
+                <Text style={styles.schoolText}>
+                  {ref.title}
+                  {ref.company ? `, ${ref.company}` : ''}
+                </Text>
+                {ref.contact ? <Text style={styles.dateText}>{ref.contact}</Text> : null}
+              </View>
+            ))}
+          </View>
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <SectionHead title={section.title} />
                 {section.items.map((item) => (
@@ -294,23 +322,7 @@ export default function Practitioner({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead title="References" />
-            {data.references.map((ref) => (
-              <View key={ref.id} style={{ marginBottom: 6 }}>
-                <Text style={styles.degreeText}>{ref.name}</Text>
-                <Text style={styles.schoolText}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.dateText}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
+            ))
         )}
       </Page>
     </Document>

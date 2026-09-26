@@ -1,9 +1,45 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { getOrderedSectionIds, orderSections } from '@/lib/template-sections';
 
 export default function AcademicJournal({ data }: { data: ResumeData }) {
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+  // The journal numbers its sections I., II., III., ... in reading order
+  // (left column top-to-bottom, then right column top-to-bottom). The numbers
+  // follow the rendered order, so they stay consecutive when the user reorders
+  // or hides sections. The identity header and Abstract are never numbered.
+  const sectionNums: Record<string, string> = (() => {
+    const hasData = (id: string): boolean => {
+      switch (id) {
+        case 'experience':
+          return data.experience.length > 0;
+        case 'education':
+          return data.education.length > 0;
+        case 'skills':
+          return data.skills.length > 0;
+        case 'references':
+          return data.showReferences && !!data.references && data.references.length > 0;
+        default:
+          return false;
+      }
+    };
+    const ids = getOrderedSectionIds(data);
+    const ordered = [
+      ...ids.filter((id) => id === 'experience' && hasData(id)),
+      ...ids.filter((id) => id !== 'experience' && hasData(id)),
+    ];
+    const map: Record<string, string> = {};
+    ordered.forEach((id, n) => {
+      map[id] = ROMAN[n];
+    });
+    return map;
+  })();
+
   return (
     <div className="font-serif p-10 sm:p-16 bg-white text-black w-full h-full mx-auto shadow-sm">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="text-center mb-10 pb-6 border-b border-gray-300">
         <h1 className="text-4xl font-bold mb-4">{data.personalInfo.fullName}</h1>
         <p className="text-lg italic mb-4">{data.personalInfo.jobTitle}</p>
@@ -20,12 +56,16 @@ export default function AcademicJournal({ data }: { data: ResumeData }) {
           </p>
         </section>
       )}
+          </>
+        ),
+      })}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
-          {data.experience.length > 0 && (
+          {orderSections(data, {
+            experience: data.experience.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>I. Professional Appointments</h2>
+              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>{sectionNums.experience}. Professional Appointments</h2>
               <div className="space-y-6">
                 {data.experience.map(exp => (
                   <div key={exp.id}>
@@ -36,13 +76,15 @@ export default function AcademicJournal({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+            ),
+          })}
         </div>
 
         <div>
-          {data.education.length > 0 && (
+          {orderSections(data, {
+            education: data.education.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>II. Education</h2>
+              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>{sectionNums.education}. Education</h2>
               <div className="space-y-4">
                 {data.education.map(edu => (
                   <div key={edu.id}>
@@ -52,22 +94,22 @@ export default function AcademicJournal({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
+          ),
 
-          {data.skills.length > 0 && (
+            skills: data.skills.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>III. Technical Skills</h2>
+              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>{sectionNums.skills}. Technical Skills</h2>
               <ul className="list-disc list-outside ml-4 space-y-1 text-sm">
                 {data.skills.map(skill => (
                   <li key={skill.id}>{skill.name}</li>
                 ))}
               </ul>
             </section>
-          )}
-        
-          {data.showReferences && data.references && data.references.length > 0 && (
+          ),
+
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>IV. References</h2>
+              <h2 className="text-base font-bold uppercase border-b border-black pb-1 mb-4" style={{ color: 'var(--theme-color)' }}>{sectionNums.references}. References</h2>
               <div className="space-y-4">
                 {data.references.map(ref => (
                   <div key={ref.id}>
@@ -80,9 +122,11 @@ export default function AcademicJournal({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )}
-          {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-            section.items.length > 0 && (
+          ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <div key={section.id} className="mb-6">
                 <h2 className="text-lg font-bold border-b mb-2">{section.title}</h2>
                 <div className="space-y-3">
@@ -100,9 +144,8 @@ export default function AcademicJournal({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </div>
-            )
-          ))}
-
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -157,6 +158,9 @@ export default function Slate({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
@@ -174,8 +178,10 @@ export default function Slate({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Experience" />
             {data.experience.map((exp) => (
@@ -199,9 +205,9 @@ export default function Slate({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Skills" />
             <View style={styles.skillsWrap}>
@@ -213,9 +219,9 @@ export default function Slate({ data }: { data: ResumeData }) {
             </View>
             <View style={[styles.accentLine, { backgroundColor: themeColor }]} />
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Education" />
             {data.education.map((edu) => (
@@ -230,9 +236,9 @@ export default function Slate({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Projects" />
             {data.projects.map((proj) => (
@@ -245,9 +251,9 @@ export default function Slate({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHead title="Certifications" />
             {data.certifications.map((cert) => (
@@ -260,11 +266,27 @@ export default function Slate({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.customSections &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <View style={styles.section}>
+            <SectionHead title="References" />
+            {data.references.map((ref) => (
+              <View key={ref.id} style={{ marginBottom: 6 }}>
+                <Text style={styles.degreeText}>{ref.name}</Text>
+                <Text style={styles.schoolText}>
+                  {ref.title}
+                  {ref.company ? `, ${ref.company}` : ''}
+                </Text>
+                {ref.contact ? <Text style={styles.dateText}>{ref.contact}</Text> : null}
+              </View>
+            ))}
+          </View>
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <SectionHead title={section.title} />
                 {section.items.map((item) => (
@@ -284,23 +306,7 @@ export default function Slate({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <View style={styles.section}>
-            <SectionHead title="References" />
-            {data.references.map((ref) => (
-              <View key={ref.id} style={{ marginBottom: 6 }}>
-                <Text style={styles.degreeText}>{ref.name}</Text>
-                <Text style={styles.schoolText}>
-                  {ref.title}
-                  {ref.company ? `, ${ref.company}` : ''}
-                </Text>
-                {ref.contact ? <Text style={styles.dateText}>{ref.contact}</Text> : null}
-              </View>
-            ))}
-          </View>
+            ))
         )}
       </Page>
     </Document>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionHeader({ title }: { title: string }) {
   return (
@@ -27,6 +28,8 @@ export default function Kernel({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white mx-auto p-[0.85in] font-sans text-gray-900">
       {/* Header — dark slate terminal bar */}
+      {orderSections(data, {
+        personal: (
       <header
         className="rounded-lg px-8 py-7 mb-8"
         style={{ backgroundColor: '#1f2937' }}
@@ -44,15 +47,18 @@ export default function Kernel({ data }: { data: ResumeData }) {
           </p>
         )}
       </header>
+        ),
+      })}
 
-      {data.summary && (
+      {orderSections(data, {
+        personal: data.summary && (
         <section className="mb-7">
           <SectionHeader title="profile" />
           <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
         </section>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="experience" />
           <div className="space-y-5">
@@ -87,9 +93,9 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="skills" />
           <div className="flex flex-wrap gap-2">
@@ -103,9 +109,9 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="education" />
           <div className="space-y-3">
@@ -127,9 +133,9 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="projects" />
           <div className="space-y-4">
@@ -152,9 +158,9 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="certifications" />
           <div className="space-y-2.5">
@@ -176,9 +182,9 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-7">
           <SectionHeader title="references" />
           <div className="grid grid-cols-2 gap-4">
@@ -196,12 +202,11 @@ export default function Kernel({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {(data.customSections || []).map(
-        (section) =>
-          section.items &&
-          section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
             <section key={section.id} className="mb-7">
               <SectionHeader title={section.title.toLowerCase()} />
               <div className="space-y-3">
@@ -228,7 +233,7 @@ export default function Kernel({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
+          ))
       )}
     </div>
   );

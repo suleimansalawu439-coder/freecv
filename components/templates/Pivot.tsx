@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -130,6 +131,9 @@ export default function Pivot({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{info.fullName}</Text>
@@ -148,9 +152,11 @@ export default function Pivot({ data }: TemplateProps) {
             <Text style={styles.bodyText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Core Competencies — skills-first */}
-        {clusters.length > 0 ? (
+          // Core Competencies — skills-first
+          skills: clusters.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('Core Competencies')}
             <View style={styles.clusterGrid}>
@@ -168,10 +174,10 @@ export default function Pivot({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Work History — one line each, no descriptions */}
-        {data.experience && data.experience.length > 0 ? (
+        // Work History — one line each, no descriptions
+        experience: data.experience && data.experience.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('Work History')}
             {data.experience.map((exp) => (
@@ -188,10 +194,10 @@ export default function Pivot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Education */}
-        {data.education && data.education.length > 0 ? (
+        // Education
+        education: data.education && data.education.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('Education')}
             {data.education.map((edu) => (
@@ -206,10 +212,10 @@ export default function Pivot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 ? (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('Projects')}
             {data.projects.map((proj) => (
@@ -229,10 +235,10 @@ export default function Pivot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('Certifications')}
             {data.certifications.map((cert) => (
@@ -245,10 +251,10 @@ export default function Pivot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
+        ) : null,
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 ? (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 ? (
           <View style={styles.section}>
             {sectionTitle('References')}
             {data.references.map((ref) => (
@@ -268,34 +274,30 @@ export default function Pivot({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        ) : null}
-
-        {/* Custom sections */}
-        {data.customSections && data.customSections.length > 0
-          ? data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
-                  <View key={section.id} style={styles.section}>
-                    {sectionTitle(section.title)}
-                    {section.items.map((item) => (
-                      <View key={item.id} style={styles.rowLine}>
-                        <Text style={styles.rowMain}>
-                          {item.title}
-                          {item.subtitle ? (
-                            <Text style={styles.rowSub}> — {item.subtitle}</Text>
-                          ) : null}
-                          {item.description ? (
-                            <Text style={styles.rowSub}> · {item.description}</Text>
-                          ) : null}
-                        </Text>
-                        {item.date ? <Text style={styles.rowDates}>{item.date}</Text> : null}
-                      </View>
-                    ))}
+        ) : null,
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id} style={styles.section}>
+                {sectionTitle(section.title)}
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.rowLine}>
+                    <Text style={styles.rowMain}>
+                      {item.title}
+                      {item.subtitle ? (
+                        <Text style={styles.rowSub}> — {item.subtitle}</Text>
+                      ) : null}
+                      {item.description ? (
+                        <Text style={styles.rowSub}> · {item.description}</Text>
+                      ) : null}
+                    </Text>
+                    {item.date ? <Text style={styles.rowDates}>{item.date}</Text> : null}
                   </View>
-                )
-            )
-          : null}
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

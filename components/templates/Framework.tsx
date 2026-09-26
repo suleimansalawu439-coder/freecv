@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -199,6 +200,8 @@ export default function Framework({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
         <View style={styles.header}>
           <Text style={styles.name}>{info.fullName}</Text>
           {info.jobTitle ? (
@@ -208,17 +211,21 @@ export default function Framework({ data }: { data: ResumeData }) {
             <Text style={styles.contactLine}>{contactItems.join('  ·  ')}</Text>
           ) : null}
         </View>
+          ),
+        })}
 
         <View style={styles.grid}>
           {data.summary || (data.skills && data.skills.length > 0) ? (
             <View style={styles.row}>
-              {data.summary ? (
+              {orderSections(data, {
+                personal: data.summary ? (
                 <View style={styles.card}>
                   <Text style={cardTitleStyle}>Profile</Text>
                   <Text style={styles.bodyText}>{data.summary}</Text>
                 </View>
-              ) : null}
-              {data.skills && data.skills.length > 0 ? (
+              ) : null,
+
+                skills: data.skills && data.skills.length > 0 ? (
                 <View style={styles.card}>
                   <Text style={cardTitleStyle}>Skills</Text>
                   {skillGroups.map((group, gi) => (
@@ -234,13 +241,15 @@ export default function Framework({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null}
+              ) : null,
+              })}
             </View>
           ) : null}
 
-          {expCards}
+          {orderSections(data, {
+            experience: expCards,
 
-          {data.education && data.education.length > 0 ? (
+            education: data.education && data.education.length > 0 ? (
             <View style={styles.cardFull}>
               <Text style={cardTitleStyle}>Education</Text>
               {data.education.map((edu) => (
@@ -253,9 +262,9 @@ export default function Framework({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showProjects && data.projects && data.projects.length > 0 ? (
+            projects: data.showProjects && data.projects && data.projects.length > 0 ? (
             <View style={styles.cardFull}>
               <Text style={cardTitleStyle}>Projects</Text>
               {data.projects.map((proj) => (
@@ -266,9 +275,9 @@ export default function Framework({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 ? (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 ? (
             <View style={styles.cardFull}>
               <Text style={cardTitleStyle}>Certifications</Text>
               {data.certifications.map((cert) => (
@@ -281,26 +290,9 @@ export default function Framework({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
 
-          {data.customSections &&
-            data.customSections.map((section) => (
-              <View key={section.id} style={styles.cardFull}>
-                <Text style={cardTitleStyle}>{section.title}</Text>
-                {section.items.map((item) => (
-                  <View key={item.id} style={styles.eduItem}>
-                    <Text style={styles.degreeText}>{item.title}</Text>
-                    {item.subtitle ? <Text style={styles.schoolText}>{item.subtitle}</Text> : null}
-                    {item.date ? <Text style={styles.certMeta}>{item.date}</Text> : null}
-                    {item.description ? (
-                      <Text style={styles.bodyText}>{item.description}</Text>
-                    ) : null}
-                  </View>
-                ))}
-              </View>
-            ))}
-
-          {data.showReferences && data.references && data.references.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 ? (
             <View style={styles.cardFull}>
               <Text style={cardTitleStyle}>References</Text>
               {data.references.map((ref) => (
@@ -314,7 +306,26 @@ export default function Framework({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          ) : null}
+          ) : null,
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+              <View key={section.id} style={styles.cardFull}>
+                <Text style={cardTitleStyle}>{section.title}</Text>
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.eduItem}>
+                    <Text style={styles.degreeText}>{item.title}</Text>
+                    {item.subtitle ? <Text style={styles.schoolText}>{item.subtitle}</Text> : null}
+                    {item.date ? <Text style={styles.certMeta}>{item.date}</Text> : null}
+                    {item.description ? (
+                      <Text style={styles.bodyText}>{item.description}</Text>
+                    ) : null}
+                  </View>
+                ))}
+              </View>
+              ))
+          )}
         </View>
       </Page>
     </Document>

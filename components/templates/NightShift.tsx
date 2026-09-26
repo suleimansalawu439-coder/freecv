@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -189,14 +190,17 @@ export default function NightShift({ data }: TemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
+        {orderSections(data, {
+          personal: (
+            <View style={styles.header}>
           <Text style={styles.name}>{pi.fullName}</Text>
           {pi.jobTitle ? <Text style={[styles.jobTitle, { color: themeColor }]}>{pi.jobTitle}</Text> : null}
           {contactLine ? <Text style={styles.contact}>{contactLine}</Text> : null}
           {data.summary ? <Text style={styles.summaryText}>{data.summary}</Text> : null}
-        </View>
+            </View>
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Certifications &amp; Licenses</Text>
             <View style={styles.certGrid}>
@@ -209,9 +213,9 @@ export default function NightShift({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Work Experience</Text>
             {data.experience.map((exp) => (
@@ -229,9 +233,9 @@ export default function NightShift({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Skills</Text>
             <View style={styles.tagsContainer}>
@@ -245,9 +249,9 @@ export default function NightShift({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Education</Text>
             {data.education.map((edu) => (
@@ -260,9 +264,9 @@ export default function NightShift({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>Projects</Text>
             {data.projects.map((proj) => (
@@ -273,9 +277,9 @@ export default function NightShift({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: themeColor }]}>References</Text>
             <View style={styles.refGrid}>
@@ -292,13 +296,11 @@ export default function NightShift({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <Text style={[styles.sectionTitle, { color: themeColor }]}>{section.title}</Text>
                   {section.items.map((item) => (
@@ -312,8 +314,8 @@ export default function NightShift({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

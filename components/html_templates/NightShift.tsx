@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function NightShift({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -8,6 +9,8 @@ export default function NightShift({ data }: { data: ResumeData }) {
   return (
     <div className="font-sans w-full max-w-[816px] mx-auto bg-white text-neutral-800 min-h-[1056px] p-14">
       {/* Calm, trustworthy header */}
+      {orderSections(data, {
+        personal: (
       <header className="text-center mb-12 pb-10 border-b-2 border-neutral-200">
         <h1 className="text-4xl font-bold tracking-tight text-neutral-900">{pi.fullName}</h1>
         {pi.jobTitle && (
@@ -18,9 +21,12 @@ export default function NightShift({ data }: { data: ResumeData }) {
           <p className="mt-6 text-base leading-loose text-neutral-700 max-w-[640px] mx-auto">{data.summary}</p>
         )}
       </header>
+        ),
+      })}
 
       {/* Certifications & Licenses first */}
-      {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+      {orderSections(data, {
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">Certifications &amp; Licenses</h2>
           <div className="grid grid-cols-2 gap-5">
@@ -36,10 +42,9 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience — facility-forward */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">Work Experience</h2>
           <div className="space-y-10">
@@ -63,10 +68,9 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Skills as clinical tags */}
-      {data.skills && data.skills.length > 0 && (
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">Skills</h2>
           <div className="flex flex-wrap gap-3">
@@ -84,10 +88,9 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education */}
-      {data.education && data.education.length > 0 && (
+        education: data.education && data.education.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">Education</h2>
           <div className="space-y-6">
@@ -104,10 +107,9 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">Projects</h2>
           <div className="space-y-7">
@@ -126,10 +128,9 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        references: data.showReferences && data.references && data.references.length > 0 && (
         <section className="mb-12">
           <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">References</h2>
           <div className="grid grid-cols-2 gap-6">
@@ -146,14 +147,12 @@ export default function NightShift({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Custom sections */}
-      {data.customSections &&
-        data.customSections.map(
-          section =>
-            section.items &&
-            section.items.length > 0 && (
+      },
+      (data.customSections || [])
+        .filter((section) => section.items && section.items.length > 0)
+        .map((section) => (
               <section key={section.id} className="mb-12">
                 <h2 className="text-xl font-bold text-[var(--theme-color)] mb-6">{section.title}</h2>
                 <div className="space-y-6">
@@ -175,8 +174,8 @@ export default function NightShift({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            )
-        )}
+        ))
+      )}
     </div>
   );
 }

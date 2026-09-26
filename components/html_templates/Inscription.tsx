@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const STONE = '#57534a';
 const STONE_LIGHT = '#8a857a';
@@ -26,6 +27,8 @@ export default function Inscription({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-serif mx-auto px-[1in] py-[0.9in]" style={{ color: STONE }}>
       {/* Header — inscriptional caps */}
+      {orderSections(data, {
+        personal: (
       <header className="text-center mb-10">
         <p className="text-[10px] uppercase tracking-[0.5em] mb-4" style={{ color: STONE_LIGHT }}>
           Curriculum Vitae
@@ -44,15 +47,18 @@ export default function Inscription({ data }: { data: ResumeData }) {
           </p>
         )}
       </header>
+        ),
+      })}
 
-      {data.summary && (
+      {orderSections(data, {
+        personal: data.summary && (
         <section className="mb-8">
           <SectionHeader title="Profile" />
           <p className="text-sm leading-relaxed text-center max-w-[5.5in] mx-auto">{data.summary}</p>
         </section>
-      )}
+        ),
 
-      {data.experience.length > 0 && (
+        experience: data.experience.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Experience" />
           <div className="space-y-6">
@@ -76,9 +82,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.education.length > 0 && (
+        education: data.education.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Education" />
           <div className="space-y-4 text-center">
@@ -92,18 +98,18 @@ export default function Inscription({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.skills.length > 0 && (
+        skills: data.skills.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Skills" />
           <p className="text-sm text-center uppercase tracking-[0.22em] leading-loose">
             {data.skills.map((s) => s.name).join('   ·   ')}
           </p>
         </section>
-      )}
+        ),
 
-      {data.showProjects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Projects" />
           <div className="space-y-4 text-center">
@@ -115,9 +121,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showCertifications && data.certifications.length > 0 && (
+        certifications: data.showCertifications && data.certifications.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="Certifications" />
           <div className="space-y-2 text-center">
@@ -129,9 +135,9 @@ export default function Inscription({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {data.showReferences && data.references.length > 0 && (
+        references: data.showReferences && data.references.length > 0 && (
         <section className="mb-8">
           <SectionHeader title="References" />
           <div className="grid grid-cols-2 gap-4 text-center">
@@ -146,10 +152,11 @@ export default function Inscription({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {data.customSections.map((section) =>
-        section.items.length > 0 ? (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-8">
             <SectionHeader title={section.title} />
             <div className="space-y-4 text-center">
@@ -163,7 +170,7 @@ export default function Inscription({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        ) : null
+          ))
       )}
     </div>
   );

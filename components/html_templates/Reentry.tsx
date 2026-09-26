@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections, isSectionVisible } from '@/lib/template-sections';
 
 export default function Reentry({ data }: { data: ResumeData }) {
   const contactItems = [
@@ -9,41 +10,57 @@ export default function Reentry({ data }: { data: ResumeData }) {
     data.personalInfo.website,
   ].filter(Boolean);
 
+  // Visibility-aware data presence for the fused Education & Certifications visual.
+  const eduVisible =
+    isSectionVisible(data, 'education') &&
+    !!data.education &&
+    data.education.length > 0;
+  const certVisible =
+    isSectionVisible(data, 'certifications') &&
+    data.showCertifications &&
+    !!data.certifications &&
+    data.certifications.length > 0;
+
   return (
     <div className="font-sans p-16 bg-white text-[#2d2a26] min-h-[1056px] w-full max-w-[816px] mx-auto">
-      {/* Header */}
-      <header className="mb-12 text-center">
-        {data.personalInfo.profilePicture && (
-          <img
-            src={data.personalInfo.profilePicture}
-            alt="Profile"
-            className="w-28 h-28 object-cover rounded-full mx-auto mb-6"
-          />
-        )}
-        <h1 className="text-5xl font-bold tracking-tight mb-3">{data.personalInfo.fullName}</h1>
-        {data.personalInfo.jobTitle && (
-          <p className="text-lg font-medium text-gray-500">{data.personalInfo.jobTitle}</p>
-        )}
-        {contactItems.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-5 text-sm text-gray-500">
-            {contactItems.map((item, i) => (
-              <span key={i}>{item}</span>
-            ))}
-          </div>
-        )}
-      </header>
-
-      {/* Profile — the lead section */}
-      {data.summary && (
-        <section className="mb-12">
-          <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">Profile</h2>
-          <p className="text-lg leading-relaxed">{data.summary}</p>
-          <div className="mt-6 h-[3px] w-24 bg-[var(--theme-color)]" />
-        </section>
-      )}
-
       {/* Strengths */}
-      {data.skills && data.skills.length > 0 && (
+      {orderSections(data, {
+        personal: (
+          <>
+            {/* Header */}
+            <header className="mb-12 text-center">
+              {data.personalInfo.profilePicture && (
+                <img
+                  src={data.personalInfo.profilePicture}
+                  alt="Profile"
+                  className="w-28 h-28 object-cover rounded-full mx-auto mb-6"
+                />
+              )}
+              <h1 className="text-5xl font-bold tracking-tight mb-3">{data.personalInfo.fullName}</h1>
+              {data.personalInfo.jobTitle && (
+                <p className="text-lg font-medium text-gray-500">{data.personalInfo.jobTitle}</p>
+              )}
+              {contactItems.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 mt-5 text-sm text-gray-500">
+                  {contactItems.map((item, i) => (
+                    <span key={i}>{item}</span>
+                  ))}
+                </div>
+              )}
+            </header>
+
+            {/* Profile — the lead section */}
+            {data.summary && (
+              <section className="mb-12">
+                <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">Profile</h2>
+                <p className="text-lg leading-relaxed">{data.summary}</p>
+                <div className="mt-6 h-[3px] w-24 bg-[var(--theme-color)]" />
+              </section>
+            )}
+          </>
+        ),
+
+        skills: data.skills && data.skills.length > 0 && (
         <section className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">Strengths</h2>
           <div className="flex flex-wrap gap-2">
@@ -57,10 +74,10 @@ export default function Reentry({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Experience */}
-      {data.experience && data.experience.length > 0 && (
+        experience: data.experience && data.experience.length > 0 && (
+          // Experience
         <section className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">Experience</h2>
           <div className="space-y-8">
@@ -82,10 +99,10 @@ export default function Reentry({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Projects */}
-      {data.showProjects && data.projects && data.projects.length > 0 && (
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects
         <section className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">Projects</h2>
           <div className="space-y-6">
@@ -102,31 +119,28 @@ export default function Reentry({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
+        ),
 
-      {/* Education & Certifications */}
-      {(data.education && data.education.length > 0) ||
-      (data.showCertifications && data.certifications && data.certifications.length > 0) ? (
+        education: eduVisible && (
+          // Education & Certifications (fused visual; each column keeps its own visibility)
         <section className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">
             Education & Certifications
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {data.education && data.education.length > 0 && (
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Education</h3>
-                <div className="space-y-4">
-                  {data.education.map(edu => (
-                    <div key={edu.id}>
-                      <div className="font-bold text-sm">{edu.degree}</div>
-                      <div className="text-sm text-gray-500">{edu.school}</div>
-                      {edu.graduationYear && <div className="text-xs text-gray-400 font-semibold mt-1">{edu.graduationYear}</div>}
-                    </div>
-                  ))}
-                </div>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Education</h3>
+              <div className="space-y-4">
+                {data.education.map(edu => (
+                  <div key={edu.id}>
+                    <div className="font-bold text-sm">{edu.degree}</div>
+                    <div className="text-sm text-gray-500">{edu.school}</div>
+                    {edu.graduationYear && <div className="text-xs text-gray-400 font-semibold mt-1">{edu.graduationYear}</div>}
+                  </div>
+                ))}
               </div>
-            )}
-            {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            </div>
+            {certVisible && (
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Certifications</h3>
                 <div className="space-y-4">
@@ -143,10 +157,34 @@ export default function Reentry({ data }: { data: ResumeData }) {
             )}
           </div>
         </section>
-      ) : null}
+        ),
 
-      {/* References */}
-      {data.showReferences && data.references && data.references.length > 0 && (
+        certifications: !eduVisible && certVisible && (
+          // Certifications alone (education hidden): same fused shell, certs column only
+        <section className="mb-12">
+          <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">
+            Education & Certifications
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Certifications</h3>
+              <div className="space-y-4">
+                {data.certifications.map(cert => (
+                  <div key={cert.id}>
+                    <div className="font-bold text-sm">{cert.name}</div>
+                    <div className="text-sm text-gray-500">
+                      {cert.issuer}{cert.issuer && cert.date ? ' • ' : ''}{cert.date}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+        ),
+
+        references: data.showReferences && data.references && data.references.length > 0 && (
+          // References
         <section className="mb-12">
           <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">References</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -163,11 +201,11 @@ export default function Reentry({ data }: { data: ResumeData }) {
             ))}
           </div>
         </section>
-      )}
-
-      {/* Custom sections */}
-      {data.customSections && data.customSections.map(section => (
-        section.items && section.items.length > 0 && (
+        ),
+      },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
           <section key={section.id} className="mb-12">
             <h2 className="text-sm font-bold uppercase tracking-[0.25em] text-[var(--theme-color)] mb-5">{section.title}</h2>
             <div className="space-y-4">
@@ -185,8 +223,10 @@ export default function Reentry({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )
-      ))}
+          ))
+      )}
+
+      {/* Custom sections */}
     </div>
   );
 }

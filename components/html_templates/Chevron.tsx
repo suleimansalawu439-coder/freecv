@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function RibbonHeader({ title }: { title: string }) {
   return (
@@ -26,6 +27,8 @@ export default function Chevron({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto px-12 py-12">
       {/* Header */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-10 text-center">
         <h1 className="text-4xl font-black tracking-tight mb-2">{info.fullName}</h1>
         {info.jobTitle && (
@@ -48,16 +51,19 @@ export default function Chevron({ data }: { data: ResumeData }) {
           }}
         />
       </header>
+        ),
+      })}
 
       <main className="space-y-9">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <RibbonHeader title="Profile" />
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <RibbonHeader title="Experience" />
             <div className="space-y-7">
@@ -79,9 +85,9 @@ export default function Chevron({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <RibbonHeader title="Education" />
             <div className="space-y-4">
@@ -96,9 +102,9 @@ export default function Chevron({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <RibbonHeader title="Skills" />
             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
@@ -121,9 +127,9 @@ export default function Chevron({ data }: { data: ResumeData }) {
               })}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <RibbonHeader title="Projects" />
             <div className="space-y-4">
@@ -138,9 +144,9 @@ export default function Chevron({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <RibbonHeader title="Certifications" />
             <div className="space-y-3">
@@ -155,10 +161,26 @@ export default function Chevron({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.customSections && data.customSections.length > 0 && data.customSections.map(section => (
-          section.items.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
+          <section>
+            <RibbonHeader title="References" />
+            <div className="grid grid-cols-2 gap-6">
+              {data.references.map(ref => (
+                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
+                  <h3 className="font-bold text-gray-900">{ref.name}</h3>
+                  <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
+                  {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
             <section key={section.id}>
               <RibbonHeader title={section.title} />
               <div className="space-y-4">
@@ -174,22 +196,7 @@ export default function Chevron({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          )
-        ))}
-
-        {data.showReferences && data.references && data.references.length > 0 && (
-          <section>
-            <RibbonHeader title="References" />
-            <div className="grid grid-cols-2 gap-6">
-              {data.references.map(ref => (
-                <div key={ref.id} className="border-l-2 pl-4" style={{ borderColor: 'var(--theme-color)' }}>
-                  <h3 className="font-bold text-gray-900">{ref.name}</h3>
-                  <div className="text-sm text-gray-600">{ref.title} @ {ref.company}</div>
-                  {ref.contact && <div className="text-sm text-gray-500">{ref.contact}</div>}
-                </div>
-              ))}
-            </div>
-          </section>
+          ))
         )}
       </main>
     </div>

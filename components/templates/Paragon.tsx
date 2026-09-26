@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -168,6 +169,9 @@ export default function Paragon({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.nameBlock}>
@@ -204,9 +208,11 @@ export default function Paragon({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Experience — reversed: company first */}
-        {data.experience && data.experience.length > 0 && (
+          // Experience — reversed: company first
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Experience" themeColor={themeColor} />
             {data.experience.map((exp) => (
@@ -236,10 +242,10 @@ export default function Paragon({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Education */}
-        {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Education" themeColor={themeColor} />
             {data.education.map((edu) => (
@@ -254,20 +260,20 @@ export default function Paragon({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Skills — slash separated */}
-        {data.skills && data.skills.length > 0 && (
+        // Skills — slash separated
+        skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Skills" themeColor={themeColor} />
             <Text style={styles.skillsText}>
               {data.skills.map((s) => s.name).join(' / ')}
             </Text>
           </View>
-        )}
+        ),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Projects" themeColor={themeColor} />
             {data.projects.map((proj) => (
@@ -278,10 +284,10 @@ export default function Paragon({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* Certifications */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="Certifications" themeColor={themeColor} />
             {data.certifications.map((cert) => (
@@ -294,10 +300,10 @@ export default function Paragon({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <SectionHeader title="References" themeColor={themeColor} />
             {data.references.map((ref) => (
@@ -310,13 +316,11 @@ export default function Paragon({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
-
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <SectionHeader title={section.title} themeColor={themeColor} />
                 {section.items.map((item) => (
@@ -330,8 +334,8 @@ export default function Paragon({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

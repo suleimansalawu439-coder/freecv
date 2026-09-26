@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 
@@ -189,6 +190,9 @@ export default function Summit({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         {/* Dark header band */}
         <View style={styles.headerBand}>
           <View style={[styles.accentBar, { backgroundColor: themeColor }]} />
@@ -204,17 +208,26 @@ export default function Summit({ data }: { data: ResumeData }) {
             </View>
           )}
         </View>
+            </>
+          ),
+          },
+        )}
 
         {/* Body */}
         <View style={styles.body}>
+          {orderSections(data, {
+            personal: (
+              <>
           {data.summary ? (
             <View style={styles.section}>
               {sectionHeader('Summary')}
               <Text style={styles.summaryText}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View style={styles.section}>
               {sectionHeader('Experience')}
               {data.experience.map((exp) => (
@@ -237,9 +250,9 @@ export default function Summit({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View style={styles.section}>
               {sectionHeader('Education')}
               {data.education.map((edu) => (
@@ -254,9 +267,9 @@ export default function Summit({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View style={styles.section}>
               {sectionHeader('Skills')}
               <View style={styles.pillsRow}>
@@ -267,9 +280,9 @@ export default function Summit({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View style={styles.section}>
               {sectionHeader('Projects')}
               {data.projects.map((proj) => (
@@ -284,9 +297,9 @@ export default function Summit({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View style={styles.section}>
               {sectionHeader('Certifications')}
               {data.certifications.map((cert) => (
@@ -301,12 +314,26 @@ export default function Summit({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.customSections &&
-            data.customSections.length > 0 &&
-            data.customSections.map((section) =>
-              section.items && section.items.length > 0 ? (
+            references: data.showReferences && data.references && data.references.length > 0 && (
+            <View style={styles.section} wrap={false}>
+              {sectionHeader('References')}
+              <View style={styles.refGrid}>
+                {data.references.map((ref) => (
+                  <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
+                    <Text style={styles.refName}>{ref.name}</Text>
+                    <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
+                    {ref.contact ? <Text style={styles.refContact}>{ref.contact}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                 <View key={section.id} style={styles.section}>
                   {sectionHeader(section.title)}
                   {section.items.map((item) => (
@@ -322,22 +349,7 @@ export default function Summit({ data }: { data: ResumeData }) {
                     </View>
                   ))}
                 </View>
-              ) : null
-            )}
-
-          {data.showReferences && data.references && data.references.length > 0 && (
-            <View style={styles.section} wrap={false}>
-              {sectionHeader('References')}
-              <View style={styles.refGrid}>
-                {data.references.map((ref) => (
-                  <View key={ref.id} style={[styles.refCard, { borderLeftColor: themeColor }]}>
-                    <Text style={styles.refName}>{ref.name}</Text>
-                    <Text style={styles.refTitle}>{ref.title} @ {ref.company}</Text>
-                    {ref.contact ? <Text style={styles.refContact}>{ref.contact}</Text> : null}
-                  </View>
-                ))}
-              </View>
-            </View>
+              ))
           )}
         </View>
       </Page>

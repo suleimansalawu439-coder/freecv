@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const styles = StyleSheet.create({
   page: {
@@ -189,6 +190,9 @@ export default function Paper({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.headerBlock}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
@@ -202,8 +206,11 @@ export default function Paper({ data }: { data: ResumeData }) {
             <Text style={styles.summary}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View>
             <SectionHeader title="Experience" />
             {data.experience.map((exp) => (
@@ -225,9 +232,10 @@ export default function Paper({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+        // Education
+        education: data.education && data.education.length > 0 && (
           <View>
             <SectionHeader title="Education" />
             {data.education.map((edu) => (
@@ -240,16 +248,18 @@ export default function Paper({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+        // Skills
+        skills: data.skills && data.skills.length > 0 && (
           <View>
             <SectionHeader title="Skills" />
             <Text style={styles.skillsText}>{data.skills.map((s) => s.name).join(',  ')}</Text>
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+        // Projects
+        projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View>
             <SectionHeader title="Projects" />
             {data.projects.map((proj) => (
@@ -262,9 +272,10 @@ export default function Paper({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+        // Certifications
+        certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View>
             <SectionHeader title="Certifications" />
             {data.certifications.map((cert) => (
@@ -277,9 +288,10 @@ export default function Paper({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+        // References
+        references: data.showReferences && data.references && data.references.length > 0 && (
           <View>
             <SectionHeader title="References" />
             <View style={styles.refGrid}>
@@ -295,28 +307,26 @@ export default function Paper({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
-                <View key={section.id}>
-                  <SectionHeader title={section.title} />
-                  {section.items.map((item) => (
-                    <View key={item.id} style={styles.expItem}>
-                      <View style={styles.expHeaderRow}>
-                        <Text style={styles.customTitle}>{item.title}</Text>
-                        {item.date ? <Text style={styles.dates}>{item.date}</Text> : null}
-                      </View>
-                      {item.subtitle ? <Text style={styles.customSubtitle}>{item.subtitle}</Text> : null}
-                      {item.description ? <Text style={styles.customDesc}>{item.description}</Text> : null}
+        ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
+              <View key={section.id}>
+                <SectionHeader title={section.title} />
+                {section.items.map((item) => (
+                  <View key={item.id} style={styles.expItem}>
+                    <View style={styles.expHeaderRow}>
+                      <Text style={styles.customTitle}>{item.title}</Text>
+                      {item.date ? <Text style={styles.dates}>{item.date}</Text> : null}
                     </View>
-                  ))}
-                </View>
-              )
-          )}
+                    {item.subtitle ? <Text style={styles.customSubtitle}>{item.subtitle}</Text> : null}
+                    {item.description ? <Text style={styles.customDesc}>{item.description}</Text> : null}
+                  </View>
+                ))}
+              </View>
+            ))
+        )}
       </Page>
     </Document>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const DEFAULT_THEME_COLOR = '#2563eb';
 const DARK = '#14181f';
@@ -222,22 +223,34 @@ export default function Spotlight({ data }: { data: ResumeData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.band}>
           {info.fullName ? <Text style={styles.name}>{info.fullName}</Text> : null}
           {info.jobTitle ? <Text style={styles.jobTitle}>{info.jobTitle}</Text> : null}
           {contact ? <Text style={styles.contact}>{contact}</Text> : null}
           <View style={[styles.spotBar, { backgroundColor: themeColor }]} />
         </View>
+            </>
+          ),
+          },
+        )}
 
         <View style={styles.body}>
+          {orderSections(data, {
+            personal: (
+              <>
           {data.summary ? (
             <View>
               <SectionHeader title="Profile" themeColor={themeColor} />
               <Text style={styles.summary}>{data.summary}</Text>
             </View>
           ) : null}
+              </>
+            ),
 
-          {data.experience && data.experience.length > 0 && (
+            experience: data.experience && data.experience.length > 0 && (
             <View>
               <SectionHeader title="Experience" themeColor={themeColor} />
               {data.experience.map((exp) => (
@@ -259,9 +272,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.education && data.education.length > 0 && (
+            education: data.education && data.education.length > 0 && (
             <View>
               <SectionHeader title="Education" themeColor={themeColor} />
               {data.education.map((edu) => (
@@ -274,9 +287,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.skills && data.skills.length > 0 && (
+            skills: data.skills && data.skills.length > 0 && (
             <View>
               <SectionHeader title="Skills" themeColor={themeColor} />
               <View style={styles.skillGrid}>
@@ -298,9 +311,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
+          ),
 
-          {data.showProjects && data.projects && data.projects.length > 0 && (
+            projects: data.showProjects && data.projects && data.projects.length > 0 && (
             <View>
               <SectionHeader title="Projects" themeColor={themeColor} />
               {data.projects.map((proj) => (
@@ -313,9 +326,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+            certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
             <View>
               <SectionHeader title="Certifications" themeColor={themeColor} />
               {data.certifications.map((cert) => (
@@ -328,9 +341,9 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 </View>
               ))}
             </View>
-          )}
+          ),
 
-          {data.showReferences && data.references && data.references.length > 0 && (
+            references: data.showReferences && data.references && data.references.length > 0 && (
             <View>
               <SectionHeader title="References" themeColor={themeColor} />
               <View style={styles.refGrid}>
@@ -346,13 +359,11 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                 ))}
               </View>
             </View>
-          )}
-
-          {data.customSections &&
-            data.customSections.map(
-              (section) =>
-                section.items &&
-                section.items.length > 0 && (
+          ),
+            },
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
                   <View key={section.id}>
                     <SectionHeader title={section.title} themeColor={themeColor} />
                     {section.items.map((item) => (
@@ -366,8 +377,8 @@ export default function Spotlight({ data }: { data: ResumeData }) {
                       </View>
                     ))}
                   </View>
-                )
-            )}
+              ))
+          )}
         </View>
       </Page>
     </Document>

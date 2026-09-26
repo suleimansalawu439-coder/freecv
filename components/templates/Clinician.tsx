@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Link } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 const CLINICAL_BLUE = '#2563EB';
 const CLINICAL_BLUE_DARK = '#1D4ED8';
@@ -225,6 +226,9 @@ export default function Clinician({ data }: { data: ResumeData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           {data.personalInfo.fullName ? (
             <Text style={styles.name}>{data.personalInfo.fullName}</Text>
@@ -251,9 +255,11 @@ export default function Clinician({ data }: { data: ResumeData }) {
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {/* Certifications — credential-forward */}
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          // Certifications — credential-forward
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Certifications & Licenses</Text>
             {data.certifications.map((cert) => (
@@ -267,10 +273,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Skills */}
-        {data.skills && data.skills.length > 0 && (
+          // Skills
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Clinical & Technical Skills</Text>
             <View style={styles.skillsList}>
@@ -282,10 +288,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
+          ),
 
-        {/* Experience */}
-        {data.experience && data.experience.length > 0 && (
+          // Experience
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Professional Experience</Text>
             {data.experience.map((exp) => (
@@ -311,10 +317,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Education */}
-        {data.education && data.education.length > 0 && (
+          // Education
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Education</Text>
             {data.education.map((edu) => (
@@ -327,10 +333,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* Projects */}
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          // Projects
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Projects</Text>
             {data.projects.map((proj) => (
@@ -347,10 +353,10 @@ export default function Clinician({ data }: { data: ResumeData }) {
               </View>
             ))}
           </View>
-        )}
+          ),
 
-        {/* References */}
-        {data.showReferences && data.references && data.references.length > 0 && (
+          // References
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section} wrap={false}>
             <Text style={styles.sectionTitle}>References</Text>
             <View style={styles.refGrid}>
@@ -363,13 +369,12 @@ export default function Clinician({ data }: { data: ResumeData }) {
               ))}
             </View>
           </View>
-        )}
-
-        {/* Custom sections */}
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map((section) =>
-            section.items && section.items.length > 0 ? (
+          ),
+        },
+          // Custom sections
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
               <View key={section.id} style={styles.section}>
                 <Text style={styles.sectionTitle}>{section.title}</Text>
                 {section.items.map((item) => (
@@ -389,8 +394,8 @@ export default function Clinician({ data }: { data: ResumeData }) {
                   </View>
                 ))}
               </View>
-            ) : null
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

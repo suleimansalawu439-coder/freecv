@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -213,14 +214,24 @@ export default function SwissGrid({ data }: TemplateProps) {
       <Page size="A4" style={styles.page}>
         <View style={[styles.topBorder, { backgroundColor: themeColor }]} />
 
+        {orderSections(data, {
+          personal: (
+            <>
         <View style={styles.header}>
           <Text style={styles.name}>{data.personalInfo.fullName}</Text>
           <Text style={styles.jobTitle}>{data.personalInfo.jobTitle}</Text>
         </View>
+            </>
+          ),
+          },
+        )}
 
         <View style={styles.mainGrid}>
           {/* Left Column */}
           <View style={styles.leftCol}>
+            {orderSections(data, {
+              personal: (
+                <>
             <View style={styles.section}>
               <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Contact</Text></View>
               <View style={styles.contactList}>
@@ -229,8 +240,10 @@ export default function SwissGrid({ data }: TemplateProps) {
                 {data.personalInfo.location && <Text style={styles.contactItem}>{data.personalInfo.location}</Text>}
               </View>
             </View>
+                </>
+              ),
 
-            {data.education && data.education.length > 0 && (
+              education: data.education && data.education.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Education</Text></View>
                 <View style={styles.eduList}>
@@ -243,9 +256,9 @@ export default function SwissGrid({ data }: TemplateProps) {
                   ))}
                 </View>
               </View>
-            )}
+            ),
 
-            {data.skills && data.skills.length > 0 && (
+              skills: data.skills && data.skills.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Skills</Text></View>
                 <View style={styles.skillsContainer}>
@@ -254,19 +267,26 @@ export default function SwissGrid({ data }: TemplateProps) {
                   ))}
                 </View>
               </View>
+            ),
+              },
             )}
           </View>
 
           {/* Right Column */}
           <View style={styles.rightCol}>
+            {orderSections(data, {
+              personal: (
+                <>
             {data.summary && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Profile</Text></View>
                 <Text style={styles.summaryText}>{data.summary}</Text>
               </View>
             )}
+                </>
+              ),
 
-            {data.experience && data.experience.length > 0 && (
+              experience: data.experience && data.experience.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>Experience</Text></View>
                 <View style={styles.expList}>
@@ -285,9 +305,9 @@ export default function SwissGrid({ data }: TemplateProps) {
                   ))}
                 </View>
               </View>
-            )}
+            ),
 
-            {data.showReferences && data.references && data.references.length > 0 && (
+              references: data.showReferences && data.references && data.references.length > 0 && (
               <View style={styles.section}>
                 <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>References</Text></View>
                 <View style={styles.refGrid}>
@@ -300,13 +320,11 @@ export default function SwissGrid({ data }: TemplateProps) {
                   ))}
                 </View>
               </View>
-            )}
-
-            {data.customSections &&
-              data.customSections.map(
-                (section) =>
-                  section.items &&
-                  section.items.length > 0 && (
+            ),
+              },
+              (data.customSections || [])
+                .filter((section) => section.items && section.items.length > 0)
+                .map((section) => (
                     <View key={section.id} style={styles.section}>
                       <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}><Text style={[styles.sectionTitleText, { color: themeColor }]}>{section.title}</Text></View>
                       <View style={{ gap: 8 }}>
@@ -324,8 +342,8 @@ export default function SwissGrid({ data }: TemplateProps) {
                         ))}
                       </View>
                     </View>
-                  )
-              )}
+                ))
+            )}
           </View>
         </View>
       </Page>

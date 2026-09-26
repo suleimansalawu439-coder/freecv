@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -28,6 +29,8 @@ export default function Canvas({ data }: { data: ResumeData }) {
   return (
     <div className="font-sans w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white text-gray-900 px-12 py-12">
       {/* Header: oversized creative name + thick theme underline bar */}
+      {orderSections(data, {
+        personal: (
       <header className="mb-12">
         {data.personalInfo.fullName && (
           <h1 className="text-6xl font-black tracking-tight text-black leading-none">
@@ -48,17 +51,20 @@ export default function Canvas({ data }: { data: ResumeData }) {
           </div>
         )}
       </header>
+        ),
+      })}
 
       {/* Disciplined body */}
       <div className="space-y-10">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionTitle>Summary</SectionTitle>
             <p className="text-sm leading-relaxed text-gray-700">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <section>
             <SectionTitle>Experience</SectionTitle>
             <div className="space-y-7">
@@ -86,9 +92,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <section>
             <SectionTitle>Education</SectionTitle>
             <div className="space-y-4">
@@ -103,9 +109,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <section>
             <SectionTitle>Skills</SectionTitle>
             <div className="flex flex-wrap gap-2">
@@ -120,9 +126,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionTitle>Projects</SectionTitle>
             <div className="space-y-5">
@@ -150,9 +156,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionTitle>Certifications</SectionTitle>
             <div className="space-y-3">
@@ -171,9 +177,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section>
             <SectionTitle>References</SectionTitle>
             <div className="grid grid-cols-2 gap-6">
@@ -192,12 +198,11 @@ export default function Canvas({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.length > 0 &&
-          data.customSections.map(section =>
-            section.items && section.items.length > 0 ? (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
               <section key={section.id}>
                 <SectionTitle>{section.title}</SectionTitle>
                 <div className="space-y-4">
@@ -221,8 +226,9 @@ export default function Canvas({ data }: { data: ResumeData }) {
                   ))}
                 </div>
               </section>
-            ) : null
-          )}
+          ))
+        )}
+
       </div>
     </div>
   );

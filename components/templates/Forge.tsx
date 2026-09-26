@@ -1,6 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 interface TemplateProps {
   data: ResumeData;
@@ -227,16 +228,24 @@ export default function Forge({ data }: TemplateProps) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={[styles.topBar, { backgroundColor: themeColor }]} />
+        {orderSections(data, {
+          personal: (
+            <>
         <Text style={styles.name}>{pi.fullName}</Text>
+
         {pi.jobTitle ? <Text style={styles.jobTitle}>{pi.jobTitle}</Text> : null}
+
         {contactLine ? <Text style={styles.contact}>{contactLine}</Text> : null}
+
         {data.summary ? (
           <View style={[styles.summaryBox, { borderLeftColor: themeColor }]}>
             <Text style={styles.summaryText}>{data.summary}</Text>
           </View>
         ) : null}
+            </>
+          ),
 
-        {hasCerts && (
+          certifications: hasCerts && (
           <View style={styles.certStrip}>
             <View style={[styles.certStripTint, { backgroundColor: themeColor }]} />
             <Text style={styles.certStripTitle}>Certifications &amp; Licenses</Text>
@@ -250,9 +259,9 @@ export default function Forge({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={styles.sectionTitleText}>Work Experience</Text>
@@ -272,9 +281,9 @@ export default function Forge({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={styles.sectionTitleText}>Skills</Text>
@@ -287,9 +296,9 @@ export default function Forge({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
+        ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={styles.sectionTitleText}>Education</Text>
@@ -304,9 +313,9 @@ export default function Forge({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={styles.sectionTitleText}>Projects</Text>
@@ -319,9 +328,9 @@ export default function Forge({ data }: TemplateProps) {
               </View>
             ))}
           </View>
-        )}
+        ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
               <Text style={styles.sectionTitleText}>References</Text>
@@ -340,13 +349,11 @@ export default function Forge({ data }: TemplateProps) {
               ))}
             </View>
           </View>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+        ),
+          },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
                 <View key={section.id} style={styles.section}>
                   <View style={[styles.sectionTitleContainer, { borderBottomColor: themeColor }]}>
                     <Text style={styles.sectionTitleText}>{section.title}</Text>
@@ -362,8 +369,8 @@ export default function Forge({ data }: TemplateProps) {
                     </View>
                   ))}
                 </View>
-              )
-          )}
+            ))
+        )}
       </Page>
     </Document>
   );

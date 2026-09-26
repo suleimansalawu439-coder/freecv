@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 // Clarity — accessibility-first, high-contrast resume.
 // Black (#000) text on white, large base type, extra section spacing,
@@ -25,6 +26,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
 
   return (
     <div className="w-full max-w-[816px] mx-auto bg-white text-black font-sans p-14 min-h-[1056px]">
+      {orderSections(data, {
+        personal: (
+          <>
       <header className="flex items-start gap-8">
         {personalInfo.profilePicture && (
           <img
@@ -60,16 +64,20 @@ export default function Clarity({ data }: { data: ResumeData }) {
           </a>
         )}
       </div>
+          </>
+        ),
+      })}
 
       <div className="space-y-14 mt-14">
-        {data.summary && (
+        {orderSections(data, {
+          personal: data.summary && (
           <section>
             <SectionTitle>Profile</SectionTitle>
             <p className="text-lg leading-relaxed">{data.summary}</p>
           </section>
-        )}
+          ),
 
-        {data.experience && data.experience.length > 0 && (
+          experience: data.experience && data.experience.length > 0 && (
           <section>
             <SectionTitle>Experience</SectionTitle>
             <div>
@@ -92,9 +100,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills && data.skills.length > 0 && (
+          skills: data.skills && data.skills.length > 0 && (
           <section>
             <SectionTitle>Skills</SectionTitle>
             <div className="flex flex-wrap gap-3">
@@ -108,9 +116,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects && data.projects.length > 0 && (
           <section>
             <SectionTitle>Projects</SectionTitle>
             <div>
@@ -134,9 +142,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education && data.education.length > 0 && (
+          education: data.education && data.education.length > 0 && (
           <section>
             <SectionTitle>Education</SectionTitle>
             <div>
@@ -151,9 +159,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications && data.certifications.length > 0 && (
           <section>
             <SectionTitle>Certifications</SectionTitle>
             <ul className="space-y-4">
@@ -166,9 +174,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </ul>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references && data.references.length > 0 && (
+          references: data.showReferences && data.references && data.references.length > 0 && (
           <section>
             <SectionTitle>References</SectionTitle>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -187,13 +195,11 @@ export default function Clarity({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections &&
-          data.customSections.map(
-            (section) =>
-              section.items &&
-              section.items.length > 0 && (
+          ),
+        },
+        (data.customSections || [])
+          .filter((section) => section.items && section.items.length > 0)
+          .map((section) => (
                 <section key={section.id}>
                   <SectionTitle>{section.title}</SectionTitle>
                   <div className="space-y-6">
@@ -215,8 +221,9 @@ export default function Clarity({ data }: { data: ResumeData }) {
                     ))}
                   </div>
                 </section>
-              )
-          )}
+          ))
+        )}
+
       </div>
     </div>
   );

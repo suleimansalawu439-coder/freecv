@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData, Experience, Education, Skill, Project, Certification, Reference, CustomSection } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 function MirrorHeader({ title }: { title: string }) {
   return (
@@ -108,70 +109,86 @@ export default function Split({ data }: { data: ResumeData }) {
   return (
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       {/* Full-width header */}
-      <header className="px-12 pt-10 pb-6 border-b-4" style={{ borderColor: 'var(--theme-color)' }}>
-        <h1 className="text-4xl font-black tracking-tight mb-1">{info.fullName}</h1>
-        {info.jobTitle && (
-          <p className="text-base font-bold mb-3" style={{ color: 'var(--theme-color)' }}>{info.jobTitle}</p>
-        )}
-        {contactItems.length > 0 && (
-          <p className="text-xs text-gray-600">{contactItems.join('  •  ')}</p>
-        )}
-        {data.summary && (
-          <p className="text-[13px] leading-relaxed text-gray-700 mt-4 max-w-3xl">{data.summary}</p>
-        )}
-      </header>
+      {orderSections(data, {
+        personal: (
+          <header className="px-12 pt-10 pb-6 border-b-4" style={{ borderColor: 'var(--theme-color)' }}>
+            <h1 className="text-4xl font-black tracking-tight mb-1">{info.fullName}</h1>
+            {info.jobTitle && (
+              <p className="text-base font-bold mb-3" style={{ color: 'var(--theme-color)' }}>{info.jobTitle}</p>
+            )}
+            {contactItems.length > 0 && (
+              <p className="text-xs text-gray-600">{contactItems.join('  •  ')}</p>
+            )}
+            {data.summary && (
+              <p className="text-[13px] leading-relaxed text-gray-700 mt-4 max-w-3xl">{data.summary}</p>
+            )}
+          </header>
+        ),
+      })}
 
       {/* Even mirror split */}
       <div className="flex px-12 py-8 gap-10">
         {/* Left column: career */}
         <div className="w-1/2">
-          {data.experience.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="Experience" />
-              {data.experience.map((exp) => <ExpBlock key={exp.id} exp={exp} />)}
-            </section>
-          )}
-          {data.showProjects && data.projects.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="Projects" />
-              {data.projects.map((proj) => <ProjectBlock key={proj.id} proj={proj} />)}
-            </section>
-          )}
+          {orderSections(data, {
+            experience: data.experience.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="Experience" />
+                {data.experience.map((exp) => <ExpBlock key={exp.id} exp={exp} />)}
+              </section>
+            ),
+            projects: data.showProjects && data.projects.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="Projects" />
+                {data.projects.map((proj) => <ProjectBlock key={proj.id} proj={proj} />)}
+              </section>
+            ),
+          })}
         </div>
 
         {/* Right column: credentials */}
         <div className="w-1/2">
-          {data.skills.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="Skills" />
-              <SkillPills skills={data.skills} />
-            </section>
-          )}
-          {data.education.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="Education" />
-              {data.education.map((edu) => <EduBlock key={edu.id} edu={edu} />)}
-            </section>
-          )}
-          {data.showCertifications && data.certifications.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="Certifications" />
-              {data.certifications.map((cert) => <CertBlock key={cert.id} cert={cert} />)}
-            </section>
-          )}
-          {data.showReferences && data.references.length > 0 && (
-            <section className="mb-6">
-              <MirrorHeader title="References" />
-              {data.references.map((ref) => <RefBlock key={ref.id} ref={ref} />)}
-            </section>
-          )}
+          {orderSections(data, {
+            skills: data.skills.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="Skills" />
+                <SkillPills skills={data.skills} />
+              </section>
+            ),
+            education: data.education.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="Education" />
+                {data.education.map((edu) => <EduBlock key={edu.id} edu={edu} />)}
+              </section>
+            ),
+            certifications: data.showCertifications && data.certifications.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="Certifications" />
+                {data.certifications.map((cert) => <CertBlock key={cert.id} cert={cert} />)}
+              </section>
+            ),
+            references: data.showReferences && data.references.length > 0 && (
+              <section className="mb-6">
+                <MirrorHeader title="References" />
+                {data.references.map((ref) => <RefBlock key={ref.id} ref={ref} />)}
+              </section>
+            ),
+          })}
         </div>
       </div>
 
       {/* Custom sections full width below */}
       {data.customSections.length > 0 && (
         <div className="px-12 pb-10">
-          {data.customSections.map((section) => <CustomBlock key={section.id} section={section} />)}
+          {orderSections(
+            data,
+            {},
+            (data.customSections || [])
+              .filter((section) => section.items && section.items.length > 0)
+              .map((section) => (
+                <CustomBlock key={section.id} section={section} />
+              ))
+          )}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ResumeData } from '@/store/useResumeStore';
+import { orderSections } from '@/lib/template-sections';
 
 export default function Squeeze({ data }: { data: ResumeData }) {
   const pi = data.personalInfo;
@@ -15,21 +16,26 @@ export default function Squeeze({ data }: { data: ResumeData }) {
     <div className="w-[8.5in] min-w-[8.5in] min-h-[11in] bg-white font-sans text-gray-900 mx-auto">
       <div className="h-[3px]" style={{ backgroundColor: 'var(--theme-color)' }} />
       <div className="px-8 py-6">
-        {/* Inline one-line header */}
-        <div className="text-[15px] leading-snug">
-          <span className="font-bold text-gray-900">{pi.fullName}</span>
-          {pi.jobTitle && <span className="text-gray-700"> | {pi.jobTitle}</span>}
-          {contactBits.length > 0 && <span className="text-gray-500"> | {contactBits.join(' · ')}</span>}
-        </div>
+        {orderSections(data, {
+          personal: (
+            <>
+              {/* Inline one-line header */}
+              <div className="text-[15px] leading-snug">
+                <span className="font-bold text-gray-900">{pi.fullName}</span>
+                {pi.jobTitle && <span className="text-gray-700"> | {pi.jobTitle}</span>}
+                {contactBits.length > 0 && <span className="text-gray-500"> | {contactBits.join(' · ')}</span>}
+              </div>
 
-        {data.summary && (
-          <section>
-            <SectionHead title="Summary" />
-            <p className="text-[13px] leading-snug text-gray-700">{data.summary}</p>
-          </section>
-        )}
+              {data.summary && (
+                <section>
+                  <SectionHead title="Summary" />
+                  <p className="text-[13px] leading-snug text-gray-700">{data.summary}</p>
+                </section>
+              )}
+            </>
+          ),
 
-        {data.experience.length > 0 && (
+          experience: data.experience.length > 0 && (
           <section>
             <SectionHead title="Experience" />
             <div className="space-y-2">
@@ -55,9 +61,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.education.length > 0 && (
+          education: data.education.length > 0 && (
           <section>
             <SectionHead title="Education" />
             <div className="space-y-1">
@@ -70,16 +76,16 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.skills.length > 0 && (
+          skills: data.skills.length > 0 && (
           <section>
             <SectionHead title="Skills" />
             <p className="text-[13px] text-gray-700">{data.skills.map(s => s.name).join(', ')}</p>
           </section>
-        )}
+          ),
 
-        {data.showProjects && data.projects.length > 0 && (
+          projects: data.showProjects && data.projects.length > 0 && (
           <section>
             <SectionHead title="Projects" />
             <div className="space-y-1">
@@ -92,9 +98,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showCertifications && data.certifications.length > 0 && (
+          certifications: data.showCertifications && data.certifications.length > 0 && (
           <section>
             <SectionHead title="Certifications" />
             <div className="space-y-1">
@@ -105,9 +111,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
+          ),
 
-        {data.showReferences && data.references.length > 0 && (
+          references: data.showReferences && data.references.length > 0 && (
           <section>
             <SectionHead title="References" />
             <div className="space-y-1">
@@ -122,10 +128,11 @@ export default function Squeeze({ data }: { data: ResumeData }) {
               ))}
             </div>
           </section>
-        )}
-
-        {data.customSections.length > 0 && data.customSections.map(section =>
-          section.items && section.items.length > 0 ? (
+          ),
+        },
+          (data.customSections || [])
+            .filter((section) => section.items && section.items.length > 0)
+            .map((section) => (
             <section key={section.id}>
               <SectionHead title={section.title} />
               <div className="space-y-1.5">
@@ -141,8 +148,9 @@ export default function Squeeze({ data }: { data: ResumeData }) {
                 ))}
               </div>
             </section>
-          ) : null
+            ))
         )}
+
       </div>
     </div>
   );
