@@ -2,7 +2,7 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
 import {
   buildAtsSystemInstruction,
   buildAtsScoringPrompt,
@@ -152,6 +152,8 @@ export async function POST(req: Request) {
       return NextResponse.json(result);
     } catch (parseError) {
       if (parseError instanceof AiQuotaExhaustedError) throw parseError;
+      if (parseError instanceof AiOverloadedError) throw parseError;
+      if (parseError instanceof AiAccessDeniedError) throw parseError;
       const rawMsg = parseError instanceof Error ? parseError.message : String(parseError);
       logger.error('standalone-ats-score', 'Failed to parse JSON from AI response:', parseError);
       // PII-safe diagnostic: failure kind + model response length only (no resume content).
@@ -168,6 +170,12 @@ export async function POST(req: Request) {
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+    if (error instanceof AiOverloadedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
+    }
+    if (error instanceof AiAccessDeniedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
         return apiError('standalone-ats-score', error);
   }

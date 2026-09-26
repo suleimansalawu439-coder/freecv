@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
 import { Redis } from '@upstash/redis';
-import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
 import {
   buildAtsSystemInstruction,
   buildAtsScoringPrompt,
@@ -84,7 +84,7 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
 
     // Scoring — shared engine: server-verified current date, explicit weighted
     // rubric, date-validation rules, and anti-hallucination output rules.
-    const scoringPrompt = buildAtsScoringPrompt(`RESUME:\n${cleanResume}`);
+    const scoringPrompt = buildAtsScoringPrompt(cleanResume);
     const scoringSysInstruction = buildAtsSystemInstruction(jdAnalysis);
 
     let result: any;
@@ -113,6 +113,8 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
       }
     } catch (parseError) {
       if (parseError instanceof AiQuotaExhaustedError) throw parseError;
+      if (parseError instanceof AiOverloadedError) throw parseError;
+      if (parseError instanceof AiAccessDeniedError) throw parseError;
       const rawMsg = parseError instanceof Error ? parseError.message : String(parseError);
       logger.error('ats-score', 'Failed to parse JSON from AI response after retries:', parseError);
       // PII-safe diagnostic: failure kind + model response length only (no resume content).
@@ -130,6 +132,12 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
+    }
+    if (error instanceof AiOverloadedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
+    }
+    if (error instanceof AiAccessDeniedError) {
+      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
     return apiError('ats-score', error);
   }
