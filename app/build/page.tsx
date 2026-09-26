@@ -11,7 +11,7 @@ import { temporal } from 'zundo';
 import {
   User, Briefcase, GraduationCap, Wrench, Plus, Trash2, Download, X, Eye, Layout,
   FolderOpen, Award, Users, Paintbrush, Sparkles, Loader2, GripVertical, FileText,
-  BarChart3, RefreshCw, Undo2, Redo2, ChevronDown, ZoomIn, ZoomOut, Upload, Share2
+  BarChart3, RefreshCw, Undo2, Redo2, ChevronDown, ZoomIn, ZoomOut, Upload, Share2, Pencil
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
@@ -86,6 +86,59 @@ const Card = ({ children, className }: any) => (
     {children}
   </div>
 );
+
+// Collapsible section wrapper. On desktop (lg+) it always renders expanded
+// with an inert header, so the desktop layout is unchanged. Below lg it
+// behaves as an accordion, turning the long scrolling editor into a compact
+// tappable list of sections on phones.
+const SectionAccordion = ({ id, icon: Icon, title, description, action, onRemove, defaultOpen = false, children }: any) => {
+  const [open, setOpen] = useState(defaultOpen);
+  const toggle = () => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) return;
+    setOpen((o: boolean) => !o);
+  };
+  return (
+    <div>
+      <div className="flex justify-between items-center gap-3 mb-6">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          aria-controls={`section-body-${id}`}
+          className="flex-1 min-w-0 text-left cursor-pointer lg:cursor-default lg:pointer-events-none"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="p-2.5 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] hs-v w-fit shrink-0">
+                <Icon size={20} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="fh font-extrabold text-[#141312] leading-tight tracking-tight">{title}</h3>
+                <p className="fm text-[10px] font-bold uppercase tracking-[0.18em] text-[#141312]/50">{description}</p>
+              </div>
+            </div>
+            <span className={cn("lg:hidden shrink-0 p-2 border-2 border-[#141312] bg-white text-[#141312] transition-transform", open && "rotate-180")}>
+              <ChevronDown size={16} />
+            </span>
+          </div>
+        </button>
+        {(action || onRemove) && (
+          <div className="shrink-0 flex items-center gap-2" onClickCapture={() => setOpen(true)}>
+            {action}
+            {onRemove && (
+              <button onClick={onRemove} className="fm text-[10px] font-bold uppercase tracking-widest text-[#D8362A] border-2 border-[#D8362A] px-3 py-1.5 hover:bg-[#D8362A] hover:text-white transition-colors">
+                Remove
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      <div id={`section-body-${id}`} className={cn(open ? "block" : "hidden", "lg:block")}>
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const HTMLThumbnail = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -542,7 +595,7 @@ export default function FreeCVApp() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <LiveAtsScore />
-              <div className="flex items-center gap-1 border-l-2 border-[#141312]/20 pl-2">
+              <div className="hidden sm:flex items-center gap-1 border-l-2 border-[#141312]/20 pl-2">
                 <button onClick={() => useResumeStore.temporal.getState().undo()} className="p-2 border-2 border-[#141312] bg-white hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors text-[#141312]" title="Undo (Ctrl+Z)">
                   <Undo2 size={16} />
                 </button>
@@ -603,7 +656,7 @@ export default function FreeCVApp() {
           </div>
 
           {/* Theme Color Picker */}
-          <SectionHeader icon={Paintbrush} title="Theme Accent" description="Select a global accent color." />
+          <SectionAccordion id="theme" icon={Paintbrush} title="Theme Accent" description="Select a global accent color.">
           <Card>
             <div className="flex flex-wrap gap-3">
               {['#000000', '#2563eb', '#16a34a', '#dc2626', '#9333ea', '#ea580c', '#0d9488', '#475569'].map((hex) => (
@@ -619,13 +672,14 @@ export default function FreeCVApp() {
               </div>
             </div>
           </Card>
+          </SectionAccordion>
 
           <DragDropContext onDragEnd={onDragEnd}>
 
             <ImportResume />
 
             {/* Personal Info */}
-            <SectionHeader icon={User} title="Personal Identity" description="Who are you and what do you do?" />
+            <SectionAccordion id="personal" icon={User} title="Personal Identity" description="Who are you and what do you do?" defaultOpen>
             <Card>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Full Name" value={data.personalInfo.fullName} onChange={(e: any) => updatePersonalInfo({ fullName: e.target.value })} placeholder="Jane Doe" />
@@ -716,14 +770,11 @@ export default function FreeCVApp() {
                   value={data.summary} onChange={(e) => updateSummary(e.target.value)} />
               </div>
             </Card>
+            </SectionAccordion>
 
             {/* Work Experience */}
-            <div className="flex justify-between items-center mb-6">
-              <SectionHeader icon={Briefcase} title="Professional Experience" description="Showcase your career milestones" />
-              <button onClick={addExperience} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0">
-                <Plus size={18} />
-              </button>
-            </div>
+            <SectionAccordion id="experience" icon={Briefcase} title="Professional Experience" description="Showcase your career milestones"
+              action={<button onClick={addExperience} aria-label="Add experience" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
             <Droppable droppableId="experience" type="experience">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
@@ -773,14 +824,11 @@ export default function FreeCVApp() {
                 </div>
               )}
             </Droppable>
+            </SectionAccordion>
 
             {/* Education */}
-            <div className="flex justify-between items-center mb-6">
-              <SectionHeader icon={GraduationCap} title="Education" description="Where did you learn your craft?" />
-              <button onClick={addEducation} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0">
-                <Plus size={18} />
-              </button>
-            </div>
+            <SectionAccordion id="education" icon={GraduationCap} title="Education" description="Where did you learn your craft?"
+              action={<button onClick={addEducation} aria-label="Add education" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
             <Droppable droppableId="education" type="education">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
@@ -811,9 +859,10 @@ export default function FreeCVApp() {
                 </div>
               )}
             </Droppable>
+            </SectionAccordion>
 
             {/* Skills */}
-            <SectionHeader icon={Wrench} title="Skill Arsenal" description="What tools do you master?" />
+            <SectionAccordion id="skills" icon={Wrench} title="Skill Arsenal" description="What tools do you master?">
             <Card>
               <form onSubmit={handleAddSkill} className="flex gap-2 mb-6">
                 <input
@@ -865,14 +914,12 @@ export default function FreeCVApp() {
                 </div>
               )}
             </div>
+            </SectionAccordion>
 
             {/* Projects */}
             {data.showProjects && (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <SectionHeader icon={FolderOpen} title="Projects" description="Showcase your key projects" onRemove={toggleProjects} />
-                  <button onClick={addProject} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>
-                </div>
+              <SectionAccordion id="projects" icon={FolderOpen} title="Projects" description="Showcase your key projects" onRemove={toggleProjects}
+                action={<button onClick={addProject} aria-label="Add project" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
                 {(data.projects || []).map((proj) => (
                   <Card key={proj.id}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -885,16 +932,13 @@ export default function FreeCVApp() {
                     </button>
                   </Card>
                 ))}
-              </>
+              </SectionAccordion>
             )}
 
             {/* Certifications */}
             {data.showCertifications && (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <SectionHeader icon={Award} title="Certifications" description="Official recognitions" onRemove={toggleCertifications} />
-                  <button onClick={addCertification} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>
-                </div>
+              <SectionAccordion id="certifications" icon={Award} title="Certifications" description="Official recognitions" onRemove={toggleCertifications}
+                action={<button onClick={addCertification} aria-label="Add certification" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
                 {(data.certifications || []).map((cert) => (
                   <Card key={cert.id}>
                     <div className="grid grid-cols-1 gap-4 mb-4">
@@ -907,16 +951,13 @@ export default function FreeCVApp() {
                     </button>
                   </Card>
                 ))}
-              </>
+              </SectionAccordion>
             )}
 
             {/* References */}
             {data.showReferences && (
-              <>
-                <div className="flex justify-between items-center mb-6">
-                  <SectionHeader icon={Users} title="References" description="People who vouch for you" onRemove={toggleReferences} />
-                  <button onClick={addReference} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>
-                </div>
+              <SectionAccordion id="references" icon={Users} title="References" description="People who vouch for you" onRemove={toggleReferences}
+                action={<button onClick={addReference} aria-label="Add reference" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
                 {(data.references || []).map((ref) => (
                   <Card key={ref.id}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -930,7 +971,7 @@ export default function FreeCVApp() {
                     </button>
                   </Card>
                 ))}
-              </>
+              </SectionAccordion>
             )}
 
             {/* Add New Sections */}
@@ -1008,7 +1049,9 @@ export default function FreeCVApp() {
             </div>
 
             {/* Cover Letter Generator */}
-            <CoverLetterTab />
+            <SectionAccordion id="cover-letter" icon={FileText} title="Cover Letter" description="Generate a tailored cover letter.">
+              <CoverLetterTab />
+            </SectionAccordion>
 
             {/* Newsletter */}
             <div className="mt-16 pt-8 border-t-2 border-[#141312]/20">
@@ -1030,14 +1073,27 @@ export default function FreeCVApp() {
         </div>
       </section>
 
-      {/* MOBILE FAB — positioning is inline (not Tailwind utilities) so it
-          can never be dropped by the utility scanner: fixed bottom-center. */}
+      {/* MOBILE EDIT/PREVIEW SWITCH — one pane at a time below lg.
+          Positioning is inline (not Tailwind utilities) so it can never be
+          dropped by the utility scanner: fixed bottom-center. */}
       <div className="lg:hidden fixed z-40 print:hidden w-full max-w-sm px-6"
         style={{ position: 'fixed', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)' }}>
-        <button onClick={() => { trackEvent('milestone_previewed', data.templateId); setIsPreviewOpen(true); }}
-          className="w-full bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] hs px-8 py-4 fh text-sm font-extrabold uppercase tracking-wider flex items-center justify-center gap-3 active:translate-y-[3px] active:shadow-none transition-all">
-          <Eye size={18} /> Preview Resume
-        </button>
+        <div className="grid grid-cols-2 bg-white border-[3px] border-[#141312] hs overflow-hidden" role="tablist" aria-label="Editor view">
+          <button
+            role="tab"
+            aria-selected={!isPreviewOpen}
+            onClick={() => setIsPreviewOpen(false)}
+            className={cn("flex items-center justify-center gap-2 px-4 py-3.5 fm text-xs font-bold uppercase tracking-widest transition-colors", !isPreviewOpen ? "bg-[#141312] text-[#E8E7E1]" : "bg-white text-[#141312]/50 hover:text-[#141312]")}>
+            <Pencil size={15} /> Edit
+          </button>
+          <button
+            role="tab"
+            aria-selected={isPreviewOpen}
+            onClick={() => { trackEvent('milestone_previewed', data.templateId); setIsPreviewOpen(true); }}
+            className={cn("flex items-center justify-center gap-2 px-4 py-3.5 fm text-xs font-bold uppercase tracking-widest transition-colors border-l-[3px] border-[#141312]", isPreviewOpen ? "bg-[#141312] text-[#E8E7E1]" : "bg-white text-[#141312]/50 hover:text-[#141312]")}>
+            <Eye size={15} /> Preview
+          </button>
+        </div>
       </div>
 
       {/* PREVIEW PANEL — NON-STICKY, scrolls naturally with the page */}
