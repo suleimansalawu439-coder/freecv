@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { StoreState, ResumeSlice, ResumeData } from '../types';
+import { StoreState, ResumeSlice, ResumeData, ResumeSectionId, DEFAULT_SECTION_ORDER, ResumeDensity } from '../types';
 
 export const initialData: ResumeData = {
   currentResumeId: null,
@@ -49,7 +49,10 @@ export const initialData: ResumeData = {
     emailJobs: true,
     analytics: true
   },
-  customSections: []
+  customSections: [],
+  sectionVisibility: {},
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
+  density: 'comfortable' as ResumeDensity,
 };
 
 export const createResumeSlice: StateCreator<StoreState, [], [], ResumeSlice> = (set) => ({
@@ -171,4 +174,44 @@ export const createResumeSlice: StateCreator<StoreState, [], [], ResumeSlice> = 
     data: { ...state.data, ...newData }
   })),
   setConsents: (consents) => set((state) => ({ data: { ...state.data, consents: { ...state.data.consents, ...consents } } })),
+
+  // Show/hide a section in the resume output (preview, PDF, DOCX).
+  // The editor accordion stays put — only the output changes.
+  toggleSectionVisibility: (id) => set((state) => ({
+    data: {
+      ...state.data,
+      sectionVisibility: {
+        ...(state.data.sectionVisibility || {}),
+        [id]: (state.data.sectionVisibility || {})[id] === false,
+      },
+    },
+  })),
+
+  // Move a section up/down in the editor order, skipping sections that are
+  // currently removed from the editor (showProjects/showCertifications/
+  // showReferences false). Note: the 181 fixed-layout templates render
+  // sections in their own order — this controls the editor arrangement.
+  moveSection: (id, direction) => set((state) => {
+    const d = state.data;
+    const order: ResumeSectionId[] = [...(d.sectionOrder && d.sectionOrder.length ? d.sectionOrder : DEFAULT_SECTION_ORDER)];
+    for (const sid of DEFAULT_SECTION_ORDER) if (!order.includes(sid)) order.push(sid);
+    const inEditor = (sid: ResumeSectionId) =>
+      sid === 'projects' ? !!d.showProjects
+      : sid === 'certifications' ? !!d.showCertifications
+      : sid === 'references' ? !!d.showReferences
+      : true;
+    const idx = order.indexOf(id);
+    if (idx < 0) return state;
+    const step = direction === 'up' ? -1 : 1;
+    let target = idx + step;
+    while (target >= 0 && target < order.length && !inEditor(order[target])) target += step;
+    if (target < 0 || target >= order.length) return state;
+    const next = [...order];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    return { data: { ...d, sectionOrder: next } };
+  }),
+
+  setDensity: (density) => set((state) => ({
+    data: { ...state.data, density },
+  })),
 });

@@ -67,6 +67,33 @@ export interface Reference {
   contact: string;
 }
 
+// Sections the user can show/hide and reorder in the builder editor.
+// 'personal' covers the identity header + professional summary.
+// 'cover-letter' is editor-only (the generator never renders into the resume
+// document), so it supports ordering but not output visibility.
+export type ResumeSectionId =
+  | 'personal'
+  | 'experience'
+  | 'education'
+  | 'skills'
+  | 'projects'
+  | 'certifications'
+  | 'references'
+  | 'cover-letter';
+
+export const DEFAULT_SECTION_ORDER: ResumeSectionId[] = [
+  'personal',
+  'experience',
+  'education',
+  'skills',
+  'projects',
+  'certifications',
+  'references',
+  'cover-letter',
+];
+
+export type ResumeDensity = 'comfortable' | 'compact';
+
 export interface ResumeData {
   currentResumeId?: string | null;
   resumeTitle?: string;
@@ -92,6 +119,13 @@ export interface ResumeData {
   };
   customSections: CustomSection[];
   atsRecommendations?: any;
+  // Section visibility: id -> false means hidden from resume output
+  // (preview, PDF, DOCX). Missing keys default to visible.
+  sectionVisibility: Record<string, boolean>;
+  // Editor display order of the main sections.
+  sectionOrder: ResumeSectionId[];
+  // Resume output density.
+  density: ResumeDensity;
 }
 
 export interface ResumeSlice {
@@ -135,6 +169,9 @@ export interface ResumeSlice {
   
   setAllData: (data: Partial<ResumeData>) => void;
   setConsents: (consents: Partial<{ recruiterShare: boolean; emailJobs: boolean; analytics: boolean }>) => void;
+  toggleSectionVisibility: (id: ResumeSectionId) => void;
+  moveSection: (id: ResumeSectionId, direction: 'up' | 'down') => void;
+  setDensity: (density: ResumeDensity) => void;
 }
 
 export interface UISlice {

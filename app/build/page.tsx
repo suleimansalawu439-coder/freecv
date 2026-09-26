@@ -9,9 +9,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
 import {
-  User, Briefcase, GraduationCap, Wrench, Plus, Trash2, Download, X, Eye, Layout,
+  User, Briefcase, GraduationCap, Wrench, Plus, Trash2, Download, X, Eye, EyeOff, Layout,
   FolderOpen, Award, Users, Paintbrush, Sparkles, Loader2, GripVertical, FileText,
-  BarChart3, RefreshCw, Undo2, Redo2, ChevronDown, ZoomIn, ZoomOut, Upload, Share2, Pencil
+  BarChart3, RefreshCw, Undo2, Redo2, ChevronDown, ChevronUp, ZoomIn, ZoomOut, Upload, Share2, Pencil, Target
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { clsx, type ClassValue } from 'clsx';
@@ -38,7 +38,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-import { useResumeStore, initialData, type ResumeData, type PersonalInfo, type Experience, type Education, type Skill, type Project, type Certification, type CustomSection, type CustomSectionItem, type Reference } from '@/store/useResumeStore';
+import { useResumeStore, initialData, type ResumeData, type PersonalInfo, type Experience, type Education, type Skill, type Project, type Certification, type CustomSection, type CustomSectionItem, type Reference, type ResumeSectionId, type ResumeDensity, DEFAULT_SECTION_ORDER } from '@/store/useResumeStore';
 import { setRecruiterConsent } from '@/lib/recruiter-api';
 
 // --- Riso primitives ---
@@ -91,7 +91,7 @@ const Card = ({ children, className }: any) => (
 // with an inert header, so the desktop layout is unchanged. Below lg it
 // behaves as an accordion, turning the long scrolling editor into a compact
 // tappable list of sections on phones.
-const SectionAccordion = ({ id, icon: Icon, title, description, action, onRemove, defaultOpen = false, children }: any) => {
+const SectionAccordion = ({ id, icon: Icon, title, description, action, onRemove, tools, defaultOpen = false, children }: any) => {
   const [open, setOpen] = useState(defaultOpen);
   const toggle = () => {
     if (typeof window !== 'undefined' && window.innerWidth >= 1024) return;
@@ -122,6 +122,11 @@ const SectionAccordion = ({ id, icon: Icon, title, description, action, onRemove
             </span>
           </div>
         </button>
+        {tools && (
+          <div className="shrink-0 flex items-center gap-1.5">
+            {tools}
+          </div>
+        )}
         {(action || onRemove) && (
           <div className="shrink-0 flex items-center gap-2" onClickCapture={() => setOpen(true)}>
             {action}
@@ -137,6 +142,34 @@ const SectionAccordion = ({ id, icon: Icon, title, description, action, onRemove
         {children}
       </div>
     </div>
+  );
+};
+
+// Per-section header controls: eye toggle (hide from resume output) plus
+// move up/down. Rendered outside the accordion's own toggle button so they
+// never trigger open/close. `hideEye` omits the visibility toggle for
+// editor-only sections (cover letter) that never render into the output.
+const SectionHeaderTools = ({ id, isHidden, isFirst, isLast, onToggle, onMove, hideEye = false }: {
+  id: ResumeSectionId; isHidden: boolean; isFirst: boolean; isLast: boolean;
+  onToggle: (id: ResumeSectionId) => void; onMove: (id: ResumeSectionId, dir: 'up' | 'down') => void;
+  hideEye?: boolean;
+}) => {
+  const btn = "p-1.5 border-2 border-[#141312] bg-white text-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors disabled:opacity-25 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-[#141312]";
+  return (
+    <>
+      <button type="button" onClick={() => onMove(id, 'up')} disabled={isFirst} title="Move section up" aria-label="Move section up" className={btn}>
+        <ChevronUp size={13} />
+      </button>
+      <button type="button" onClick={() => onMove(id, 'down')} disabled={isLast} title="Move section down" aria-label="Move section down" className={btn}>
+        <ChevronDown size={13} />
+      </button>
+      {!hideEye && (
+        <button type="button" onClick={() => onToggle(id)} title={isHidden ? 'Show section in resume output' : 'Hide section from resume output'} aria-label={isHidden ? 'Show section in resume output' : 'Hide section from resume output'} aria-pressed={isHidden}
+          className={cn(btn, isHidden && "bg-[#141312]/30")}>
+          {isHidden ? <EyeOff size={13} /> : <Eye size={13} />}
+        </button>
+      )}
+    </>
   );
 };
 
@@ -172,7 +205,7 @@ const HTMLPreview = ({ Tmpl, data }: { Tmpl: any, data: any }) => {
     <div ref={containerRef} className="w-full h-full bg-[#E8E7E1] flex justify-center overflow-auto p-4 sm:p-8 cv-riso custom-scrollbar">
       <div
         data-cvyon-template-stage
-        className="bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c"
+        className={cn("bg-white shadow-2xl flex-shrink-0 relative border-[3px] border-[#141312] hs-c", data.density === 'compact' && "density-compact")}
         style={{ width: '816px', height: '1056px', transform: `scale(${scale})`, transformOrigin: 'top center', marginBottom: `-${1056 * (1 - scale)}px`, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
       >
         <Tmpl data={data} themeColor={data.theme?.color || '#2563eb'} />
@@ -201,7 +234,8 @@ export default function FreeCVApp() {
     toggleProjects, addProject, updateProject, removeProject,
     toggleCertifications, addCertification, updateCertification, removeCertification,
     toggleReferences, addReference, updateReference, removeReference, setConsents,
-    reorderExperience, reorderEducation, reorderSkills, setAllData, addCustomSection, updateCustomSectionTitle, removeCustomSection, addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem, reorderCustomSections, reorderCustomSectionItems
+    reorderExperience, reorderEducation, reorderSkills, setAllData, addCustomSection, updateCustomSectionTitle, removeCustomSection, addCustomSectionItem, updateCustomSectionItem, removeCustomSectionItem, reorderCustomSections, reorderCustomSectionItems,
+    toggleSectionVisibility, moveSection, setDensity
   } = useResumeStore();
 
   const data = useMemo(() => ({
@@ -210,8 +244,45 @@ export default function FreeCVApp() {
     certifications: storeData.certifications || [],
     references: storeData.references || [],
     customSections: storeData.customSections || [],
+    sectionVisibility: storeData.sectionVisibility || {},
+    sectionOrder: storeData.sectionOrder && storeData.sectionOrder.length ? storeData.sectionOrder : DEFAULT_SECTION_ORDER,
+    density: storeData.density === 'compact' ? 'compact' : 'comfortable',
     consents: storeData.consents || { recruiterShare: false, emailJobs: false, analytics: false }
   }), [storeData]);
+
+  // Data as rendered in the resume OUTPUT (on-screen preview, print/PDF,
+  // DOCX capture). Sections the user hid via the eye toggle are stripped
+  // here, so every output channel stays consistent from this single point.
+  const previewData = useMemo(() => {
+    const vis = data.sectionVisibility || {};
+    const shown = (id: ResumeSectionId) => vis[id] !== false;
+    const blankPersonal = { fullName: '', jobTitle: '', email: '', phone: '', location: '', website: '', profilePicture: undefined };
+    return {
+      ...data,
+      personalInfo: shown('personal') ? data.personalInfo : blankPersonal,
+      summary: shown('personal') ? data.summary : '',
+      experience: shown('experience') ? data.experience : [],
+      education: shown('education') ? data.education : [],
+      skills: shown('skills') ? data.skills : [],
+      projects: shown('projects') ? data.projects : [],
+      showProjects: data.showProjects && shown('projects'),
+      certifications: shown('certifications') ? data.certifications : [],
+      showCertifications: data.showCertifications && shown('certifications'),
+      references: shown('references') ? data.references : [],
+      showReferences: data.showReferences && shown('references'),
+    };
+  }, [data]);
+
+  // Sections currently present in the editor, in the user's chosen order.
+  // (projects/certifications/references only appear once added.)
+  const editorSectionIds = useMemo(() => {
+    const inEditor = (id: ResumeSectionId) =>
+      id === 'projects' ? data.showProjects
+      : id === 'certifications' ? data.showCertifications
+      : id === 'references' ? data.showReferences
+      : true;
+    return (data.sectionOrder || DEFAULT_SECTION_ORDER).filter(inEditor);
+  }, [data.sectionOrder, data.showProjects, data.showCertifications, data.showReferences]);
 
   const [skillInput, setSkillInput] = useState('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -238,6 +309,13 @@ export default function FreeCVApp() {
     }
   }, [data.atsRecommendations]);
   const [isATSLoading, setIsATSLoading] = useState(false);
+
+  // Tailor-to-job modal state
+  const [isTailorOpen, setIsTailorOpen] = useState(false);
+  const [tailorJobDesc, setTailorJobDesc] = useState('');
+  const [tailorResult, setTailorResult] = useState<any>(null);
+  const [isTailorLoading, setIsTailorLoading] = useState(false);
+  const [tailorApplied, setTailorApplied] = useState<{ summary: boolean; skills: string[]; bullets: number[] }>({ summary: false, skills: [], bullets: [] });
 
   const [isRewriterOpen, setIsRewriterOpen] = useState(false);
   const [rewriteTone, setRewriteTone] = useState('Executive');
@@ -410,9 +488,9 @@ export default function FreeCVApp() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); useResumeStore.temporal.getState().undo(); }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); useResumeStore.temporal.getState().redo(); }
-      // Escape dismisses the ATS grader / AI rewriter overlays (the jobs
+      // Escape dismisses the ATS grader / AI rewriter / tailor overlays (the jobs
       // modal handles its own Escape via its portal).
-      if (e.key === 'Escape') { setIsATSOpen(false); setIsRewriterOpen(false); }
+      if (e.key === 'Escape') { setIsATSOpen(false); setIsRewriterOpen(false); setIsTailorOpen(false); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -435,6 +513,54 @@ export default function FreeCVApp() {
       if (resData.score >= 85) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#0E8A4B', '#2233FF', '#FF4326'] });
     } catch (err: any) { toast.error('ATS Grading failed: ' + err.message); }
     setIsATSLoading(false);
+  };
+
+  // ---- Tailor to Job ----
+  const handleTailor = async () => {
+    if (!tailorJobDesc.trim()) return;
+    setIsTailorLoading(true);
+    setTailorResult(null);
+    setTailorApplied({ summary: false, skills: [], bullets: [] });
+    try {
+      const resumePayload = { ...data, personalInfo: { ...data.personalInfo, profilePicture: undefined } };
+      const res = await fetch('/api/ai/tailor-resume', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ resumeData: resumePayload, jobDescription: tailorJobDesc }) });
+      if (!res.ok) {
+        const text = await res.text(); let errMsg = '';
+        try { const err = JSON.parse(text); errMsg = err.error || `API error: ${res.status}`; } catch (e) { errMsg = text.includes('An error') ? 'The AI request timed out. Please try again.' : `API error: ${res.status}`; }
+        throw new Error(errMsg);
+      }
+      const resData = await res.json();
+      setTailorResult(resData);
+    } catch (err: any) { toast.error('Tailoring failed: ' + err.message); }
+    setIsTailorLoading(false);
+  };
+
+  const applyTailorSummary = () => {
+    if (!tailorResult?.summary) return;
+    updateSummary(tailorResult.summary);
+    setTailorApplied(prev => ({ ...prev, summary: true }));
+    toast.success('Summary updated');
+  };
+
+  const applyTailorSkill = (skill: string) => {
+    addSkill(skill);
+    setTailorApplied(prev => ({ ...prev, skills: [...prev.skills, skill] }));
+    toast.success(`Skill added: ${skill}`);
+  };
+
+  const applyTailorBullet = (index: number) => {
+    const b = tailorResult?.bulletImprovements?.[index];
+    if (!b) return;
+    const exp = data.experience.find(e => e.id === b.experienceId);
+    if (!exp) { toast.error('That experience entry no longer exists.'); return; }
+    // Match the bullet line exactly; the AI was instructed to copy it verbatim.
+    const lines = (exp.description || '').split('\n');
+    const lineIdx = lines.findIndex(l => l.trim() === (b.original || '').trim());
+    if (lineIdx === -1) { toast.error('Could not find the original bullet — it may have been edited.'); return; }
+    lines[lineIdx] = b.improved;
+    updateExperience(b.experienceId, { description: lines.join('\n') });
+    setTailorApplied(prev => ({ ...prev, bullets: [...prev.bullets, index] }));
+    toast.success('Bullet updated');
   };
 
   const handleRewrite = async () => {
@@ -512,11 +638,13 @@ export default function FreeCVApp() {
       // Capture the rendered template (inlined computed styles + table
       // layout) so the DOCX matches the selected template's design. Falls
       // back to the server-side generic builder when capture is unavailable.
-      let body: any = data;
+      // previewData carries the user's section visibility + density, so both
+      // the capture path and the generic fallback stay consistent.
+      let body: any = previewData;
       try {
         const templateHtml = captureTemplateHtml();
         if (templateHtml) {
-          body = { data, templateHtml, templateId: data.templateId };
+          body = { data: previewData, templateHtml, templateId: data.templateId };
         }
       } catch (capErr) {
         console.error('[DOCX] template capture failed, using generic builder:', capErr);
@@ -569,6 +697,320 @@ export default function FreeCVApp() {
   };
 
   if (!isHydrated) return null;
+
+
+  // ---- Editor section blocks: visibility toggles + up/down ordering ----
+  // Each block keeps its own JSX (and mobile accordion state); the editor
+  // renders them in sectionOrder via editorSectionIds below.
+  const makeSectionTools = (id: ResumeSectionId, opts?: { hideEye?: boolean }) => (
+    <SectionHeaderTools
+      id={id}
+      isHidden={data.sectionVisibility[id] === false}
+      isFirst={editorSectionIds[0] === id}
+      isLast={editorSectionIds[editorSectionIds.length - 1] === id}
+      onToggle={toggleSectionVisibility}
+      onMove={moveSection}
+      hideEye={opts?.hideEye}
+    />
+  );
+
+  const sectionBlocks: Record<ResumeSectionId, React.ReactNode> = {
+    personal: (
+    <SectionAccordion id="personal" tools={makeSectionTools('personal')} icon={User} title="Personal Identity" description="Who are you and what do you do?" defaultOpen>
+    <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input label="Full Name" value={data.personalInfo.fullName} onChange={(e: any) => updatePersonalInfo({ fullName: e.target.value })} placeholder="Jane Doe" />
+        <Input label="Job Title" value={data.personalInfo.jobTitle} onChange={(e: any) => updatePersonalInfo({ jobTitle: e.target.value })} placeholder="Senior Designer" />
+        <Input 
+          label="Email" 
+          value={data.personalInfo.email} 
+          onChange={(e: any) => updatePersonalInfo({ email: e.target.value })} 
+          onBlur={() => {
+            if (isRealUserEmail(data.personalInfo?.email)) {
+              fetch('/api/crm/optin', {
+                method: 'POST',
+                keepalive: true,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+              }).catch((e) => console.warn('Email blur sync error', e));
+            }
+          }}
+        />
+        <Input label="Phone" value={data.personalInfo.phone} onChange={(e: any) => updatePersonalInfo({ phone: e.target.value })} />
+        <Input label="Location" value={data.personalInfo.location} onChange={(e: any) => updatePersonalInfo({ location: e.target.value })} />
+        <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e: any) => updatePersonalInfo({ website: e.target.value })} />
+        <div className="col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 border-2 border-[#141312] bg-white hs-sm">
+          <div>
+            <h4 className="fh font-bold text-sm text-[#141312]">Allow recruiters to find my profile</h4>
+            <p className="fm text-[10px] uppercase tracking-[0.14em] text-[#141312]/55">Allow recruiters to find your resume on Cvyon.</p>
+          </div>
+          <button onClick={() => {
+            const newShare = !data.consents.recruiterShare;
+            const nextConsents = { ...data.consents, recruiterShare: newShare };
+            setConsents(nextConsents);
+            if (isRealUserEmail(data.personalInfo.email)) {
+              fetch('/api/crm/optin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...data, consents: nextConsents }),
+              }).catch((e) => console.warn('Background consent sync error', e));
+            }
+          }}
+            role="switch"
+            aria-checked={data.consents.recruiterShare}
+            aria-label="Allow recruiters to find my profile"
+            className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0 border-2 border-[#141312]", data.consents.recruiterShare ? 'bg-[#2233FF]' : 'bg-gray-300')}>
+            <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-6' : 'translate-x-1')} />
+          </button>
+        </div>
+        <div className="col-span-1 sm:col-span-2 mt-2 flex justify-center sm:justify-start">
+          <div className="relative group cursor-pointer">
+            <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => updatePersonalInfo({ profilePicture: reader.result as string });
+                  reader.readAsDataURL(file);
+                }
+              }} />
+            <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#141312]/40 hover:border-[#2233FF] bg-white flex flex-col items-center justify-center overflow-hidden transition-all">
+              {data.personalInfo.profilePicture ? (
+                <img src={data.personalInfo.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <>
+                  <Upload size={24} className='text-[#141312]/40 mb-1' />
+                  <span className="fm text-[9px] font-bold uppercase tracking-wider text-center px-2 text-[#141312]/40">Add Photo</span>
+                </>
+              )}
+            </div>
+            {data.personalInfo.profilePicture && (
+              <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); updatePersonalInfo({ profilePicture: undefined }); }}
+                className="absolute -top-2 -right-2 bg-[#D8362A] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-sm hover:bg-[#141312]">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-1.5">
+          <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">Professional Summary</label>
+          <button onClick={handleGenerateSummary} disabled={isGeneratingSummary}
+            className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50">
+            {isGeneratingSummary ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+            {isGeneratingSummary ? 'Writing...' : 'Generate with AI'}
+          </button>
+        </div>
+        <textarea
+          className="mt-1.5 w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] min-h-[100px] resize-none"
+          value={data.summary} onChange={(e) => updateSummary(e.target.value)} />
+      </div>
+    </Card>
+    </SectionAccordion>
+    ),
+    experience: (
+    <SectionAccordion id="experience" tools={makeSectionTools('experience')} icon={Briefcase} title="Professional Experience" description="Showcase your career milestones"
+      action={<button onClick={addExperience} aria-label="Add experience" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
+    <Droppable droppableId="experience" type="experience">
+      {(provided) => (
+        <div {...provided.droppableProps} ref={provided.innerRef}>
+          {data.experience.map((exp, index) => (
+            <Draggable key={exp.id} draggableId={exp.id} index={index}>
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.draggableProps} className="mb-6 relative group">
+                  <div {...provided.dragHandleProps} className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-[#141312]/30 hover:text-[#141312] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                    <GripVertical size={20} />
+                  </div>
+                  <Card className="mb-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <Input label="Company" value={exp.company} onChange={(e: any) => updateExperience(exp.id, { company: e.target.value })} />
+                      <Input label="Role" value={exp.role} onChange={(e: any) => updateExperience(exp.id, { role: e.target.value })} />
+                      <Input label="Start Date" value={exp.startDate} onChange={(e: any) => updateExperience(exp.id, { startDate: e.target.value })} />
+                      <Input label="End Date" value={exp.endDate} onChange={(e: any) => updateExperience(exp.id, { endDate: e.target.value })} />
+                    </div>
+                    <div className="mb-2">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">Accomplishments (New line per point)</label>
+                        <div className="flex gap-2">
+                          <button onClick={() => handlePolishExperience(exp.id, exp.description)} disabled={polishingExpId === exp.id || !exp.description.trim()}
+                            className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#2233FF] border-2 border-[#2233FF] hover:bg-[#2233FF] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50" title="Polish this text with AI">
+                            {polishingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                            {polishingExpId === exp.id ? 'Polishing...' : 'Polish'}
+                          </button>
+                          <button onClick={() => handleGenerateExperience(exp.id, exp.role, exp.company)} disabled={generatingExpId === exp.id}
+                            className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50">
+                            {generatingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                            {generatingExpId === exp.id ? 'Writing...' : 'Generate with AI'}
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        className="w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] min-h-[100px] resize-none"
+                        value={exp.description} onChange={(e: any) => updateExperience(exp.id, { description: e.target.value })} />
+                    </div>
+                    <button onClick={() => removeExperience(exp.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
+                      <Trash2 size={16} /> Delete Experience
+                    </button>
+                  </Card>
+                </div>
+              )}
+            </Draggable>
+          ))}
+          {provided.placeholder}
+        </div>
+      )}
+    </Droppable>
+    </SectionAccordion>
+    ),
+    education: (
+    <SectionAccordion id="education" tools={makeSectionTools('education')} icon={GraduationCap} title="Education" description="Where did you learn your craft?"
+      action={<button onClick={addEducation} aria-label="Add education" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
+    <Droppable droppableId="education" type="education">
+      {(provided) => (
+        <div {...provided.droppableProps} ref={provided.innerRef}>
+          {data.education.map((edu, index) => (
+            <Draggable key={edu.id} draggableId={edu.id} index={index}>
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.draggableProps} className="mb-6 relative group">
+                  <div {...provided.dragHandleProps} className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-[#141312]/30 hover:text-[#141312] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                    <GripVertical size={20} />
+                  </div>
+                  <Card className="mb-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="col-span-1 sm:col-span-2">
+                        <Input label="School/University" value={edu.school} onChange={(e: any) => updateEducation(edu.id, { school: e.target.value })} />
+                      </div>
+                      <Input label="Degree" value={edu.degree} onChange={(e: any) => updateEducation(edu.id, { degree: e.target.value })} />
+                      <Input label="Graduation Year" value={edu.graduationYear} onChange={(e: any) => updateEducation(edu.id, { graduationYear: e.target.value })} />
+                    </div>
+                    <button onClick={() => removeEducation(edu.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
+                      <Trash2 size={16} /> Delete Education
+                    </button>
+                  </Card>
+                </div>
+              )}
+            </Draggable>
+          ))}
+          {provided.placeholder}
+        </div>
+      )}
+    </Droppable>
+    </SectionAccordion>
+    ),
+    skills: (
+    <SectionAccordion id="skills" tools={makeSectionTools('skills')} icon={Wrench} title="Skill Arsenal" description="What tools do you master?">
+    <Card>
+      <form onSubmit={handleAddSkill} className="flex gap-2 mb-6">
+        <input
+          className="flex-1 bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF]"
+          placeholder="Add a skill (e.g. TypeScript, AWS)" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} />
+        <button type="submit" className="bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-6 py-3 fm text-sm font-bold uppercase tracking-wider">Add</button>
+      </form>
+      <Droppable droppableId="skills" type="skills" direction="horizontal">
+        {(provided) => (
+          <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-3">
+            {data.skills.map((s, index) => (
+              <Draggable key={s.id} draggableId={s.id} index={index}>
+                {(provided) => (
+                  <div ref={provided.innerRef} {...provided.draggableProps} className="relative flex items-center">
+                    <div {...provided.dragHandleProps} className="absolute left-[-8px] text-[#141312]/30 hover:text-[#141312] cursor-grab active:cursor-grabbing z-10">
+                      <GripVertical size={14} />
+                    </div>
+                    <span className="group flex items-center gap-2 bg-white border-2 border-[#141312] pl-6 pr-2 py-2 fm text-xs font-bold uppercase tracking-wider text-[#141312] transition-all">
+                      {s.name}
+                      <button onClick={() => removeSkill(s.id)} className="p-1 rounded-full text-[#141312]/40 hover:text-[#D8362A] hover:bg-[#D8362A]/10 transition-colors">
+                        <X size={14} />
+                      </button>
+                    </span>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
+    </Card>
+
+    {/* Smart Skill Suggestions */}
+    <div className="mb-6">
+      <button onClick={handleSuggestSkills} disabled={isLoadingSkills || !data.personalInfo.jobTitle}
+        className="flex items-center gap-2 fm text-[11px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-4 py-2.5 transition-colors disabled:opacity-40">
+        {isLoadingSkills ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+        {isLoadingSkills ? 'Finding skills...' : 'Suggest Skills with AI'}
+      </button>
+      {suggestedSkills.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {suggestedSkills.map((skill, i) => (
+            <button key={i} onClick={() => { addSkill(skill); setSuggestedSkills(prev => prev.filter(s => s !== skill)); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] fm text-xs font-bold uppercase tracking-wider text-[#141312] transition-all">
+              <Plus size={12} /> {skill}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+    </SectionAccordion>
+    ),
+    projects: data.showProjects ? (
+      <SectionAccordion id="projects" tools={makeSectionTools('projects')} icon={FolderOpen} title="Projects" description="Showcase your key projects" onRemove={toggleProjects}
+        action={<button onClick={addProject} aria-label="Add project" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
+        {(data.projects || []).map((proj) => (
+          <Card key={proj.id}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <Input label="Project Name" value={proj.name} onChange={(e: any) => updateProject(proj.id, { name: e.target.value })} />
+              <Input label="Link / URL" value={proj.link} onChange={(e: any) => updateProject(proj.id, { link: e.target.value })} />
+            </div>
+            <Input label="Description" value={proj.description} onChange={(e: any) => updateProject(proj.id, { description: e.target.value })} />
+            <button onClick={() => removeProject(proj.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
+              <Trash2 size={16} /> Delete Project
+            </button>
+          </Card>
+        ))}
+      </SectionAccordion>
+    ) : null,
+    certifications: data.showCertifications ? (
+      <SectionAccordion id="certifications" tools={makeSectionTools('certifications')} icon={Award} title="Certifications" description="Official recognitions" onRemove={toggleCertifications}
+        action={<button onClick={addCertification} aria-label="Add certification" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
+        {(data.certifications || []).map((cert) => (
+          <Card key={cert.id}>
+            <div className="grid grid-cols-1 gap-4 mb-4">
+              <Input label="Certification Name" value={cert.name} onChange={(e: any) => updateCertification(cert.id, { name: e.target.value })} />
+              <Input label="Issuer" value={cert.issuer} onChange={(e: any) => updateCertification(cert.id, { issuer: e.target.value })} />
+              <Input label="Date Earned" value={cert.date} onChange={(e: any) => updateCertification(cert.id, { date: e.target.value })} />
+            </div>
+            <button onClick={() => removeCertification(cert.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
+              <Trash2 size={16} /> Delete Certification
+            </button>
+          </Card>
+        ))}
+      </SectionAccordion>
+    ) : null,
+    references: data.showReferences ? (
+      <SectionAccordion id="references" tools={makeSectionTools('references')} icon={Users} title="References" description="People who vouch for you" onRemove={toggleReferences}
+        action={<button onClick={addReference} aria-label="Add reference" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
+        {(data.references || []).map((ref) => (
+          <Card key={ref.id}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <Input label="Name" value={ref.name} onChange={(e: any) => updateReference(ref.id, { name: e.target.value })} />
+              <Input label="Title" value={ref.title} onChange={(e: any) => updateReference(ref.id, { title: e.target.value })} />
+              <Input label="Company" value={ref.company} onChange={(e: any) => updateReference(ref.id, { company: e.target.value })} />
+              <Input label="Contact (Email/Phone)" value={ref.contact} onChange={(e: any) => updateReference(ref.id, { contact: e.target.value })} />
+            </div>
+            <button onClick={() => removeReference(ref.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
+              <Trash2 size={16} /> Delete Reference
+            </button>
+          </Card>
+        ))}
+      </SectionAccordion>
+    ) : null,
+    'cover-letter': (
+      <SectionAccordion id="cover-letter" tools={makeSectionTools('cover-letter', { hideEye: true })} icon={FileText} title="Cover Letter" description="Generate a tailored cover letter.">
+        <CoverLetterTab />
+      </SectionAccordion>
+    ),
+  };
 
   const SelectedTemplate = templates[data.templateId] || templates.Executive;
 
@@ -633,6 +1075,9 @@ export default function FreeCVApp() {
             <button onClick={() => setIsRewriterOpen(true)} className="flex items-center gap-2 px-4 py-2.5 border-2 border-[#141312] bg-white text-[#141312] hs-sm fm text-[11px] font-bold uppercase tracking-[0.16em] transition-all hover:bg-[#FF4326] hover:text-[#141312] hover:border-[#FF4326]">
               <RefreshCw size={14} /> AI Rewriter
             </button>
+            <button onClick={() => { setTailorResult(null); setTailorApplied({ summary: false, skills: [], bullets: [] }); setIsTailorOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 border-2 border-[#141312] bg-white text-[#141312] hs-sm fm text-[11px] font-bold uppercase tracking-[0.16em] transition-all hover:bg-[#2233FF] hover:text-white hover:border-[#2233FF]">
+              <Target size={14} /> Tailor to Job
+            </button>
           </div>
 
           {/* Template Gallery Button */}
@@ -674,305 +1119,33 @@ export default function FreeCVApp() {
           </Card>
           </SectionAccordion>
 
+          {/* Density control — persisted in resume state, applies to preview, PDF, DOCX */}
+          <SectionAccordion id="density" icon={Layout} title="Resume Density" description="Comfortable or compact spacing">
+          <Card>
+            <div className="grid grid-cols-2 gap-3">
+              {(['comfortable', 'compact'] as const).map((d) => (
+                <button key={d} type="button" onClick={() => setDensity(d)}
+                  className={cn("px-4 py-3 fm text-[11px] font-bold uppercase tracking-[0.16em] border-2 transition-all",
+                    data.density === d
+                      ? "bg-[#141312] text-[#E8E7E1] border-[#141312] hs-sm"
+                      : "bg-white text-[#141312]/60 border-[#141312]/30 hover:border-[#141312] hover:text-[#141312]")}>
+                  {d}
+                </button>
+              ))}
+            </div>
+            <p className="fm text-[10px] text-[#141312]/45 mt-3 leading-relaxed">Compact tightens spacing and type size across the on-screen preview, PDF and DOCX exports.</p>
+          </Card>
+          </SectionAccordion>
+
           <DragDropContext onDragEnd={onDragEnd}>
 
             <ImportResume />
 
-            {/* Personal Info */}
-            <SectionAccordion id="personal" icon={User} title="Personal Identity" description="Who are you and what do you do?" defaultOpen>
-            <Card>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input label="Full Name" value={data.personalInfo.fullName} onChange={(e: any) => updatePersonalInfo({ fullName: e.target.value })} placeholder="Jane Doe" />
-                <Input label="Job Title" value={data.personalInfo.jobTitle} onChange={(e: any) => updatePersonalInfo({ jobTitle: e.target.value })} placeholder="Senior Designer" />
-                <Input 
-                  label="Email" 
-                  value={data.personalInfo.email} 
-                  onChange={(e: any) => updatePersonalInfo({ email: e.target.value })} 
-                  onBlur={() => {
-                    if (isRealUserEmail(data.personalInfo?.email)) {
-                      fetch('/api/crm/optin', {
-                        method: 'POST',
-                        keepalive: true,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data),
-                      }).catch((e) => console.warn('Email blur sync error', e));
-                    }
-                  }}
-                />
-                <Input label="Phone" value={data.personalInfo.phone} onChange={(e: any) => updatePersonalInfo({ phone: e.target.value })} />
-                <Input label="Location" value={data.personalInfo.location} onChange={(e: any) => updatePersonalInfo({ location: e.target.value })} />
-                <Input label="Website/Portfolio" value={data.personalInfo.website} onChange={(e: any) => updatePersonalInfo({ website: e.target.value })} />
-                <div className="col-span-1 sm:col-span-2 mt-2 flex items-center justify-between p-4 border-2 border-[#141312] bg-white hs-sm">
-                  <div>
-                    <h4 className="fh font-bold text-sm text-[#141312]">Allow recruiters to find my profile</h4>
-                    <p className="fm text-[10px] uppercase tracking-[0.14em] text-[#141312]/55">Allow recruiters to find your resume on Cvyon.</p>
-                  </div>
-                  <button onClick={() => {
-                    const newShare = !data.consents.recruiterShare;
-                    const nextConsents = { ...data.consents, recruiterShare: newShare };
-                    setConsents(nextConsents);
-                    if (isRealUserEmail(data.personalInfo.email)) {
-                      fetch('/api/crm/optin', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...data, consents: nextConsents }),
-                      }).catch((e) => console.warn('Background consent sync error', e));
-                    }
-                  }}
-                    role="switch"
-                    aria-checked={data.consents.recruiterShare}
-                    aria-label="Allow recruiters to find my profile"
-                    className={cn("w-12 h-6 rounded-full transition-colors relative flex-shrink-0 border-2 border-[#141312]", data.consents.recruiterShare ? 'bg-[#2233FF]' : 'bg-gray-300')}>
-                    <div className={cn("absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform", data.consents.recruiterShare ? 'translate-x-6' : 'translate-x-1')} />
-                  </button>
-                </div>
-                <div className="col-span-1 sm:col-span-2 mt-2 flex justify-center sm:justify-start">
-                  <div className="relative group cursor-pointer">
-                    <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => updatePersonalInfo({ profilePicture: reader.result as string });
-                          reader.readAsDataURL(file);
-                        }
-                      }} />
-                    <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#141312]/40 hover:border-[#2233FF] bg-white flex flex-col items-center justify-center overflow-hidden transition-all">
-                      {data.personalInfo.profilePicture ? (
-                        <img src={data.personalInfo.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <>
-                          <Upload size={24} className='text-[#141312]/40 mb-1' />
-                          <span className="fm text-[9px] font-bold uppercase tracking-wider text-center px-2 text-[#141312]/40">Add Photo</span>
-                        </>
-                      )}
-                    </div>
-                    {data.personalInfo.profilePicture && (
-                      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); updatePersonalInfo({ profilePicture: undefined }); }}
-                        className="absolute -top-2 -right-2 bg-[#D8362A] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-sm hover:bg-[#141312]">
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">Professional Summary</label>
-                  <button onClick={handleGenerateSummary} disabled={isGeneratingSummary}
-                    className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50">
-                    {isGeneratingSummary ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    {isGeneratingSummary ? 'Writing...' : 'Generate with AI'}
-                  </button>
-                </div>
-                <textarea
-                  className="mt-1.5 w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] min-h-[100px] resize-none"
-                  value={data.summary} onChange={(e) => updateSummary(e.target.value)} />
-              </div>
-            </Card>
-            </SectionAccordion>
-
-            {/* Work Experience */}
-            <SectionAccordion id="experience" icon={Briefcase} title="Professional Experience" description="Showcase your career milestones"
-              action={<button onClick={addExperience} aria-label="Add experience" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
-            <Droppable droppableId="experience" type="experience">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {data.experience.map((exp, index) => (
-                    <Draggable key={exp.id} draggableId={exp.id} index={index}>
-                      {(provided) => (
-                        <div ref={provided.innerRef} {...provided.draggableProps} className="mb-6 relative group">
-                          <div {...provided.dragHandleProps} className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-[#141312]/30 hover:text-[#141312] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                            <GripVertical size={20} />
-                          </div>
-                          <Card className="mb-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                              <Input label="Company" value={exp.company} onChange={(e: any) => updateExperience(exp.id, { company: e.target.value })} />
-                              <Input label="Role" value={exp.role} onChange={(e: any) => updateExperience(exp.id, { role: e.target.value })} />
-                              <Input label="Start Date" value={exp.startDate} onChange={(e: any) => updateExperience(exp.id, { startDate: e.target.value })} />
-                              <Input label="End Date" value={exp.endDate} onChange={(e: any) => updateExperience(exp.id, { endDate: e.target.value })} />
-                            </div>
-                            <div className="mb-2">
-                              <div className="flex justify-between items-center mb-1.5">
-                                <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">Accomplishments (New line per point)</label>
-                                <div className="flex gap-2">
-                                  <button onClick={() => handlePolishExperience(exp.id, exp.description)} disabled={polishingExpId === exp.id || !exp.description.trim()}
-                                    className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#2233FF] border-2 border-[#2233FF] hover:bg-[#2233FF] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50" title="Polish this text with AI">
-                                    {polishingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                                    {polishingExpId === exp.id ? 'Polishing...' : 'Polish'}
-                                  </button>
-                                  <button onClick={() => handleGenerateExperience(exp.id, exp.role, exp.company)} disabled={generatingExpId === exp.id}
-                                    className="flex items-center gap-1.5 fm text-[10px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-2.5 py-1 transition-colors disabled:opacity-50">
-                                    {generatingExpId === exp.id ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                                    {generatingExpId === exp.id ? 'Writing...' : 'Generate with AI'}
-                                  </button>
-                                </div>
-                              </div>
-                              <textarea
-                                className="w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] min-h-[100px] resize-none"
-                                value={exp.description} onChange={(e: any) => updateExperience(exp.id, { description: e.target.value })} />
-                            </div>
-                            <button onClick={() => removeExperience(exp.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
-                              <Trash2 size={16} /> Delete Experience
-                            </button>
-                          </Card>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-            </SectionAccordion>
-
-            {/* Education */}
-            <SectionAccordion id="education" icon={GraduationCap} title="Education" description="Where did you learn your craft?"
-              action={<button onClick={addEducation} aria-label="Add education" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
-            <Droppable droppableId="education" type="education">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {data.education.map((edu, index) => (
-                    <Draggable key={edu.id} draggableId={edu.id} index={index}>
-                      {(provided) => (
-                        <div ref={provided.innerRef} {...provided.draggableProps} className="mb-6 relative group">
-                          <div {...provided.dragHandleProps} className="absolute left-[-16px] top-1/2 -translate-y-1/2 p-2 text-[#141312]/30 hover:text-[#141312] opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                            <GripVertical size={20} />
-                          </div>
-                          <Card className="mb-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div className="col-span-1 sm:col-span-2">
-                                <Input label="School/University" value={edu.school} onChange={(e: any) => updateEducation(edu.id, { school: e.target.value })} />
-                              </div>
-                              <Input label="Degree" value={edu.degree} onChange={(e: any) => updateEducation(edu.id, { degree: e.target.value })} />
-                              <Input label="Graduation Year" value={edu.graduationYear} onChange={(e: any) => updateEducation(edu.id, { graduationYear: e.target.value })} />
-                            </div>
-                            <button onClick={() => removeEducation(edu.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
-                              <Trash2 size={16} /> Delete Education
-                            </button>
-                          </Card>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-            </SectionAccordion>
-
-            {/* Skills */}
-            <SectionAccordion id="skills" icon={Wrench} title="Skill Arsenal" description="What tools do you master?">
-            <Card>
-              <form onSubmit={handleAddSkill} className="flex gap-2 mb-6">
-                <input
-                  className="flex-1 bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] placeholder:text-[#141312]/35 outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF]"
-                  placeholder="Add a skill (e.g. TypeScript, AWS)" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} />
-                <button type="submit" className="bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs px-6 py-3 fm text-sm font-bold uppercase tracking-wider">Add</button>
-              </form>
-              <Droppable droppableId="skills" type="skills" direction="horizontal">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} className="flex flex-wrap gap-3">
-                    {data.skills.map((s, index) => (
-                      <Draggable key={s.id} draggableId={s.id} index={index}>
-                        {(provided) => (
-                          <div ref={provided.innerRef} {...provided.draggableProps} className="relative flex items-center">
-                            <div {...provided.dragHandleProps} className="absolute left-[-8px] text-[#141312]/30 hover:text-[#141312] cursor-grab active:cursor-grabbing z-10">
-                              <GripVertical size={14} />
-                            </div>
-                            <span className="group flex items-center gap-2 bg-white border-2 border-[#141312] pl-6 pr-2 py-2 fm text-xs font-bold uppercase tracking-wider text-[#141312] transition-all">
-                              {s.name}
-                              <button onClick={() => removeSkill(s.id)} className="p-1 rounded-full text-[#141312]/40 hover:text-[#D8362A] hover:bg-[#D8362A]/10 transition-colors">
-                                <X size={14} />
-                              </button>
-                            </span>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </Card>
-
-            {/* Smart Skill Suggestions */}
-            <div className="mb-6">
-              <button onClick={handleSuggestSkills} disabled={isLoadingSkills || !data.personalInfo.jobTitle}
-                className="flex items-center gap-2 fm text-[11px] font-bold uppercase tracking-widest text-[#FF4326] border-2 border-[#FF4326] hover:bg-[#FF4326] hover:text-white px-4 py-2.5 transition-colors disabled:opacity-40">
-                {isLoadingSkills ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {isLoadingSkills ? 'Finding skills...' : 'Suggest Skills with AI'}
-              </button>
-              {suggestedSkills.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {suggestedSkills.map((skill, i) => (
-                    <button key={i} onClick={() => { addSkill(skill); setSuggestedSkills(prev => prev.filter(s => s !== skill)); }}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] fm text-xs font-bold uppercase tracking-wider text-[#141312] transition-all">
-                      <Plus size={12} /> {skill}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            </SectionAccordion>
-
-            {/* Projects */}
-            {data.showProjects && (
-              <SectionAccordion id="projects" icon={FolderOpen} title="Projects" description="Showcase your key projects" onRemove={toggleProjects}
-                action={<button onClick={addProject} aria-label="Add project" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
-                {(data.projects || []).map((proj) => (
-                  <Card key={proj.id}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <Input label="Project Name" value={proj.name} onChange={(e: any) => updateProject(proj.id, { name: e.target.value })} />
-                      <Input label="Link / URL" value={proj.link} onChange={(e: any) => updateProject(proj.id, { link: e.target.value })} />
-                    </div>
-                    <Input label="Description" value={proj.description} onChange={(e: any) => updateProject(proj.id, { description: e.target.value })} />
-                    <button onClick={() => removeProject(proj.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
-                      <Trash2 size={16} /> Delete Project
-                    </button>
-                  </Card>
-                ))}
-              </SectionAccordion>
-            )}
-
-            {/* Certifications */}
-            {data.showCertifications && (
-              <SectionAccordion id="certifications" icon={Award} title="Certifications" description="Official recognitions" onRemove={toggleCertifications}
-                action={<button onClick={addCertification} aria-label="Add certification" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
-                {(data.certifications || []).map((cert) => (
-                  <Card key={cert.id}>
-                    <div className="grid grid-cols-1 gap-4 mb-4">
-                      <Input label="Certification Name" value={cert.name} onChange={(e: any) => updateCertification(cert.id, { name: e.target.value })} />
-                      <Input label="Issuer" value={cert.issuer} onChange={(e: any) => updateCertification(cert.id, { issuer: e.target.value })} />
-                      <Input label="Date Earned" value={cert.date} onChange={(e: any) => updateCertification(cert.id, { date: e.target.value })} />
-                    </div>
-                    <button onClick={() => removeCertification(cert.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
-                      <Trash2 size={16} /> Delete Certification
-                    </button>
-                  </Card>
-                ))}
-              </SectionAccordion>
-            )}
-
-            {/* References */}
-            {data.showReferences && (
-              <SectionAccordion id="references" icon={Users} title="References" description="People who vouch for you" onRemove={toggleReferences}
-                action={<button onClick={addReference} aria-label="Add reference" className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] transition-colors shrink-0"><Plus size={18} /></button>}>
-                {(data.references || []).map((ref) => (
-                  <Card key={ref.id}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <Input label="Name" value={ref.name} onChange={(e: any) => updateReference(ref.id, { name: e.target.value })} />
-                      <Input label="Title" value={ref.title} onChange={(e: any) => updateReference(ref.id, { title: e.target.value })} />
-                      <Input label="Company" value={ref.company} onChange={(e: any) => updateReference(ref.id, { company: e.target.value })} />
-                      <Input label="Contact (Email/Phone)" value={ref.contact} onChange={(e: any) => updateReference(ref.id, { contact: e.target.value })} />
-                    </div>
-                    <button onClick={() => removeReference(ref.id)} className="w-full mt-6 bg-white text-[#D8362A] border-2 border-[#D8362A] py-3 fm text-[11px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#D8362A] hover:text-white transition-colors">
-                      <Trash2 size={16} /> Delete Reference
-                    </button>
-                  </Card>
-                ))}
-              </SectionAccordion>
-            )}
+            {/* Editor sections — rendered in the user's chosen order.
+                Visibility toggles strip sections from the output via previewData. */}
+            {editorSectionIds.map((id) => (
+              <React.Fragment key={id}>{sectionBlocks[id]}</React.Fragment>
+            ))}
 
             {/* Add New Sections */}
             <div className="flex flex-col sm:flex-row gap-4 mt-12 pt-8 border-t-2 border-[#141312]/20 flex-wrap">
@@ -1048,11 +1221,6 @@ export default function FreeCVApp() {
               </button>
             </div>
 
-            {/* Cover Letter Generator */}
-            <SectionAccordion id="cover-letter" icon={FileText} title="Cover Letter" description="Generate a tailored cover letter.">
-              <CoverLetterTab />
-            </SectionAccordion>
-
             {/* Newsletter */}
             <div className="mt-16 pt-8 border-t-2 border-[#141312]/20">
               <NewsletterCapture source="main_editor" />
@@ -1117,7 +1285,7 @@ export default function FreeCVApp() {
             </button>
             <PDFDownloadButton
               TemplateComponent={SelectedTemplate}
-              data={data}
+              data={previewData}
               themeColor={data.theme?.color || '#2563eb'}
               onDownloadComplete={() => setIsJobsModalOpen(true)}
               className="flex-1 bg-[#141312] text-[#E8E7E1] border-[3px] border-[#141312] rounded-none hover:bg-[#FF4326] hover:text-[#141312] hs py-3 fm text-[10px] font-bold uppercase tracking-widest flex justify-center items-center gap-1 active:translate-y-[2px] active:shadow-none transition-all"
@@ -1139,7 +1307,7 @@ export default function FreeCVApp() {
             style={{ transform: isPreviewOpen && mobilePreviewMetrics.scale !== 1 ? `scale(${mobilePreviewMetrics.scale})` : undefined, '--theme-color': data.theme?.color || '#2563eb' } as React.CSSProperties}
           >
             <ErrorBoundary fallbackTitle="Resume Preview Error" fallbackMessage="Could not render the current template. Try selecting another template or verifying your text inputs.">
-              <HTMLPreview Tmpl={htmlTemplates[data.templateId as keyof typeof htmlTemplates]} data={data} />
+              <HTMLPreview Tmpl={htmlTemplates[data.templateId as keyof typeof htmlTemplates]} data={previewData} />
             </ErrorBoundary>
           </div>
         </div>
@@ -1297,6 +1465,97 @@ export default function FreeCVApp() {
         </div>
       )}
 
+      {/* TAILOR TO JOB MODAL */}
+      {isTailorOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto print:hidden">
+          <div className="min-h-screen px-4 flex items-center justify-center py-10">
+            <div className="rounded-none border-[3px] border-[#141312] hs max-w-2xl w-full p-6 sm:p-8 flex flex-col relative bg-white text-[#141312]">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="fd text-2xl font-black leading-tight flex items-center gap-2"><Target className="text-[#2233FF]" /> Tailor to Job</h2>
+                <button onClick={() => setIsTailorOpen(false)} className="p-2 bg-white border-2 border-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1] rounded-none transition-colors"><X size={20} /></button>
+              </div>
+              <p className="text-sm mb-6 text-[#141312]/65">Paste the job description and AI will rewrite your summary, suggest keyword-aligned skills, and sharpen your experience bullets — using only what's already on your resume. Nothing is invented.</p>
+              <label className="fm text-[10px] font-bold uppercase tracking-[0.2em] mb-2 block text-[#141312]/60">Job Description</label>
+              <textarea
+                value={tailorJobDesc}
+                onChange={(e) => setTailorJobDesc(e.target.value)}
+                placeholder="Paste the job posting here..."
+                rows={7}
+                maxLength={15000}
+                className="w-full bg-white border-2 border-[#141312] rounded-none px-4 py-3 text-sm text-[#141312] outline-none transition-shadow focus:shadow-[3px_3px_0_#2233FF] resize-y mb-4"
+              />
+              <button onClick={handleTailor} disabled={isTailorLoading || !tailorJobDesc.trim()}
+                className="w-full bg-[#2233FF] hover:bg-[#141312] disabled:opacity-50 text-[#E8E7E1] border-[3px] border-[#141312] hs py-4 fm font-bold uppercase tracking-widest text-sm transition-all flex justify-center items-center gap-2 mb-6">
+                {isTailorLoading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                {isTailorLoading ? 'Tailoring Resume...' : 'Tailor My Resume'}
+              </button>
+
+              {tailorResult && (
+                <div className="space-y-6">
+                  {/* Rewritten summary */}
+                  {tailorResult.summary && (
+                    <div className="border-2 border-[#141312] bg-white hs-sm p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="fm text-[11px] font-bold uppercase tracking-[0.2em] text-[#141312]/60">Rewritten Summary</h3>
+                        <button onClick={applyTailorSummary} disabled={tailorApplied.summary}
+                          className="fm text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border-2 border-[#0E8A4B] text-[#0E8A4B] hover:bg-[#0E8A4B] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent disabled:hover:text-[#0E8A4B]">
+                          {tailorApplied.summary ? 'Applied ✓' : 'Apply'}
+                        </button>
+                      </div>
+                      <p className="text-sm text-[#141312]/80 leading-relaxed whitespace-pre-wrap">{tailorResult.summary}</p>
+                    </div>
+                  )}
+
+                  {/* Skills to add */}
+                  {Array.isArray(tailorResult.skillsToAdd) && tailorResult.skillsToAdd.length > 0 && (
+                    <div className="border-2 border-[#141312] bg-white hs-sm p-5">
+                      <h3 className="fm text-[11px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 mb-3">Skills to Add</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {tailorResult.skillsToAdd.map((skill: string) => {
+                          const applied = tailorApplied.skills.includes(skill);
+                          return (
+                            <button key={skill} onClick={() => !applied && applyTailorSkill(skill)} disabled={applied}
+                              className={cn("fm text-[11px] font-bold px-3 py-1.5 border-2 transition-colors",
+                                applied ? "border-[#0E8A4B] bg-[#0E8A4B]/10 text-[#0E8A4B]/60 cursor-default"
+                                        : "border-[#141312] bg-white text-[#141312] hover:bg-[#141312] hover:text-[#E8E7E1]")}>
+                              {applied ? `${skill} ✓` : `+ ${skill}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Improved bullets */}
+                  {Array.isArray(tailorResult.bulletImprovements) && tailorResult.bulletImprovements.length > 0 && (
+                    <div className="border-2 border-[#141312] bg-white hs-sm p-5">
+                      <h3 className="fm text-[11px] font-bold uppercase tracking-[0.2em] text-[#141312]/60 mb-3">Sharpened Experience Bullets</h3>
+                      <div className="space-y-4">
+                        {tailorResult.bulletImprovements.map((b: any, i: number) => {
+                          const applied = tailorApplied.bullets.includes(i);
+                          const exp = data.experience.find(e => e.id === b.experienceId);
+                          return (
+                            <div key={i} className="border-t-2 border-[#141312]/10 pt-4 first:border-t-0 first:pt-0">
+                              {exp && <p className="fm text-[10px] font-bold uppercase tracking-widest text-[#141312]/45 mb-2">{exp.role} @ {exp.company}</p>}
+                              <p className="text-xs text-[#141312]/50 line-through mb-1.5">{b.original}</p>
+                              <p className="text-sm text-[#141312]/85 leading-relaxed mb-3">{b.improved}</p>
+                              <button onClick={() => applyTailorBullet(i)} disabled={applied}
+                                className="fm text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 border-2 border-[#0E8A4B] text-[#0E8A4B] hover:bg-[#0E8A4B] hover:text-white transition-colors disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent disabled:hover:text-[#0E8A4B]">
+                                {applied ? 'Applied ✓' : 'Apply Bullet'}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DOWNLOAD OPTIONS MODAL (MOBILE) */}
       {isDownloadModalOpen && (
         <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-end justify-center print:hidden lg:hidden">
@@ -1329,6 +1588,46 @@ export default function FreeCVApp() {
         }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #14131233; border-radius: 0; }
+        /* Compact density: tightens spacing + type on the resume output.
+           Applied as a class on the template stage, so it flows through the
+           on-screen preview, print/PDF (same DOM) and the DOCX capture path
+           (which inlines computed styles). */
+        .density-compact .p-\\[0\\.75in\\] { padding: 0.45in !important; }
+        .density-compact .mb-8 { margin-bottom: 1rem !important; }
+        .density-compact .mb-6 { margin-bottom: 0.75rem !important; }
+        .density-compact .mb-5 { margin-bottom: 0.65rem !important; }
+        .density-compact .mb-4 { margin-bottom: 0.55rem !important; }
+        .density-compact .mb-3 { margin-bottom: 0.45rem !important; }
+        .density-compact .mb-2 { margin-bottom: 0.35rem !important; }
+        .density-compact .mb-1 { margin-bottom: 0.2rem !important; }
+        .density-compact .mt-8 { margin-top: 1rem !important; }
+        .density-compact .mt-6 { margin-top: 0.75rem !important; }
+        .density-compact .mt-4 { margin-top: 0.55rem !important; }
+        .density-compact .pb-8 { padding-bottom: 1rem !important; }
+        .density-compact .pt-8 { padding-top: 1rem !important; }
+        .density-compact .pl-6 { padding-left: 0.85rem !important; }
+        .density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.9rem !important; }
+        .density-compact .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem !important; }
+        .density-compact .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.6rem !important; }
+        .density-compact .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.45rem !important; }
+        .density-compact .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.35rem !important; }
+        .density-compact .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.2rem !important; }
+        .density-compact .gap-12 { gap: 1.5rem !important; }
+        .density-compact .gap-8 { gap: 1.1rem !important; }
+        .density-compact .gap-6 { gap: 0.9rem !important; }
+        .density-compact .gap-4 { gap: 0.6rem !important; }
+        .density-compact .gap-3 { gap: 0.45rem !important; }
+        .density-compact .gap-2 { gap: 0.35rem !important; }
+        .density-compact .text-5xl { font-size: 2.35rem !important; }
+        .density-compact .text-4xl { font-size: 1.85rem !important; }
+        .density-compact .text-3xl { font-size: 1.45rem !important; }
+        .density-compact .text-2xl { font-size: 1.25rem !important; }
+        .density-compact .text-xl { font-size: 1.02rem !important; }
+        .density-compact .text-lg { font-size: 0.92rem !important; }
+        .density-compact .text-base { font-size: 0.83rem !important; }
+        .density-compact .text-sm { font-size: 0.76rem !important; }
+        .density-compact .text-xs { font-size: 0.68rem !important; }
+        .density-compact .leading-relaxed { line-height: 1.4 !important; }
       `}} />
     </main>
   );

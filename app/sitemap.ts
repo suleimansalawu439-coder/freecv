@@ -6,6 +6,10 @@ import { jobTitleSeoEntries } from '@/lib/job-title-seo'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
 
+// Render on every request so newly published blog posts appear in the
+// sitemap immediately instead of waiting for the next full redeploy.
+export const dynamic = 'force-dynamic';
+
 const staticRoutes: { path: string; priority: number }[] = [
   { path: '', priority: 1 },
   { path: '/build', priority: 0.9 },
@@ -30,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: r.priority,
   }));
 
-  // Per-template SEO landing pages, derived from the data file (43 slugs).
+  // Per-template SEO landing pages, derived from the data file (180 slugs).
   const templateSlugs = templateSeoEntries.map((e) => e.slug);
   for (const slug of templateSlugs) {
     routes.push({

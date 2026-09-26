@@ -19,7 +19,7 @@ export const useResumeStore = create<StoreState>()(
       }),
       {
         name: 'cvyon-storage',
-        version: 2,
+        version: 3,
         migrate: (persistedState: any, version: number) => {
           if (!persistedState || typeof persistedState !== 'object') {
             return persistedState;
@@ -44,6 +44,21 @@ export const useResumeStore = create<StoreState>()(
                 theme: { ...initialData.theme, ...(data.theme || {}) },
               },
             };
+          }
+          // v3: section visibility/order + density. Missing keys default to
+          // visible / default order / comfortable — never clobber user data.
+          if (version < 3) {
+            const data = persistedState.data || {};
+            if (!data.sectionVisibility || typeof data.sectionVisibility !== 'object') {
+              data.sectionVisibility = {};
+            }
+            if (!Array.isArray(data.sectionOrder) || data.sectionOrder.length === 0) {
+              data.sectionOrder = [...initialData.sectionOrder];
+            }
+            if (data.density !== 'compact' && data.density !== 'comfortable') {
+              data.density = 'comfortable';
+            }
+            return { ...persistedState, data };
           }
           return persistedState;
         },
