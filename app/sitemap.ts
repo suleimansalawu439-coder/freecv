@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase'
 import { templateSeoEntries } from '@/lib/template-seo'
+import { compareSeoEntries } from '@/lib/compare-seo'
+import { jobTitleSeoEntries } from '@/lib/job-title-seo'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cvyon.com';
 
@@ -33,6 +35,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const slug of templateSlugs) {
     routes.push({
       url: `${baseUrl}/templates/${slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    });
+  }
+
+  // Free-alternative comparison pages (3 slugs).
+  for (const slug of compareSeoEntries.map((e) => e.slug)) {
+    routes.push({
+      url: `${baseUrl}/alternatives/${slug}`,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    });
+  }
+
+  // Job-title resume guide pages (50 slugs).
+  for (const slug of jobTitleSeoEntries.map((e) => e.slug)) {
+    routes.push({
+      url: `${baseUrl}/resume-for/${slug}`,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     });
