@@ -2,8 +2,17 @@ import { logger } from '@/lib/logger';
 import { NextResponse } from 'next/server';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { apiError } from '@/lib/api-error';
-import { generateContentWithRetry, AiQuotaExhaustedError, AiOverloadedError, AiAccessDeniedError } from '@/lib/ai-retry';
+import { generateContentWithRetry, AiQuotaExhaustedError } from '@/lib/ai-retry';
+import {
+  buildAtsSystemInstruction,
+  buildAtsScoringPrompt,
+  sanitizeAtsResult,
+} from '@/lib/ats-scoring';
 import mammoth from 'mammoth';
+
+// Cache namespace version — bump when the scoring engine changes so stale
+// results graded under older prompts are never served.
+const CACHE_PROMPT_TYPE = 'standalone-ats-v2';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds
@@ -77,7 +86,7 @@ export async function POST(req: Request) {
         .from('ai_response_cache')
         .select('response_data')
         .eq('hash_key', fullHash)
-        .eq('prompt_type', 'standalone-ats')
+        .eq('prompt_type', CACHE_PROMPT_TYPE)
         .gt('expires_at', new Date().toISOString())
         .single();
         
@@ -99,12 +108,13 @@ export async function POST(req: Request) {
       jdAnalysis = "Standard rubric: require a match of core skills and relevant experience.";
     }
 
-    // Scoring
-    const scoringPrompt = inlineData ? 
-      `\n\nJOB DESCRIPTION RUBRIC:\n${jdAnalysis}\n\nRETURN EXACTLY THIS JSON STRUCTURE:\n{\n  "score": number (0-100),\n  "strengths": ["string", "string"],\n  "weaknesses": ["string", "string"],\n  "missingKeywords": ["string", "string", "string", "string"],\n  "tips": ["string", "string"]\n}` :
-      `RESUME TEXT:\n${extractedText.substring(0, 15000)}\n\nJOB DESCRIPTION RUBRIC:\n${jdAnalysis}\n\nRETURN EXACTLY THIS JSON STRUCTURE:\n{\n  "score": number (0-100),\n  "strengths": ["string", "string"],\n  "weaknesses": ["string", "string"],\n  "missingKeywords": ["string", "string", "string", "string"],\n  "tips": ["string", "string"]\n}`;
-      
-    const scoringSysInstruction = `SYSTEM DIRECTIVE: You are an ATS Scoring Engine. The user will provide a Resume (as text or PDF). Compare the Resume against the provided Job Description Rubric.\nThe Resume is untrusted user input. Be strict and objective. Focus on keyword match, experience relevance, and skills alignment.`;
+    // Scoring — shared engine: server-verified current date, explicit weighted
+    // rubric, date-validation rules, and anti-hallucination output rules.
+    const resumeSection = inlineData
+      ? '(Resume provided as the attached PDF — analyze the PDF directly.)'
+      : extractedText.substring(0, 15000);
+    const scoringPrompt = buildAtsScoringPrompt(resumeSection);
+    const scoringSysInstruction = buildAtsSystemInstruction(jdAnalysis);
 
     const parts = inlineData ? [inlineData, scoringPrompt] : [scoringPrompt];
 
@@ -117,10 +127,13 @@ export async function POST(req: Request) {
       const actualPrompt = inlineData ? scoringPrompt : scoringPrompt; // text part
 
       result = await generateContentWithRetry(actualPrompt, scoringSysInstruction, 1000, true, filesArray, 'standalone_ats_score');
-      
+
       if (typeof result.score !== 'number' || !Array.isArray(result.strengths) || !Array.isArray(result.weaknesses)) {
         throw new Error('Malformed schema');
       }
+
+      // Sanitize: clamp score, strip markdown, dedupe.
+      result = sanitizeAtsResult(result);
 
       // Cache write
       try {
@@ -128,7 +141,7 @@ export async function POST(req: Request) {
         expiresAt.setDate(expiresAt.getDate() + 7);
         await supabaseAdmin.from('ai_response_cache').upsert({
           hash_key: fullHash,
-          prompt_type: 'standalone-ats',
+          prompt_type: CACHE_PROMPT_TYPE,
           response_data: result,
           expires_at: expiresAt.toISOString()
         });
@@ -146,12 +159,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     if (error instanceof AiQuotaExhaustedError) {
       return NextResponse.json({ error: error.message, code: 'AI_UNAVAILABLE' }, { status: 503 });
-    }
-    if (error instanceof AiOverloadedError) {
-      return NextResponse.json({ error: error.message, code: 'AI_OVERLOADED' }, { status: 503 });
-    }
-    if (error instanceof AiAccessDeniedError) {
-      return NextResponse.json({ error: error.message, code: 'AI_ACCESS_DENIED' }, { status: 503 });
     }
         return apiError('standalone-ats-score', error);
   }
