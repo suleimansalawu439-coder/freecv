@@ -126,7 +126,7 @@ export async function POST(req: Request) {
       const filesArray = inlineData ? [inlineData] : [];
       const actualPrompt = inlineData ? scoringPrompt : scoringPrompt; // text part
 
-      result = await generateContentWithRetry(actualPrompt, scoringSysInstruction, 2000, true, filesArray, 'standalone_ats_score');
+      result = await generateContentWithRetry(actualPrompt, scoringSysInstruction, 4000, true, filesArray, 'standalone_ats_score');
 
       if (typeof result.score !== 'number' || !Array.isArray(result.strengths) || !Array.isArray(result.weaknesses)) {
         throw new Error('Malformed schema');
@@ -152,8 +152,17 @@ export async function POST(req: Request) {
       return NextResponse.json(result);
     } catch (parseError) {
       if (parseError instanceof AiQuotaExhaustedError) throw parseError;
+      const rawMsg = parseError instanceof Error ? parseError.message : String(parseError);
       logger.error('standalone-ats-score', 'Failed to parse JSON from AI response:', parseError);
-      return NextResponse.json({ error: 'AI returned an unexpected response. Please try again.' }, { status: 500 });
+      // PII-safe diagnostic: failure kind + model response length only (no resume content).
+      const lenMatch = rawMsg.match(/response length (\d+)/);
+      const detail = rawMsg.startsWith('Malformed schema')
+        ? 'malformed_schema'
+        : `parse_failed${lenMatch ? `:response_length_${lenMatch[1]}` : ''}`;
+      return NextResponse.json(
+        { error: 'AI returned an unexpected response. Please try again.', code: 'AI_PARSE_ERROR', detail },
+        { status: 500 }
+      );
     }
 
   } catch (error: any) {

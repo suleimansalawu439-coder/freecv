@@ -89,7 +89,7 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
 
     let result: any;
     try {
-      result = await generateContentWithRetry(scoringPrompt, scoringSysInstruction, 2000, true, [], 'ats_score');
+      result = await generateContentWithRetry(scoringPrompt, scoringSysInstruction, 4000, true, [], 'ats_score');
 
       if (typeof result.score !== 'number' || !Array.isArray(result.strengths) || !Array.isArray(result.weaknesses)) {
         throw new Error('Malformed schema');
@@ -113,8 +113,17 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
       }
     } catch (parseError) {
       if (parseError instanceof AiQuotaExhaustedError) throw parseError;
+      const rawMsg = parseError instanceof Error ? parseError.message : String(parseError);
       logger.error('ats-score', 'Failed to parse JSON from AI response after retries:', parseError);
-      return NextResponse.json({ error: 'AI returned an unexpected response. Please try again.' }, { status: 500 });
+      // PII-safe diagnostic: failure kind + model response length only (no resume content).
+      const lenMatch = rawMsg.match(/response length (\d+)/);
+      const detail = rawMsg.startsWith('Malformed schema')
+        ? 'malformed_schema'
+        : `parse_failed${lenMatch ? `:response_length_${lenMatch[1]}` : ''}`;
+      return NextResponse.json(
+        { error: 'AI returned an unexpected response. Please try again.', code: 'AI_PARSE_ERROR', detail },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(result);
