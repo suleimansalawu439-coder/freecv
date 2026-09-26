@@ -126,7 +126,7 @@ export async function POST(req: Request) {
       const filesArray = inlineData ? [inlineData] : [];
       const actualPrompt = inlineData ? scoringPrompt : scoringPrompt; // text part
 
-      result = await generateContentWithRetry(actualPrompt, scoringSysInstruction, 1000, true, filesArray, 'standalone_ats_score');
+      result = await generateContentWithRetry(actualPrompt, scoringSysInstruction, 2000, true, filesArray, 'standalone_ats_score');
 
       if (typeof result.score !== 'number' || !Array.isArray(result.strengths) || !Array.isArray(result.weaknesses)) {
         throw new Error('Malformed schema');

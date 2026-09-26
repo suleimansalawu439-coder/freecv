@@ -89,7 +89,7 @@ Skills: ${(resumeData.skills || []).map((s:any) => s.name).join(', ')}
 
     let result: any;
     try {
-      result = await generateContentWithRetry(scoringPrompt, scoringSysInstruction, 1000, true, [], 'ats_score');
+      result = await generateContentWithRetry(scoringPrompt, scoringSysInstruction, 2000, true, [], 'ats_score');
 
       if (typeof result.score !== 'number' || !Array.isArray(result.strengths) || !Array.isArray(result.weaknesses)) {
         throw new Error('Malformed schema');

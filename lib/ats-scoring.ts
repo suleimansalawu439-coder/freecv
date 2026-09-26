@@ -41,7 +41,7 @@ DATE VALIDATION RULES (follow exactly):
 4. Date FORMAT consistency: only flag truly ambiguous or contradictory formats (e.g. "13/25/2024", or mixing day-first and month-first in ways that change meaning). Do NOT flag harmless variation like "Aug 2024" vs "August 2024" vs "08/2024".
 5. Never invent dates the resume does not contain.
 
-SCORING RUBRIC — derive the score by adding the five components (max 100). Show your component reasoning internally, then return only the JSON:
+SCORING RUBRIC — score the resume by silently adding the five components below (max 100), then return only the JSON:
 1. Keyword & skills match vs the JD rubric: 0–35 pts. Count required skills/terms from the rubric that genuinely appear (synonyms count: "managed projects" satisfies "project management").
 2. Experience relevance & depth: 0–25 pts. Years in relevant roles, seniority fit, recency of relevant work.
 3. Quantified achievements: 0–15 pts. Bullets with numbers, outcomes, scale ("cut ramp time by 2 weeks", "40% growth").
@@ -53,6 +53,7 @@ OUTPUT RULES:
 - missingKeywords: ONLY terms from the JD rubric that are genuinely absent from the resume. Verify each one against the resume text including synonyms before listing. Never list a keyword that appears in the resume.
 - tips: concrete, actionable, ordered by impact. Each tip must be doable by editing the resume.
 - strengths: 2–4 items. weaknesses: 2–4 items. missingKeywords: 0–6 items. tips: 2–4 items.
+- Keep every item to one concise sentence (under 25 words).
 - Never invent facts about the candidate. Never penalize for information simply not shown (e.g. do not assume a missing photo, age, or salary is a flaw).
 - Be strict but fair: a strong resume against a matching JD should score 80+. Do not compress all scores into the 60–75 band.
 
